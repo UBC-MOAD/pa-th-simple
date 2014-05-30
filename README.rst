@@ -5,7 +5,7 @@ CCAR Pa-Th Model
 
 This repo contains code and documentation for the off-line Pa-Th model developed for use with the CCAR models of the Arctic and Associated Basins.
 
-Documentation for the model is included in the ``docs/`` directory and is rendered at http://ccarmodeling-pa-th.readthedocs.org/.
+Documentation for the model is included in the ``docs/`` directory and is rendered at http://ccar-modeling-pa-th.readthedocs.org/.
 
 
 License
