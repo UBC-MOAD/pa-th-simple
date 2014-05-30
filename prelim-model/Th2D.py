@@ -7,7 +7,12 @@
 # where S is the sinking velocity
 #
 # M. Zingale (2013-03-12)
-
+from __future__ import division
+import numpy
+import pylab
+import math
+import matplotlib.pyplot as plt
+from math import pi
 
 class FDgrid:
 
@@ -184,7 +189,8 @@ def adflow(T, V):
     # plot the velocity field
 
     # define the velocity field with fewer points for plotting
-    # change sign of uz, because python doesn't understand that 'down' is the positive direction
+    # change sign of uz, because python doesn't understand that
+    # 'down' is the positive direction
     N = 10
     a = g.xmax
     b = g.zmax
@@ -269,6 +275,5 @@ def adflow(T, V):
     log_ha = open('ha_'+str(T)+'*tmax_'+str(V)+'*U.log', 'w')
     print>>log_ga, g.a
     print>>log_ha, h.a
-    log_file.close()
     
     return meshinit, meshTh
