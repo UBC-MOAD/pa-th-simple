@@ -22,7 +22,7 @@ These notebooks and files are copyright 2014
 by the CCAR-Modeling Project Contributors
 and their respective institutions: The University of Alberta,
 The University of British Columbia,
-and the Government of Canada.
+and Fisheries and Oceans Canada.
 
 They are licensed under the Apache License, Version 2.0.
 http://www.apache.org/licenses/LICENSE-2.0

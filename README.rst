@@ -11,7 +11,7 @@ Documentation for the model is included in the ``docs/`` directory and is render
 License
 =======
 
-The CCAR Pa-Th model code and documentation are copyright 2014 by the `CCAR-Modeling Project Contributors`_ and their respective organizations: The University of Alberta, The University of British Columbia, and the Government of Canada.
+The CCAR Pa-Th model code and documentation are copyright 2014 by the `CCAR-Modeling Project Contributors`_ and their respective organizations: The University of Alberta, The University of British Columbia, and Fisheries and Oceans Canada.
 
 They are licensed under the Apache License, Version 2.0.
 http://www.apache.org/licenses/LICENSE-2.0
