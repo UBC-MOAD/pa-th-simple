@@ -1,12 +1,14 @@
-# finite-difference implementation of upwind sol. for linear advection.
-#
-# We are solving a_t = Q + S*a_z
-#
-# The FTCS discretization is: anew = aold + (C/2) (aold_{i+1} - aold_{i-1})
-# 
-# where S is the sinking velocity
-#
-# M. Zingale (2013-03-12)
+""" 
+Finite-difference implementation of upwind sol. for coupled linear advection.
+
+We are solving  a_t = Q - k_ad*a + k_de*b + <u> * <del>a
+
+                b_t = k_ad*a - k_de*b + S*b_z + <u> * <del>b
+                
+The FTCS discretization is: a_new = a_old + (C/2) * (aold_{i+1} - aold_{i-1})
+The upwind discretization is: a_new = a_old + C *(aold_{i+1} - aold_{i-1})
+ 
+"""
 from __future__ import division
 import numpy
 import pylab
@@ -54,21 +56,34 @@ class FDgrid:
         self.a[:, self.jhi - 1] = self.a[:, self.jhi - 2]
 
 
-def adflow(T, V):
-    """Calculate the Th concentration, particular and dissolved.
-
-    :arg T: Scale for tmax such that tmax = T*(g.zmax - g.zmin)/S 
-    :type int:
-
-    :arg V: Scale for ux, uz, which are originally order 1.
-    :type V: int
+def adflow(T, V, u, nz, nx, u, k_ad, k_de):
     """
-    # create the grid
-    nz = 10
-    nx = 10
-    ng = 1
-    g = FDgrid(nx, nz, ng)
-    h = FDgrid(nx, nz, ng)
+    Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
+
+    :arg T: scale for tmax such that tmax = T*(g.zmax - g.zmin)/S 
+    :typeT: int
+
+    :arg V: scale for ux, uz, which are originally order 1.
+    :type V: int
+    
+    :arg u: 3D tensor of shape (nz, nx, 2), z component of velocity in (:, :, 1), x component of velocity in (:, :, 2) 
+    :type u: float
+    
+    :arg nz: number of grid points in z dimension
+    :type: int
+    
+    :arg nx: number of grid points in x dimension
+    :type: int
+    
+    :arg k_ad: nz x nx adsorption rate matrix
+    :type k_ad: float
+    
+    :arg k_de: nz x nx adsorption rate matrix
+    :type k_de: float
+    
+    :arg adscheme: function to implement the desired advection scheme 
+    
+    """
 
     # create the grid
     nz = 10
@@ -84,15 +99,8 @@ def adflow(T, V):
     z = numpy.linspace(b/2, -b/2, nz)
     [xx, zz] = numpy.meshgrid(-x, z)
     rr = numpy.sqrt(xx**2 + zz**2)
-    ux = numpy.zeros([nz, nx])
-    uz = numpy.zeros([nz, nx])
     theta = numpy.arctan(zz/xx)
-    idx = rr < a*b/(4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)))
-    ux[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * -zz[idx]
-
-    uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
+    
 
     ux = V * ux
     uz = V * uz
@@ -271,9 +279,10 @@ def adflow(T, V):
     pylab.ylim([zmax_plt, g.zmin])
     
     #save [Th] profiles
-    log_ga = open('ga_'+str(T)+'*tmax_'+str(V)+'*U.log', 'w')
-    log_ha = open('ha_'+str(T)+'*tmax_'+str(V)+'*U.log', 'w')
+    log_ga = open('ga_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
+    log_ha = open('ha_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
     print>>log_ga, g.a
     print>>log_ha, h.a
     
     return meshinit, meshTh
+
