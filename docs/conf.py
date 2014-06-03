@@ -47,7 +47,7 @@ copyright = (
     'and their respective institutions: '
     'The University of Alberta, '
     'The University of British Columbia, '
-    'and the Government of Canada'
+    'and Fisheries and Oceans Canada'
 )
 
 # The version info for the project you're documenting, acts as replacement for
