@@ -56,7 +56,7 @@ class FDgrid:
         self.a[:, self.jhi - 1] = self.a[:, self.jhi - 2]
 
 
-def adflow(T, V, u, nz, nx, u, k_ad, k_de):
+def adflow(T, V, u, nz, nx, k_ad, k_de):
     """
     Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
@@ -286,3 +286,62 @@ def adflow(T, V, u, nz, nx, u, k_ad, k_de):
     
     return meshinit, meshTh
 
+
+def u_simple(xmin, xmax, zmin, zmax, nx, nz):
+    """ u_simple computes a simple rotational, divergenceless flow field on a specified grid
+    
+    :arg xmin: minimum x on the grid
+    
+    :arg xmax: maximum x on the grid
+    
+    :arg zmin: minimum z on the grid
+    
+    :arg zmax: maximum z on the grid
+    
+    """
+    
+    a = xmax
+    b = zmax
+    x = numpy.linspace(a/2, -a/2, nx)
+    z = numpy.linspace(b/2, -b/2, nz)
+    [xx, zz] = numpy.meshgrid(-x, z)
+    rr = numpy.sqrt(xx**2 + zz**2)
+    theta = numpy.arctan(zz/xx)
+    ux = numpy.zeros([nz, nx])
+    uz = numpy.zeros([nz, nx])
+    idx = rr < a*b/(4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)))
+    ux[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
+                                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * -zz[idx]
+
+    uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
+                                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
+    # store the solution in a matrix
+    u = numpy.zeros((nz, nx, 2))
+    u[:, :, 0] = uz
+    u[:, :, 1] = ux
+    
+    return u
+
+
+def k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
+
+    # physical coords
+    dx = (xmax - xmin) / (nx - 1)
+    x = xmin + (numpy.arange(nx) - 1) * dx
+    dz = (zmax - zmin) / (nz - 1)
+    z = zmin + (numpy.arange(nz) - 1) * dz
+    [xx, zz] = numpy.meshgrid(x, z)
+
+    if string == 'Th':
+	    # adsorption/desorption constants
+	    k_ad = numpy.ones(numpy.shape(zz))
+	    k_ad[251 <= z, :] = 0.75
+	    k_ad[500 <= z, :] = 0.5
+
+	    k_de = numpy.zeros((numpy.shape(zz)))
+	    k_de[:] = 1.6
+
+    #if string == 'Pa':
+    	# fill in adsorption profile for Pa
+	
+    return k_ad, k_de	
