@@ -1,3 +1,4 @@
+###################################################TIME LOOP##########################################################################
 """ 
 Finite-difference implementation of upwind sol. for coupled linear advection.
 
@@ -18,310 +19,402 @@ from math import pi
 
 class FDgrid:
 
-    def __init__(self, nx, nz, ng, xmin = 1, xmax = 10000, zmin = 0, 
-                 zmax = 5000):
+	def __init__(self, nx, nz, ng, xmin = 1, xmax = 10000, zmin = 0, 
+		 zmax = 5000):
 
-        self.xmin = xmin
-        self.xmax = xmax
-        self.zmin = zmin
-        self.zmax = zmax
-        self.ng = ng
-        self.nx = nx
-        self.nz = nz
+	self.xmin = xmin
+	self.xmax = xmax
+	self.zmin = zmin
+	self.zmax = zmax
+	self.ng = ng
+	self.nx = nx
+	self.nz = nz
 
-        # python is zero-based
-        self.ilo = 0
-        self.ihi = nz - 1
-        self.jlo = 0
-        self.jhi = nx - 1
+	# python is zero-based
+	self.ilo = 0
+	self.ihi = nz - 1
+	self.jlo = 0
+	self.jhi = nx - 1
 
-        # physical coords
-        self.dx = (xmax - xmin) / (nx - 1)
-        self.x = xmin + (numpy.arange(nx) - ng) * self.dx
-        self.dz = (zmax - zmin) / (nz - 1)
-        self.z = zmin + (numpy.arange(nz) - ng) * self.dz
-        [self.xx, self.zz] = numpy.meshgrid(self.x, self.z)
-        
-        # storage for the solution 
-        self.a = numpy.zeros((nz, nx), dtype=numpy.float64)
+	# physical coords
+	self.dx = (xmax - xmin) / (nx - 1)
+	self.x = xmin + (numpy.arange(nx) - ng) * self.dx
+	self.dz = (zmax - zmin) / (nz - 1)
+	self.z = zmin + (numpy.arange(nz) - ng) * self.dz
+	[self.xx, self.zz] = numpy.meshgrid(self.x, self.z)
 
-    def scratchArray(self):
-        """ return a scratch array dimensioned for our grid """
-        return numpy.zeros((self.nz, self.nx), dtype=numpy.float64)
+	# storage for the solution 
+	self.a = numpy.zeros((nz, nx), dtype=numpy.float64)
 
-    def fillBCs(self):               # BC at x = 0 and x = xmax?
-        self.a[self.ilo, :] = 0
-        self.a[self.ihi - 1, :] = self.a[self.ihi - 2, :]
-        self.a[:, self.jlo] = self.a[:, self.jlo + 1]
-        self.a[:, self.jhi - 1] = self.a[:, self.jhi - 2]
+	def scratchArray(self):
+		""" return a scratch array dimensioned for our grid """
+		return numpy.zeros((self.nz, self.nx), dtype=numpy.float64)
+
+	def fillBCs(self):               # BC at x = 0 and x = xmax?
+		self.a[self.ilo, :] = 0
+		self.a[self.ihi - 1, :] = self.a[self.ihi - 2, :]
+		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
+		self.a[:, self.jhi - 1] = self.a[:, self.jhi - 2]
 
 
-def adflow(T, V, u, nz, nx, k_ad, k_de):
-    """
-    Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
+def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig):
+	"""
+	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
-    :arg T: scale for tmax such that tmax = T*(g.zmax - g.zmin)/S 
-    :typeT: int
+	:arg T: scale for tmax such that tmax = T*(g.zmax - g.zmin)/S 
+	:typeT: int
 
-    :arg V: scale for ux, uz, which are originally order 1.
-    :type V: int
-    
-    :arg u: 3D tensor of shape (nz, nx, 2), z component of velocity in (:, :, 1), x component of velocity in (:, :, 2) 
-    :type u: float
-    
-    :arg nz: number of grid points in z dimension
-    :type: int
-    
-    :arg nx: number of grid points in x dimension
-    :type: int
-    
-    :arg k_ad: nz x nx adsorption rate matrix
-    :type k_ad: float
-    
-    :arg k_de: nz x nx adsorption rate matrix
-    :type k_de: float
-    
-    :arg adscheme: function to implement the desired advection scheme 
-    
-    """
+	:arg V: scale for ux, uz, which are originally order 1.
+	:type V: int
 
-    # create the grid
-    ng = 1
-    g = FDgrid(nx, nz, ng)
-    h = FDgrid(nx, nz, ng)
-    
-    # extract and scale the velocities
-    uz = V * u[:, :, 0]
-    ux = V * u[:, :, 1]
+	:arg u: 3D tensor of shape (nz, nx, 2), z component of velocity in (:, :, 1), x component of velocity in (:, :, 2) 
+	:type u: float
 
-    # define the CFL, sink velocity, and reaction constant
-    S = 500        #m/yr
-    Q = 0.0267     #dpm/m^3
+	:arg nz: number of grid points in z dimension
+	:type: int
 
-    # time info
-    dt = 0.001          #yr
-    t = 0.0
-    tmax = T*(g.zmax - g.zmin)/S            # time interval to reach bottom from surface
+	:arg nx: number of grid points in x dimension
+	:type: int
 
-    # set initial conditions
-    g.a[:, :] = 0.0
-    h.a[:, :] = 0.0
+	:arg k_ad: nz x nx adsorption rate matrix
+	:type k_ad: float
 
-    # save initial conditions 
-    ainit = g.a.copy()
-    binit = h.a.copy()
+	:arg k_de: nz x nx adsorption rate matrix
+	:type k_de: float
 
-    # evolution loop
-    anew = g.scratchArray()
-    bnew = h.scratchArray()
+	:arg adscheme: function to implement the desired advection scheme 
 
-    # time derivative storage
-    dgdt = g.scratchArray()
-    dhdt = h.scratchArray()
+	"""
 
-    # depth derivative storage
-    dgdz = g.scratchArray()
-    dhdz = h.scratchArray()
+	# create the grid
+	ng = 1
+	g = FDgrid(nx, nz, ng)
+	h = FDgrid(nx, nz, ng)
 
-    # stability parameter storage
-    p_upx = g.scratchArray
-    n_upx = g.scratchArray
-    p_upz = g.scratchArray
-    n_upz = g.scratchArray
+	# extract and scale the velocities
+	uz = V * u[:, :, 0]
+	ux = V * u[:, :, 1]
 
-    # define upwind for x, z OUTSIDE loop ONLY while du/dt = 0
-    p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
-    n_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) + 1)
-    p_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) - 1)
-    n_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) + 1)
+	# define the CFL, sink velocity, and reaction constant
+	S = 500        #m/yr
 
-    while (t < tmax):
+	# time info
+	dt = 0.001          #yr
+	t = 0.0
+	tmax = T*(g.zmax - g.zmin)/S            # time interval to reach bottom from surface
 
-        # fill the boundary conditions
-        g.fillBCs()
-        h.fillBCs()
+	# set initial conditions
+	g.a[:, :] = 0.0
+	h.a[:, :] = 0.0
 
-        # loop over zones: note since we are periodic and both endpoints
-        # are on the computational domain boundary, we don't have to
-        # update both g.ilo and g.ihi -- we could set them equal instead.
-        # But this is more general
+	# save initial conditions 
+	ainit = g.a.copy()
+	binit = h.a.copy()
 
-        i = g.ilo + 1
+	# evolution loop
+	anew = g.scratchArray()
+	bnew = h.scratchArray()
 
-        while (i <= g.ihi - 1):
+	# time derivative storage
+	dgdt = g.scratchArray()
+	dhdt = h.scratchArray()
 
-            j = g.jlo + 1
+	# depth derivative storage
+	dgdz = g.scratchArray()
+	dhdz = h.scratchArray()
 
-            while (j <= g.jhi - 1):
+	# stability parameter storage
+	p_upx = g.scratchArray
+	n_upx = g.scratchArray
+	p_upz = g.scratchArray
+	n_upz = g.scratchArray
 
-                # upwind numerical solution
+	# define upwind for x, z OUTSIDE loop ONLY while du/dt = 0
+	p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
+	n_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) + 1)
+	p_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) - 1)
+	n_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) + 1)
 
-                # dissolved:
-                anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
-                            ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) / g.dx + 
-                            uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) * dt
+	while (t < tmax):
 
-                # particulate:
-                bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / h.dz + 
-                                          k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
-                            ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) / h.dx +
-                            uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) * dt
-                j += 1
-            i += 1
+	# fill the boundary conditions
+	g.fillBCs()
+	h.fillBCs()
 
-        # store the (time) updated solution
-        g.a[:] = anew[:]
-        h.a[:] = bnew[:]
-        t += dt
+	# loop over zones: note since we are periodic and both endpoints
+	# are on the computational domain boundary, we don't have to
+	# update both g.ilo and g.ihi -- we could set them equal instead.
+	# But this is more general
 
-  
-    # plot the Th profiles
+	i = g.ilo + 1
 
-    # define the x and zlim maxima
-    xmax_plt = (nx - 2)*g.dx
-    zmax_plt = (nz - 2)*g.dz
-    
-    meshinit = pylab.subplots(1, 2, figsize = (15, 5))
-    pylab.subplot(132) 
-    mesh1 = pylab.pcolormesh(g.xx, g.zz, ainit)
-    pylab.title('Initial Dissolved [Th]')
-    pylab.gca().invert_yaxis()
-    pylab.ylabel('depth [m]')
-    pylab.xlabel('x [m]')
-    pylab.colorbar(mesh1)
-    plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
-    pylab.xlim([g.xmin, xmax_plt])
-    pylab.ylim([zmax_plt, g.zmin])
+	while (i <= g.ihi - 1):
 
-    pylab.subplot(133) 
-    mesh2 = pylab.pcolormesh(g.xx, g.zz, binit)
-    pylab.title('Initial Particulate [Th]')
-    pylab.gca().invert_yaxis()
-    pylab.ylabel('depth [m]')
-    pylab.xlabel('x [m]')
-    pylab.colorbar(mesh2)
-    plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
-    pylab.xlim([g.xmin, xmax_plt])
-    pylab.ylim([zmax_plt, g.zmin])
+		j = g.jlo + 1
 
-    meshTh = pylab.subplots(1, 2, figsize = (17, 5)) 
-    pylab.subplot(121) 
-    mesh3 = pylab.pcolormesh(g.xx, g.zz, g.a)
-    pylab.title('Final Dissolved [Th], tmax = ' + str(tmax) + 'yrs')
-    pylab.gca().invert_yaxis()
-    pylab.ylabel('depth [m]')
-    pylab.xlabel('x [m]')
-    pylab.colorbar(mesh3)
-    plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
-    pylab.xlim([g.xmin, xmax_plt])
-    pylab.ylim([zmax_plt, g.zmin])
+		while (j <= g.jhi - 1):
 
-    pylab.subplot(122) 
-    mesh4 = pylab.pcolormesh(g.xx, g.zz, h.a)
-    pylab.title('Final Particulate [Th], tmax = ' + str(tmax) + 'yrs')
-    pylab.gca().invert_yaxis()
-    pylab.ylabel('depth [m]')
-    pylab.xlabel('x [m]')
-    pylab.colorbar(mesh4)
-    plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
-    pylab.xlim([g.xmin, xmax_plt])
-    pylab.ylim([zmax_plt, g.zmin])
-    
-    #save [Th] profiles
-    log_ga = open('ga_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
-    log_ha = open('ha_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
-    print>>log_ga, g.a
-    print>>log_ha, h.a
-    
-    return meshinit, meshTh
+			# upwind numerical solution
+
+			# dissolved:
+			anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
+				    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) / g.dx + 
+				    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) * dt
+
+			# particulate:
+			bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / h.dz + 
+						  k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
+				    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) / h.dx +
+				    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) * dt
+			j += 1
+		i += 1
+
+	# store the (time) updated solution
+	g.a[:] = anew[:]
+	h.a[:] = bnew[:]
+	t += dt
+
+
+	# plot the Th profiles
+
+	# define the x and zlim maxima
+	xmax_plt = (nx - 2)*g.dx
+	zmax_plt = (nz - 2)*g.dz
+
+	# plots to flowfig subplots	
+	pylab.subplot(132) 
+	mesh1 = pylab.pcolormesh(g.xx, g.zz, ainit)
+	pylab.title('Initial Dissolved [Th]')
+	pylab.gca().invert_yaxis()
+	pylab.ylabel('depth [m]')
+	pylab.xlabel('x [m]')
+	pylab.colorbar(mesh1)
+	plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
+	pylab.xlim([g.xmin, xmax_plt])
+	pylab.ylim([zmax_plt, g.zmin])
+
+	pylab.subplot(133) 
+	mesh2 = pylab.pcolormesh(g.xx, g.zz, binit)
+	pylab.title('Initial Particulate [Th]')
+	pylab.gca().invert_yaxis()
+	pylab.ylabel('depth [m]')
+	pylab.xlabel('x [m]')
+	pylab.colorbar(mesh2)
+	plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
+	pylab.xlim([g.xmin, xmax_plt])
+	pylab.ylim([zmax_plt, g.zmin])
+
+	meshTh = pylab.subplots(1, 2, figsize = (16.5, 5)) 
+	pylab.subplot(121) 
+	mesh3 = pylab.pcolormesh(g.xx, g.zz, g.a)
+	pylab.title('Final Dissolved [Th], tmax = ' + str(tmax) + 'yrs')
+	pylab.gca().invert_yaxis()
+	pylab.ylabel('depth [m]')
+	pylab.xlabel('x [m]')
+	pylab.colorbar(mesh3)
+	plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
+	pylab.xlim([g.xmin, xmax_plt])
+	pylab.ylim([zmax_plt, g.zmin])
+
+	pylab.subplot(122) 
+	mesh4 = pylab.pcolormesh(g.xx, g.zz, h.a)
+	pylab.title('Final Particulate [Th], tmax = ' + str(tmax) + 'yrs')
+	pylab.gca().invert_yaxis()
+	pylab.ylabel('depth [m]')
+	pylab.xlabel('x [m]')
+	pylab.colorbar(mesh4)
+	plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
+	pylab.xlim([g.xmin, xmax_plt])
+	pylab.ylim([zmax_plt, g.zmin])
+
+	#save [Th] profiles
+	log_ga = open('ga_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
+	log_ha = open('ha_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
+	print>>log_ga, g.a
+	print>>log_ha, h.a
+
+	return flowfig, meshTh
+
+
+#############################################VELOCITY#################################################################################
 
 
 def u_simple(xmin, xmax, zmin, zmax, nx, nz):
-    """ u_simple computes a simple rotational, divergenceless flow field on a specified grid
-    
-    :arg xmin: minimum x on the grid
-    
-    :arg xmax: maximum x on the grid
-    
-    :arg zmin: minimum z on the grid
-    
-    :arg zmax: maximum z on the grid
-    
-    """
-    
-    a = xmax
-    b = zmax
-    x = numpy.linspace(a/2, -a/2, nx)
-    z = numpy.linspace(b/2, -b/2, nz)
-    [xx, zz] = numpy.meshgrid(-x, z)
-    rr = numpy.sqrt(xx**2 + zz**2)
-    theta = numpy.arctan(zz/xx)
-    ux = numpy.zeros([nz, nx])
-    uz = numpy.zeros([nz, nx])
-    idx = rr < a*b/(4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)))
-    ux[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * -zz[idx]
+	""" u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
-    uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
-    # store the solution in a matrix
-    u = numpy.zeros([nz, nx, 2])
-    u[:, :, 0] = uz
-    u[:, :, 1] = ux
-    
-    
-    # plot the velocity field
+	:arg xmin: minimum x on the grid
 
-    # define the velocity field with fewer points for plotting, &
-    # change sign of uz, because python doesn't understand that
-    # down is the positive direction in this case
-    N = 10
-    x = numpy.linspace(a/2, -a/2, N)
-    z = numpy.linspace(b/2, -b/2, N)
+	:arg xmax: maximum x on the grid
 
-    [xx, zz] = numpy.meshgrid(x, z)
-    ux_plt = numpy.zeros([N, N])
-    uz_plt = numpy.zeros([N, N])
+	:arg zmin: minimum z on the grid
 
-    rr = numpy.sqrt(xx**2 + zz**2)
-    theta = numpy.arctan(zz/xx)
-    idx = rr < a*b/(4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)))
-    ux_plt[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                           (b*numpy.sin(theta[idx]))**2))/rr[idx] * -zz[idx]
-    uz_plt[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
+	:arg zmax: maximum z on the grid
 
-    x_plt = numpy.linspace(xmin, xmax, N)
-    z_plt = numpy.linspace(zmin, zmax, N)
-    [xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+	:arg nx: number of points in x dimension
 
-    flowfig = pylab.quiver(xx_plt, zz_plt, ux_plt[:], -uz_plt[:])
-    pylab.gca().invert_yaxis()
-    plt.title('Velocity field')
-    plt.xlabel('x [m]')
-    plt.ylabel('depth [m]')
-    
-    return u, flowfig
+	:arg nz: number of points in z dimension	
+
+	"""
+
+	a = xmax
+	b = zmax
+	x = numpy.linspace(a/2, -a/2, nx)
+	z = numpy.linspace(b/2, -b/2, nz)
+	[xx, zz] = numpy.meshgrid(-x, z)
+	rr = numpy.sqrt(xx**2 + zz**2)
+	theta = numpy.arctan(zz/xx)
+	ux = numpy.zeros([nz, nx])
+	uz = numpy.zeros([nz, nx])
+	idx = rr < a*b/(4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)))
+	ux[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
+		                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * -zz[idx]
+
+	uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
+		                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
+	# store the solution in a matrix
+	u = numpy.zeros([nz, nx, 2])
+	u[:, :, 0] = uz
+	u[:, :, 1] = ux
+
+
+	# plot the velocity field
+
+	# define the velocity field with fewer points for plotting, &
+	# change sign of uz, because python doesn't understand that
+	# down is the positive direction in this case
+	N = 10
+	x = numpy.linspace(a/2, -a/2, N)
+	z = numpy.linspace(b/2, -b/2, N)
+	[xx, zz] = numpy.meshgrid(x, z)
+	ux_plt = numpy.zeros([N, N])
+	uz_plt = numpy.zeros([N, N])
+	rr = numpy.sqrt(xx**2 + zz**2)
+	theta = numpy.arctan(zz/xx)
+	idx = rr < a*b/(4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)))
+	ux_plt[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
+		                           (b*numpy.sin(theta[idx]))**2))/rr[idx] * -zz[idx]
+	uz_plt[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
+		                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
+
+	x_plt = numpy.linspace(xmin, xmax, N)
+	z_plt = numpy.linspace(zmin, zmax, N)
+	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+	flowfig = pylab.subplots(1, 3, figsize = (16, 5))	
+	pylab.subplot(131)
+	pylab.quiver(xx_plt, zz_plt, ux_plt[:], -uz_plt[:])
+	pylab.gca().invert_yaxis()
+	plt.title('Velocity field')
+	plt.xlabel('x [m]')
+	plt.ylabel('depth [m]')
+
+	return u, flowfig
+
+def u_complex(xmin, xmax, zmin, zmax, nx, nz):
+	""" u_simple computes a simple rotational, divergenceless flow field on a specified grid
+
+	:arg xmin: minimum x on the grid
+
+	:arg xmax: maximum x on the grid
+
+	:arg zmin: minimum z on the grid
+
+	:arg zmax: maximum z on the grid
+
+	:arg nx: number of points in x dimension
+
+	:arg nz: number of points in z dimension
+
+	"""
+
+	# define a grid that will produce downwelling
+	a = xmax
+	b = zmax
+	x = numpy.empty(nx)
+	z = numpy.empty(nz)
+	x[:round(nx/4)] = numpy.linspace(-a/2, 0, len(x[:round(nx/4)]))
+	x[round(nx/4) : round(nx/2)] = numpy.linspace(0, a/2, len(x[round(nx/4) : round(nx/2)]))
+	x[round(nx/2) : round(3*nx/4)] = numpy.linspace(a/2, 0, len(x[round(nx/2) : round(3*nx/4)]))
+	x[round(3*nx/4) : nx] = numpy.linspace(0, -a/2, len(x[round(3*nx/4) : nx]))
+	z[:round(nz/2)] = numpy.linspace(-b/2, 0, len(z[:round(nz/2)]))
+	z[round(nz/2) : nz] = numpy.linspace(0, b/2, len(z[round(nz/2) : nz]))
+	[xx, zz] = numpy.meshgrid(x, z)
+	zz[0:, nx/2:] = - zz[0:, nx/2:]  
+	rr = numpy.sqrt(xx**2 + zz**2)
+	ux = numpy.zeros([nz, nx])
+	uz = numpy.zeros([nz, nx])
+
+	# use logical indexing to define points of non-zero velocity
+	theta = numpy.arctan(zz/xx)
+	idx = rr < a*b/(4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)))
+	ux[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
+		                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * -zz[idx]
+	uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
+		                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
+
+	# store the solution in a matrix
+	u = numpy.zeros([nz, nx, 2])
+	u[:, :, 0] = uz
+	u[:, :, 1] = ux 
+
+	# plot the solution
+	x_plt = numpy.linspace(xmin, xmax, nx)
+	z_plt = numpy.linspace(zmin, zmax, nz)
+	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+	flowfig = pylab.subplots(1, 3, figsize = (16, 5))
+	pylab.subplot(131)
+	pylab.quiver(xx_plt, zz_plt, ux, -uz)
+	pylab.title('Downwelling Velocity field')
+	plt.xlabel('x [m]')
+	plt.ylabel('depth [m]')
+	pylab.gca().invert_yaxis()
+	return u, flowfig
+
+###################################################CHEMISTRY##########################################################################
 
 def k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
+	""" Computes adsorption,desorption, & production constants for either Th or Pa
 
-    # physical coords
-    dx = (xmax - xmin) / (nx - 1)
-    x = xmin + (numpy.arange(nx) - 1) * dx
-    dz = (zmax - zmin) / (nz - 1)
-    z = zmin + (numpy.arange(nz) - 1) * dz
-    [xx, zz] = numpy.meshgrid(x, z)
+	:arg string: a string, either 'Th' or 'Pa'
 
-    if string == 'Th':
-	    # adsorption/desorption constants
-	    k_ad = numpy.ones(numpy.shape(zz))
-	    k_ad[251 <= z, :] = 0.75
-	    k_ad[500 <= z, :] = 0.5
+	:arg xmin: minimum x on the grid
 
-	    k_de = numpy.zeros((numpy.shape(zz)))
-	    k_de[:] = 1.6
+	:arg xmax: maximum x on the grid
 
-    #if string == 'Pa':
-    	# fill in adsorption profile for Pa
+	:arg zmin: minimum z on the grid
+
+	:arg zmax: maximum z on the grid
+
+	:arg nx: number of points in x dimension
+
+	:arg nz: number of points in z dimension
 	
-    return k_ad, k_de	
+	"""
+	# physical coords
+	dx = (xmax - xmin) / (nx - 1)
+	x = xmin + (numpy.arange(nx) - 1) * dx
+	dz = (zmax - zmin) / (nz - 1)
+	z = zmin + (numpy.arange(nz) - 1) * dz
+	[xx, zz] = numpy.meshgrid(x, z)
+
+	if string == 'Pa':
+
+		k_ad = numpy.ones(numpy.shape(zz))
+		k_ad[:, :] = 0.08
+		k_ad[251 <= z, :] = 0.06
+		k_ad[500 <= z, :] = 0.04
+
+		k_de = numpy.zeros((numpy.shape(zz)))
+		k_de[:] = 1.6
+		
+		Q = 0.00246
+
+	if string == 'Th':
+		k_ad = numpy.ones(numpy.shape(zz))
+		k_ad[251 <= z, :] = 0.75
+		k_ad[500 <= z, :] = 0.5
+
+		k_de = numpy.ones(numpy.shape(zz))
+
+		Q = 0.0267
+	
+	return k_ad, k_de, Q	
