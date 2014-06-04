@@ -180,7 +180,8 @@ def adflow(T, V, u, nz, nx, k_ad, k_de):
     # define the x and zlim maxima
     xmax_plt = (nx - 2)*g.dx
     zmax_plt = (nz - 2)*g.dz
- 
+    
+    meshinit = pylab.subplots(1, 2, figsize = (15, 5))
     pylab.subplot(132) 
     mesh1 = pylab.pcolormesh(g.xx, g.zz, ainit)
     pylab.title('Initial Dissolved [Th]')
@@ -203,7 +204,7 @@ def adflow(T, V, u, nz, nx, k_ad, k_de):
     pylab.xlim([g.xmin, xmax_plt])
     pylab.ylim([zmax_plt, g.zmin])
 
-    meshTh = pylab.subplots(1, 2, figsize = (17., 5)) 
+    meshTh = pylab.subplots(1, 2, figsize = (17, 5)) 
     pylab.subplot(121) 
     mesh3 = pylab.pcolormesh(g.xx, g.zz, g.a)
     pylab.title('Final Dissolved [Th], tmax = ' + str(tmax) + 'yrs')
@@ -300,7 +301,7 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz):
     plt.xlabel('x [m]')
     plt.ylabel('depth [m]')
     
-    return u, flowfig
+    return u, ux, uz, flowfig
 
 def k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
 
