@@ -22,29 +22,29 @@ class FDgrid:
 	def __init__(self, nx, nz, ng, xmin = 1, xmax = 10000, zmin = 0, 
 		 zmax = 5000):
 
-	self.xmin = xmin
-	self.xmax = xmax
-	self.zmin = zmin
-	self.zmax = zmax
-	self.ng = ng
-	self.nx = nx
-	self.nz = nz
+		self.xmin = xmin
+		self.xmax = xmax
+		self.zmin = zmin
+		self.zmax = zmax
+		self.ng = ng
+		self.nx = nx
+		self.nz = nz
 
-	# python is zero-based
-	self.ilo = 0
-	self.ihi = nz - 1
-	self.jlo = 0
-	self.jhi = nx - 1
+		# python is zero-based
+		self.ilo = 0
+		self.ihi = nz - 1
+		self.jlo = 0
+		self.jhi = nx - 1
 
-	# physical coords
-	self.dx = (xmax - xmin) / (nx - 1)
-	self.x = xmin + (numpy.arange(nx) - ng) * self.dx
-	self.dz = (zmax - zmin) / (nz - 1)
-	self.z = zmin + (numpy.arange(nz) - ng) * self.dz
-	[self.xx, self.zz] = numpy.meshgrid(self.x, self.z)
+		# physical coords
+		self.dx = (xmax - xmin) / (nx - 1)
+		self.x = xmin + (numpy.arange(nx) - ng) * self.dx
+		self.dz = (zmax - zmin) / (nz - 1)
+		self.z = zmin + (numpy.arange(nz) - ng) * self.dz
+		[self.xx, self.zz] = numpy.meshgrid(self.x, self.z)
 
-	# storage for the solution 
-	self.a = numpy.zeros((nz, nx), dtype=numpy.float64)
+		# storage for the solution 
+		self.a = numpy.zeros((nz, nx), dtype=numpy.float64)
 
 	def scratchArray(self):
 		""" return a scratch array dimensioned for our grid """
@@ -137,42 +137,42 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig):
 
 	while (t < tmax):
 
-	# fill the boundary conditions
-	g.fillBCs()
-	h.fillBCs()
+		# fill the boundary conditions
+		g.fillBCs()
+		h.fillBCs()
 
-	# loop over zones: note since we are periodic and both endpoints
-	# are on the computational domain boundary, we don't have to
-	# update both g.ilo and g.ihi -- we could set them equal instead.
-	# But this is more general
+		# loop over zones: note since we are periodic and both endpoints
+		# are on the computational domain boundary, we don't have to
+		# update both g.ilo and g.ihi -- we could set them equal instead.
+		# But this is more general
 
-	i = g.ilo + 1
+		i = g.ilo + 1
 
-	while (i <= g.ihi - 1):
+		while (i <= g.ihi - 1):
 
-		j = g.jlo + 1
+			j = g.jlo + 1
 
-		while (j <= g.jhi - 1):
+			while (j <= g.jhi - 1):
 
-			# upwind numerical solution
+				# upwind numerical solution
 
-			# dissolved:
-			anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
-				    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) / g.dx + 
-				    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) * dt
+				# dissolved:
+				anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
+					    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) / g.dx + 
+					    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) 							* dt
 
-			# particulate:
-			bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / h.dz + 
-						  k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
-				    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) / h.dx +
-				    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) * dt
-			j += 1
-		i += 1
+				# particulate:
+				bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / 							h.dz + 
+							  k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
+					    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) / h.dx +
+					    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) 							* dt
+				j += 1
+			i += 1
 
-	# store the (time) updated solution
-	g.a[:] = anew[:]
-	h.a[:] = bnew[:]
-	t += dt
+		# store the (time) updated solution
+		g.a[:] = anew[:]
+		h.a[:] = bnew[:]
+		t += dt
 
 
 	# plot the Th profiles
@@ -227,13 +227,13 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig):
 	pylab.xlim([g.xmin, xmax_plt])
 	pylab.ylim([zmax_plt, g.zmin])
 
-	#save [Th] profiles
+	#save [Th] profiles as backup
 	log_ga = open('ga_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
 	log_ha = open('ha_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
 	print>>log_ga, g.a
 	print>>log_ha, h.a
 
-	return flowfig, meshTh
+	return flowfig, meshTh, g.a, h.a
 
 
 #############################################VELOCITY#################################################################################
@@ -418,3 +418,30 @@ def k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
 		Q = 0.0267
 	
 	return k_ad, k_de, Q	
+#######################################################PLOTTING#######################################################################
+def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz):
+	""" Plots the ratio T/P and outputs to notebook
+	"""
+
+	x_plt = numpy.linspace(xmin, xmax, nx)
+	z_plt = numpy.linspace(zmin, zmax, nz)
+	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+	TPratio = pylab.subplots(1, 2, figsize = (16, 5))	
+	pylab.subplot(121)
+	D = pylab.pcolormesh(xx_plt, zz_plt, DTh/DPa)
+	pylab.gca().invert_yaxis()
+	plt.title('Dissolved [Th]/[Pa]')
+	plt.xlabel('x [m]')
+	plt.ylabel('depth [m]')
+	pylab.colorbar(D)
+
+	pylab.subplot(122)
+	P = pylab.pcolormesh(xx_plt, zz_plt, PTh/PPa)
+	pylab.gca().invert_yaxis()
+	plt.title('Particulate [Th]/[Pa]')
+	plt.xlabel('x [m]')
+	plt.ylabel('depth [m]')
+	pylab.colorbar(P)
+
+	return TPratio
+
