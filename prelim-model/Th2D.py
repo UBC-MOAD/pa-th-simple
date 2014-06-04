@@ -29,7 +29,7 @@ class FDgrid:
         self.nx = nx
         self.nz = nz
 
-        # python is zero-based!
+        # python is zero-based
         self.ilo = 0
         self.ihi = nz - 1
         self.jlo = 0
@@ -86,24 +86,13 @@ def adflow(T, V, u, nz, nx, k_ad, k_de):
     """
 
     # create the grid
-    nz = 10
-    nx = 10
     ng = 1
     g = FDgrid(nx, nz, ng)
     h = FDgrid(nx, nz, ng)
-
-    # define the velocity field u = <ux, uz>
-    a = g.xmax
-    b = g.zmax
-    x = numpy.linspace(a/2, -a/2, nx)
-    z = numpy.linspace(b/2, -b/2, nz)
-    [xx, zz] = numpy.meshgrid(-x, z)
-    rr = numpy.sqrt(xx**2 + zz**2)
-    theta = numpy.arctan(zz/xx)
     
-
-    ux = V * ux
-    uz = V * uz
+    # extract and scale the velocities
+    uz = V * u[:, :, 0]
+    ux = V * u[:, :, 1]
 
     # define the CFL, sink velocity, and reaction constant
     S = 500        #m/yr
@@ -113,14 +102,6 @@ def adflow(T, V, u, nz, nx, k_ad, k_de):
     dt = 0.001          #yr
     t = 0.0
     tmax = T*(g.zmax - g.zmin)/S            # time interval to reach bottom from surface
-
-    # adsorption/desorption constants
-    k_ad = numpy.ones(numpy.shape(g.zz))
-    k_ad[251 <= g.z, :] = 0.75
-    k_ad[500 <= g.z, :] = 0.5
-
-    k_de = numpy.zeros((numpy.shape(g.zz)))
-    k_de[:] = 1.6
 
     # set initial conditions
     g.a[:, :] = 0.0
@@ -192,41 +173,8 @@ def adflow(T, V, u, nz, nx, k_ad, k_de):
         g.a[:] = anew[:]
         h.a[:] = bnew[:]
         t += dt
-        
-    
-    # plot the velocity field
 
-    # define the velocity field with fewer points for plotting
-    # change sign of uz, because python doesn't understand that
-    # 'down' is the positive direction
-    N = 10
-    a = g.xmax
-    b = g.zmax
-    x = numpy.linspace(a/2, -a/2, N)
-    z = numpy.linspace(b/2, -b/2, N)
-    [xx, zz] = numpy.meshgrid(x, z)
-    rr = numpy.sqrt(xx**2 + zz**2)
-    ux_plt = numpy.zeros([N, N])
-    uz_plt = numpy.zeros([N, N])
-    theta = numpy.arctan(zz/xx)
-    idx = rr < a*b/(4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)))
-    ux_plt[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * -zz[idx]
-    uz_plt[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
-    x = numpy.linspace(g.xmin, g.xmax, N)
-    z = numpy.linspace(g.zmin, g.zmax, N)
-    [xx, zz] = numpy.meshgrid(x, z)
-    
-    meshinit = pylab.subplots(1, 3, figsize = (17, 5)) 
-    pylab.subplot(131)
-    uplot = pylab.quiver(xx, zz, ux_plt[:], -uz_plt[:])
-    pylab.gca().invert_yaxis()
-    plt.title('Velocity field')
-    plt.xlabel('x [m]')
-    plt.ylabel('depth [m]')
-
-
+  
     # plot the Th profiles
 
     # define the x and zlim maxima
@@ -316,12 +264,43 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz):
     uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
                                             (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
     # store the solution in a matrix
-    u = numpy.zeros((nz, nx, 2))
+    u = numpy.zeros([nz, nx, 2])
     u[:, :, 0] = uz
     u[:, :, 1] = ux
     
-    return u
+    
+    # plot the velocity field
 
+    # define the velocity field with fewer points for plotting, &
+    # change sign of uz, because python doesn't understand that
+    # down is the positive direction in this case
+    N = 10
+    x = numpy.linspace(a/2, -a/2, N)
+    z = numpy.linspace(b/2, -b/2, N)
+
+    [xx, zz] = numpy.meshgrid(x, z)
+    ux_plt = numpy.zeros([N, N])
+    uz_plt = numpy.zeros([N, N])
+
+    rr = numpy.sqrt(xx**2 + zz**2)
+    theta = numpy.arctan(zz/xx)
+    idx = rr < a*b/(4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)))
+    ux_plt[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
+                                           (b*numpy.sin(theta[idx]))**2))/rr[idx] * -zz[idx]
+    uz_plt[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
+                                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
+
+    x_plt = numpy.linspace(xmin, xmax, N)
+    z_plt = numpy.linspace(zmin, zmax, N)
+    [xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+
+    flowfig = pylab.quiver(xx_plt, zz_plt, ux_plt[:], -uz_plt[:])
+    pylab.gca().invert_yaxis()
+    plt.title('Velocity field')
+    plt.xlabel('x [m]')
+    plt.ylabel('depth [m]')
+    
+    return u, flowfig
 
 def k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
 
