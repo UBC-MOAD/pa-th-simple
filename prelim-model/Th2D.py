@@ -301,7 +301,7 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz):
     plt.xlabel('x [m]')
     plt.ylabel('depth [m]')
     
-    return u, ux, uz, flowfig
+    return u, flowfig
 
 def k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
 
