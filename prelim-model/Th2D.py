@@ -310,7 +310,7 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz):
 	return u, flowfig
 
 def u_complex(xmin, xmax, zmin, zmax, nx, nz):
-	""" u_simple computes a simple rotational, divergenceless flow field on a specified grid
+	""" u_complex complex computes a rotational, downwelling velocity field
 
 	:arg xmin: minimum x on the grid
 
