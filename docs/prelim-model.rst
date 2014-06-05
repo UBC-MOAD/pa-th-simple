@@ -7,8 +7,9 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 `Th2D module <http://ccar-modeling-pa-th.readthedocs.org/en/latest/prelim-model/Th2Dmodule/.html>`_
 
 .. function:: adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig)
-	"""
-	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
+	
+	"""Compute and store the dissolved and particulate [Th] profiles, 
+	write them to a file, plot the results."""
 
 	:arg T: scale for tmax such that tmax = T*(g.zmax - g.zmin)/S 
 	:typeT: int
@@ -33,7 +34,6 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 
 	:arg adscheme: function to implement the desired advection scheme 
 
-	"""
 
    :module: Th2D.py
 
