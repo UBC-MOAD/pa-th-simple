@@ -15,7 +15,6 @@ Descriptions below the links are from the first cell of the notebooks
     
 * ##[Velocity Fields2.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Velocity Fields2.ipynb)  
 
-* ##[Th2D.py](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Th2D.py)     
 
 ##License
 
