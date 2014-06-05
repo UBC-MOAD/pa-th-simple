@@ -9,7 +9,7 @@ Descriptions below the links are from the first cell of the notebooks
 
 * ##[1D Particulate Sinking.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/1D Particulate Sinking.ipynb)  
     
-* ##[Coupled 1D [Th] Profile.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Coupled 1D [Th] Profile.ipynb) maybe this will describe  
+* ##[Coupled 1D [Th] Profile.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Coupled 1D [Th] Profile.ipynb)   
     
 * ##[Coupled 2D [Th] Profile.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Coupled 2D [Th] Profile.ipynb)  
     
