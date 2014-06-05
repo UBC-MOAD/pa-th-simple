@@ -16,6 +16,7 @@ import sys
 
 
 sys.path.insert(0, os.path.abspath('../prelim-model'))
+sys.path.insert(0, os.path.abspath('../prelim-model/Th2Dmodule'))
 
 
 # -- General configuration ------------------------------------------------
