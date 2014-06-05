@@ -6,6 +6,6 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 
 `Th2D module <http://ccar-modeling-pa-th.readthedocs.org/en/latest/prelim-model/Th2Dmodule/.html>`_
 
-	`Maybe this will show up behind the Th2d link.`
+I need to find out how to write to the page this link leads to.
 
 
