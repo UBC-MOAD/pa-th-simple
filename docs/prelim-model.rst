@@ -9,7 +9,7 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 .. function:: adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig)
 	
 	"""Compute and store the dissolved and particulate [Th] profiles, 
-	write them to a file, plot the results."""
+	write them to a file, plot the results.
 
 	:arg T: scale for tmax such that tmax = T*(g.zmax - g.zmin)/S 
 	:typeT: int
@@ -33,7 +33,7 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 	:type k_de: float
 
 	:arg adscheme: function to implement the desired advection scheme 
-
+	"""
 
    :module: Th2D.py
 
