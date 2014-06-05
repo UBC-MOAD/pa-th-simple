@@ -13,7 +13,7 @@ Descriptions below the links are from the first cell of the notebooks
     
 * ##[Coupled 2D [Th] Profile.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Coupled 2D [Th] Profile.ipynb)  
     
-* ##[Velocity Fields.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Velocity Fields.ipynb)  
+* ##[Velocity Fields2.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Velocity Fields2.ipynb)  
     
 
 ##License
