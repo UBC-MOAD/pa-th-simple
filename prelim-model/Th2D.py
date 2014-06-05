@@ -423,12 +423,26 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz):
 	""" Plots the ratio T/P and outputs to notebook
 	"""
 
+	# define grid
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+
+	# remove NaNs
+	Dratio = DTh/DPa
+	idx = numpy.isnan(Dratio)
+	clean_Dratio = numpy.zeros([nz, nx])
+	clean_Dratio[~idx] = Dratio[~idx]
+
+	Pratio = PTh/PPa
+	idx = numpy.isnan(Pratio)
+	clean_Pratio = numpy.zeros([nz, nx])
+	clean_Pratio[~idx] = Pratio[~idx]
+
+	# plot
 	TPratio = pylab.subplots(1, 2, figsize = (16, 5))	
 	pylab.subplot(121)
-	D = pylab.pcolormesh(xx_plt, zz_plt, DTh/DPa)
+	D = pylab.pcolormesh(xx_plt, zz_plt, clean_Dratio)
 	pylab.gca().invert_yaxis()
 	plt.title('Dissolved [Th]/[Pa]')
 	plt.xlabel('x [m]')
@@ -436,7 +450,10 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz):
 	pylab.colorbar(D)
 
 	pylab.subplot(122)
-	P = pylab.pcolormesh(xx_plt, zz_plt, PTh/PPa)
+	ratio = PPa/PTh
+	idx = numpy.isnan(ratio)
+	ratio = ratio[~idx]
+	P = pylab.pcolormesh(xx_plt, zz_plt, clean_Pratio)
 	pylab.gca().invert_yaxis()
 	plt.title('Particulate [Th]/[Pa]')
 	plt.xlabel('x [m]')
