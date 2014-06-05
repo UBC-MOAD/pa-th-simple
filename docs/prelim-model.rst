@@ -4,8 +4,9 @@ Preliminary Model
 
 The preliminary model is composed to two major working parts: the Th2D module, which contains all the functions used to produce the results, and the Coupled 2D Model notebook, which displays the results. 
 
-
-	:module:: Th2D.py
+================
+:module: Th2D.py
+================
 
 .. function:: Th2D.adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig)
 	
@@ -52,7 +53,7 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 	:arg nz: number of points in z dimension	
 
 
-.. function:: u_complex(xmin, xmax, zmin, zmax, nx, nz):
+.. function:: Th2D.u_complex(xmin, xmax, zmin, zmax, nx, nz):
 	u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
 	:arg xmin: minimum x on the grid
@@ -67,7 +68,9 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 
 	:arg nz: number of points in z dimension
 
-.. function:: k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
+
+
+.. function:: Th2D.k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
 	Computes adsorption,desorption, & production constants for either Th or Pa
 
 	:arg string: a string, either 'Th' or 'Pa'
@@ -85,7 +88,7 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 	:arg nz: number of points in z dimension
 
 
-.. function:: plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz):
+.. function:: Th2D.plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz):
 	Plots the ratio T/P and outputs to notebook
 
 	:arg DTh: 2D profile of dissolved Th
