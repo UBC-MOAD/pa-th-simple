@@ -5,9 +5,9 @@ Preliminary Model
 The preliminary model is composed to two major working parts: the Th2D module, which contains all the functions used to produce the results, and the Coupled 2D Model notebook, which displays the results. 
 
 
-	:module: Th2D.py
+	:module:: Th2D.py
 
-.. function:: adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig)
+.. function:: Th2D.adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig)
 	
 	Compute and store the dissolved and particulate [Th] profiles, 
 	write them to a file, plot the results.
@@ -36,7 +36,7 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 	:arg adscheme: function to implement the desired advection scheme 
 	:type adscheme: function
 
-.. function:: u_simple(xmin, xmax, zmin, zmax, nx, nz)
+.. function:: Th2D.u_simple(xmin, xmax, zmin, zmax, nx, nz)
 	u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
 	:arg xmin: minimum x on the grid
