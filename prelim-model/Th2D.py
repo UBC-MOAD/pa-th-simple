@@ -243,7 +243,7 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz):
 	""" u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
 	:arg xmin: minimum x on the grid
-
+	
 	:arg xmax: maximum x on the grid
 
 	:arg zmin: minimum z on the grid
@@ -421,6 +421,27 @@ def k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
 #######################################################PLOTTING#######################################################################
 def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz):
 	""" Plots the ratio T/P and outputs to notebook
+
+	:arg DTh: 2D profile of dissolved Th
+
+	:arg PTh: 2D profile of particulate Th
+
+	:arg DPa: 2D profile of dissolved Pa	
+
+	:arg PPa: 2D profile of particulate Pa
+
+	:arg xmin: minimum x on the grid
+
+	:arg xmax: maximum x on the grid
+
+	:arg zmin: minimum z on the grid
+
+	:arg zmax: maximum z on the grid
+
+	:arg nx: number of points in x dimension
+
+	:arg nz: number of points in z dimension
+
 	"""
 
 	# define grid

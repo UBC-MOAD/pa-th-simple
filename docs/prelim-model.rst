@@ -4,8 +4,6 @@ Preliminary Model
 
 The preliminary model is composed to two major working parts: the Th2D module, which contains all the functions used to produce the results, and the Coupled 2D Model notebook, which displays the results. 
 
-`Th2D module <http://ccar-modeling-pa-th.readthedocs.org/en/latest/prelim-model/Th2Dmodule/.html>`_
-
 
 	:module: Th2D.py
 
@@ -37,6 +35,78 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 
 	:arg adscheme: function to implement the desired advection scheme 
 	:type adscheme: function
+
+.. function:: u_simple(xmin, xmax, zmin, zmax, nx, nz)
+	u_simple computes a simple rotational, divergenceless flow field on a specified grid
+
+	:arg xmin: minimum x on the grid
+	
+	:arg xmax: maximum x on the grid
+
+	:arg zmin: minimum z on the grid
+
+	:arg zmax: maximum z on the grid
+
+	:arg nx: number of points in x dimension
+
+	:arg nz: number of points in z dimension	
+
+
+.. function:: u_complex(xmin, xmax, zmin, zmax, nx, nz):
+	u_simple computes a simple rotational, divergenceless flow field on a specified grid
+
+	:arg xmin: minimum x on the grid
+
+	:arg xmax: maximum x on the grid
+
+	:arg zmin: minimum z on the grid
+
+	:arg zmax: maximum z on the grid
+
+	:arg nx: number of points in x dimension
+
+	:arg nz: number of points in z dimension
+
+.. function:: k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
+	Computes adsorption,desorption, & production constants for either Th or Pa
+
+	:arg string: a string, either 'Th' or 'Pa'
+
+	:arg xmin: minimum x on the grid
+
+	:arg xmax: maximum x on the grid
+
+	:arg zmin: minimum z on the grid
+
+	:arg zmax: maximum z on the grid
+
+	:arg nx: number of points in x dimension
+
+	:arg nz: number of points in z dimension
+
+
+.. function:: plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz):
+	Plots the ratio T/P and outputs to notebook
+
+	:arg DTh: 2D profile of dissolved Th
+
+	:arg PTh: 2D profile of particulate Th
+
+	:arg DPa: 2D profile of dissolved Pa	
+
+	:arg PPa: 2D profile of particulate Pa
+
+	:arg xmin: minimum x on the grid
+
+	:arg xmax: maximum x on the grid
+
+	:arg zmin: minimum z on the grid
+
+	:arg zmax: maximum z on the grid
+
+	:arg nx: number of points in x dimension
+
+	:arg nz: number of points in z dimension
 
 
 
