@@ -15,13 +15,13 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 	write them to a file, plot the results.
 
 	:arg T: scale for tmax such that tmax = T*(g.zmax - g.zmin)/S 
-	:typeT: int
+	:type: int
 
 	:arg V: scale for ux, uz, which are originally order 1.
-	:type V: int
+	:type: int
 
 	:arg u: 3D tensor of shape (nz, nx, 2), z component of velocity in (:, :, 1), x component of velocity in (:, :, 2) 
-	:type u: float
+	:type: float
 
 	:arg nz: number of grid points in z dimension
 	:type: int
@@ -30,13 +30,13 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 	:type: int
 
 	:arg k_ad: nz x nx adsorption rate matrix
-	:type k_ad: float
+	:type: float
 
 	:arg k_de: nz x nx adsorption rate matrix
-	:type k_de: float
+	:type: float
 
 	:arg adscheme: function to implement the desired advection scheme 
-	:type adscheme: function
+	:type: function
 
 
 
