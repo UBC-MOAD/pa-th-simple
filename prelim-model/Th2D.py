@@ -228,10 +228,10 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig):
 	pylab.ylim([zmax_plt, g.zmin])
 
 	#save [Th] profiles as backup
-	log_ga = open('ga_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
-	log_ha = open('ha_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
-	print>>log_ga, g.a
-	print>>log_ha, h.a
+	#log_ga = open('ga_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
+	#log_ha = open('ha_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
+	#print>>log_ga, g.a
+	#print>>log_ha, h.a
 
 	return flowfig, meshTh, g.a, h.a
 
