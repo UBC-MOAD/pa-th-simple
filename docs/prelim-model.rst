@@ -11,17 +11,24 @@ Coupled 1D Model
 
 - Produce a 1D profile of [Th] in which dissolved and particulate phases are coupled by constant adsorption and desorption rates. 
 
+
 - Code takes ~5 tmax to reach a linear steady state, where tmax = (g.zmax - g.zmin)/S, the time for a particle to sink from surface to floor (10 years with current parameters).
+
 
 - The grid is 100 x 1.
 
+
 - Before reaching a steady state, Th is uniformly distributed in depth, which is partly due to the production term Q, and partly due to the initial distribution. 
+
 
 - It takes a time interval t = [0:tmax] for a particle to sink from an initial depth z = [0:zmax], which means after a time interval tmax, the initial distribution has fallen out. 
 
+
 - Unintuitively, it takes longer than this to reach a steady state. The adsorption and desorption rates are significant enough that they extend the time elapsed before steady state. Since only the particulate phase of Th is subject to sinking, there could be a series of "stalls" in the sinking trajectory of a Th atom when is desorbs into the dissolved phase. This theory could be tested by changing the ad/de-sorption rates and comparing time to reach steady state.
 
+
 - The steady state propogates from the surface to the floor. This is predominantly due to the initial distribution falling out at t = S*h, where h is the height of water above a given point, and S is sinking velocity, and partially due to a higher rate of adsorption near the surface.
+
 
 ==============
 module Th2D.py
