@@ -27,7 +27,7 @@ Coupled 1D Model
 - Unintuitively, it takes longer than this to reach a steady state. The adsorption and desorption rates are significant enough that they extend the time elapsed before steady state. Since only the particulate phase of Th is subject to sinking, there could be a series of "stalls" in the sinking trajectory of a Th atom when is desorbs into the dissolved phase. This theory could be tested by changing the ad/de-sorption rates and comparing time to reach steady state.
 
 
-- The steady state propogates from the surface to the floor. This is predominantly due to the initial distribution falling out at t = S*h, where h is the height of water above a given point, and S is sinking velocity, and partially due to a higher rate of adsorption near the surface.
+- The steady state propogates from the surface to the floor. This is predominantly due to the initial distribution falling out at t = h/S, where h is the height of water above a given point, and S is sinking velocity, and partially due to a higher rate of adsorption near the surface.
 
 
 ==============
