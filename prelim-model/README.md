@@ -9,16 +9,16 @@ Descriptions below the links are from the first cell of the notebooks
 
 * ##[1D Particulate Sinking.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/1D Particulate Sinking.ipynb)  
     
+* ##[ThPa ratio.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/ThPa ratio.ipynb)  
+    
+    Plots [Th]/[Pa] for three different velocity fields: stationary, single cell, and two cell overturning.  
+
 * ##[Coupled 2D Model.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Coupled 2D Model.ipynb)  
     
     Coupled 2D Model currently solves the [Th] and [Pa] on a 2D grid using an upwind advection scheme. It contains plots of [Th] profile for a simple rotational velocity field, and for a more complex rotational and downwelling velocity field, as well as plots of the ratio of [Th]/[Pa] on the 2D grid.  
 
 * ##[Coupled 1D Model.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Coupled 1D Model.ipynb)  
     
-* ##[[Th] [Pa]^-1.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/[Th] [Pa]^-1.ipynb)  
-    
-    Plots [Th]/[Pa] for three different velocity fields: stationary, single cell, and two cell overturning.  
-
 
 ##License
 
