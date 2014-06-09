@@ -19,8 +19,7 @@ Coupled 1D Model
 
 - It takes a time interval t = [0:tmax] for a particle to sink from an initial depth z = [0:zmax], which means after a time interval tmax, the initial distribution has fallen out. 
 
-- Unintuitively, it takes longer than this to reach a steady state.
-An explanation: the adsorption and desorption rates are significant enough that they extend the time elapsed before steady state. Since only the particulate phase of Th is subject to sinking, there could be a series of "stalls" in the sinking trajectory of a Th atom when is desorbs into the dissolved phase. This theory could be tested by changing the ad/de-sorption rates and comparing time to reach steady state.
+- Unintuitively, it takes longer than this to reach a steady state. The adsorption and desorption rates are significant enough that they extend the time elapsed before steady state. Since only the particulate phase of Th is subject to sinking, there could be a series of "stalls" in the sinking trajectory of a Th atom when is desorbs into the dissolved phase. This theory could be tested by changing the ad/de-sorption rates and comparing time to reach steady state.
 
 - The steady state propogates from the surface to the floor. This is predominantly due to the initial distribution falling out at t = S*h, where h is the height of water above a given point, and S is sinking velocity, and partially due to a higher rate of adsorption near the surface.
 
