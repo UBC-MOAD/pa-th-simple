@@ -238,6 +238,46 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig):
 
 #############################################VELOCITY#################################################################################
 
+def u_zero(xmin, xmax, zmin, zmax, nx, nz):
+	""" Produce a matrix of zeros on the input grid to simulate a zero velocity feild
+	:arg xmin: minimum x on the grid
+	
+	:arg xmax: maximum x on the grid
+
+	:arg zmin: minimum z on the grid
+
+	:arg zmax: maximum z on the grid
+
+	:arg nx: number of points in x dimension
+
+	:arg nz: number of points in z dimension
+
+	"""
+	# define grid
+	a = xmax
+	b = zmax
+	x = numpy.linspace(a/2, -a/2, nx)
+	z = numpy.linspace(b/2, -b/2, nz)
+	[xx, zz] = numpy.meshgrid(-x, z)
+	rr = numpy.sqrt(xx**2 + zz**2)
+	theta = numpy.arctan(zz/xx)
+	ux = numpy.zeros([nz, nx])
+	uz = numpy.zeros([nz, nx])
+
+	# store the solution in a matrix
+	u = numpy.zeros([nz, nx, 2])
+	u[:, :, 0] = uz
+	u[:, :, 1] = ux
+
+	flowfig = pylab.subplots(1, 3, figsize = (16, 5))	
+	pylab.subplot(131)
+	pylab.quiver(xx, zz, ux[:], -uz[:])
+	pylab.gca().invert_yaxis()
+	plt.title('Velocity field')
+	plt.xlabel('x [m]')
+	plt.ylabel('depth [m]')
+
+	return u, flowfig
 
 def u_simple(xmin, xmax, zmin, zmax, nx, nz):
 	""" u_simple computes a simple rotational, divergenceless flow field on a specified grid
@@ -469,6 +509,9 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz):
 	plt.xlabel('x [m]')
 	plt.ylabel('depth [m]')
 	pylab.colorbar(D)
+	cmin = 0
+	cmax = numpy.max((numpy.max(clean_Dratio), numpy.max(clean_Pratio)))
+	plt.clim(cmin, cmax)
 
 	pylab.subplot(122)
 	ratio = PPa/PTh
@@ -480,6 +523,7 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz):
 	plt.xlabel('x [m]')
 	plt.ylabel('depth [m]')
 	pylab.colorbar(P)
+	plt.clim(cmin, cmax)
 
 	return TPratio
 
