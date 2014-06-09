@@ -4,6 +4,17 @@ Preliminary Model
 
 The preliminary model is composed to two major working parts: the Th2D module, which contains all the functions used to produce the results, and the Coupled 2D Model notebook, which displays the results. 
 
+
+================
+Coupled 1D Model
+================
+
+Produce a 1D profile of [Th] in which dissolved and particulate phases are coupled by constant adsorption and desorption rates. 
+
+Code takes ~5 tmax to reach a linear steady state, where tmax = (g.zmax - g.zmin)/S, the time for a particle to sink from surface to floor.
+
+The grid is 100 x 1.
+
 ==============
 module Th2D.py
 ==============
@@ -19,7 +30,7 @@ module Th2D.py
 	:arg V: scale for ux, uz, which are originally order 1.
 	:type V: int
 
-	:arg u: 3D tensor of shape (nz, nx, 2), z component of velocity in (:, :, 1), x component of velocity in (:, :, 2) 
+	:arg u: 3D tensor of shape [nz, nx, 2]. Stores z component of velocity in [:, :, 1], x component of velocity in [:, :, 2] 
 	:type u: float
 
 	:arg nz: number of grid points in z dimension
