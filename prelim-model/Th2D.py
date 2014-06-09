@@ -459,7 +459,7 @@ def k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
 	
 	return k_ad, k_de, Q	
 #######################################################PLOTTING#######################################################################
-def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz):
+def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	""" Plots the ratio T/P and outputs to notebook
 
 	:arg DTh: 2D profile of dissolved Th
@@ -501,11 +501,12 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz):
 	clean_Pratio[~idx] = Pratio[~idx]
 
 	# plot
+	tmax = 10*T 
 	TPratio = pylab.subplots(1, 2, figsize = (16, 5))	
 	pylab.subplot(121)
 	D = pylab.pcolormesh(xx_plt, zz_plt, clean_Dratio)
 	pylab.gca().invert_yaxis()
-	plt.title('Dissolved [Th]/[Pa]')
+	plt.title('Dissolved [Th]/[Pa], tmax = ' + str(tmax) + 'yrs')
 	plt.xlabel('x [m]')
 	plt.ylabel('depth [m]')
 	pylab.colorbar(D)
@@ -519,7 +520,7 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz):
 	ratio = ratio[~idx]
 	P = pylab.pcolormesh(xx_plt, zz_plt, clean_Pratio)
 	pylab.gca().invert_yaxis()
-	plt.title('Particulate [Th]/[Pa]')
+	plt.title('Particulate [Th]/[Pa], tmax = ' + str(tmax) + 'yrs')
 	plt.xlabel('x [m]')
 	plt.ylabel('depth [m]')
 	pylab.colorbar(P)
