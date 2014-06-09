@@ -30,9 +30,9 @@ Coupled 1D Model
 - The steady state propogates from the surface to the floor. This is predominantly due to the initial distribution falling out at t = h/S, where h is the height of water above a given point, and S is sinking velocity, and partially due to a higher rate of adsorption near the surface.
 
 
-==============
-module Th2D.py
-==============
+=========================
+Coupled 2D Model: Th2D.py
+=========================
 
 .. function:: Th2D.adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig)
 	
@@ -66,7 +66,7 @@ module Th2D.py
 .. function:: Th2D.u_simple(xmin, xmax, zmin, zmax, nx, nz)
 
 	Compute a simple rotational, divergenceless flow field 
-	on a specified grid
+	on a specified grid.
 
 	:arg xmin: minimum x on the grid
 	
@@ -83,7 +83,7 @@ module Th2D.py
 
 .. function:: Th2D.u_complex(xmin, xmax, zmin, zmax, nx, nz)
 
-	Compute a rotational, downwelling velocity field
+	Compute a rotational, downwelling velocity field.
 
 	:arg xmin: minimum x on the grid
 
@@ -102,7 +102,7 @@ module Th2D.py
 .. function:: Th2D.k_sorp(string, xmin, xmax, zmin, zmax, nx, nz)
 
 	Compute adsorption,desorption, & production constants for 
-	Th or Pa
+	Th or Pa.
 
 	:arg string: a string, either 'Th' or 'Pa'
 
@@ -119,9 +119,9 @@ module Th2D.py
 	:arg nz: number of points in z dimension
 
 
-.. function:: Th2D.plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz)
+.. function:: Th2D.plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T)
 
-	Plot the ratio T/P and outputs to notebook
+	Plot the ratio T/P and outputs to notebook.
 
 	:arg DTh: 2D profile of dissolved Th
 
@@ -142,6 +142,9 @@ module Th2D.py
 	:arg nx: number of points in x dimension
 
 	:arg nz: number of points in z dimension
+
+	:arg T: scale for tmax such that tmax = T*(g.zmax - g.zmin)/S
+	:type T: int
 
 
 
