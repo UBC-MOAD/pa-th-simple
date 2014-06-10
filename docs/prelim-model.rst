@@ -55,7 +55,8 @@ Coupled 2D Model: Steady State
 		- single cell velocity: also takes 50 years
 		- two cell velocity: also takes 50 years
 
-**[Th] / [Pa]**	- zero velocity: takes longer than 80 to reach steady state. Still have to run more code.
+**[Th] / [Pa]**	
+		- zero velocity: takes longer than 80 to reach steady state. Still have to run more code.
 		- single cell velocity:
 		- two cell velocity:
 
