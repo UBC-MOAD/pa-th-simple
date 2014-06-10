@@ -268,10 +268,14 @@ def u_zero(xmin, xmax, zmin, zmax, nx, nz):
 	u = numpy.zeros([nz, nx, 2])
 	u[:, :, 0] = uz
 	u[:, :, 1] = ux
-
+	
+	# plot result
+	x_plt = numpy.linspace(xmin, xmax, nx)
+	z_plt = numpy.linspace(zmin, zmax, nz)
+	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
 	flowfig = pylab.subplots(1, 3, figsize = (16, 5))	
 	pylab.subplot(131)
-	pylab.quiver(xx, zz, ux[:], -uz[:])
+	pylab.quiver(xx_plt, zz_plt, ux[:], -uz[:])
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity field')
 	plt.xlabel('x [m]')
