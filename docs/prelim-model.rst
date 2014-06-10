@@ -9,55 +9,44 @@ The preliminary model is composed to two major working parts: the Th2D module, w
 Coupled 1D Model
 ================
 
-- Produce a 1D profile of [Th] in which dissolved and particulate phases are coupled by constant adsorption and desorption rates. 
-
-
-- Code takes ~5 tmax to reach a linear steady state, where tmax = (g.zmax - g.zmin)/S, the time for a particle to sink from surface to floor (10 years with current parameters).
-
+- The steady state is reached after 50 years.
 
 - The grid is 100 x 1.
 
+- The solution propogates from surface to seafloor, and increases linearly with depth. 
 
-- Before reaching a steady state, Th is uniformly distributed in depth, which is partly due to the production term Q, and partly due to the initial distribution. 
+- It takes a time interval t = [0:tmax] for a particle to sink from an initial depth z = [0:zmax], which means after a time interval tmax = zmax/S, where S is the sinking velocity, the initial distribution has fallen out. 
 
-
-- It takes a time interval t = [0:tmax] for a particle to sink from an initial depth z = [0:zmax], which means after a time interval tmax, the initial distribution has fallen out. 
-
-
-- Unintuitively, it takes longer than this to reach a steady state. The adsorption and desorption rates are significant enough that they extend the time elapsed before steady state. Since only the particulate phase of Th is subject to sinking, there could be a series of "stalls" in the sinking trajectory of a Th atom when is desorbs into the dissolved phase. This theory could be tested by changing the ad/de-sorption rates and comparing time to reach steady state.
-
-
-- The steady state propogates from the surface to the floor. This is predominantly due to the initial distribution falling out at t = h/S, where h is the height of water above a given point, and S is sinking velocity, and partially due to a higher rate of adsorption near the surface.
+- Unintuitively, it takes longer than this to reach a steady state. Since only the particulate phase of Th is subject to sinking, there could be a series of "stalls" in the sinking trajectory of an atom when is desorbs into the dissolved phase.
 
 ====================================
 Coupled 2D Model: Underlying Physics
 ====================================
-- The results show that the steady state is reached after 30 years. The steady state is different from steady state in the static case: the downwelling region exhibits higher [Th] (left), and the upwellling exhibits lower [Th] (right), as opposed to a horizontally uniform distribution. 
 
-- The velocity scheme is superposed on the background sinking velocity of particulate Th, S = 500 m/yr. The overall sinking rate is therefore minimal in upwelling region, and maximal in downwelling region. The downwelling region should reach a steady state quickly, because the faster the sinking rate, the faster the initial distribution falls out. 
+- The steady state is reached after 50 years, and propogates from surface to seafloor.
 
-- Why is the steady state different from the zero velocity steady state? 
+- The downwelling region approaches steady state at a faster rate the the upwelling region because particles in this region traverse the full ocean depth more quickly, so the steady state propagates more quickly also.
 
-- Increasing the sinking velocity in the 1D model increases the maximum [Th] at z = zmax. This is congruent to the horizontally varying effect observed here. 
+- The downwelling region exhibits higher s.s. [], and the upwellling exhibits lower s.s. [].
 
-- Why does downwelling and/or a faster sinking rate increase the magnitude of the steady state[Th]?
-
-- A non-zero velocity field can move dissolved Th, which is otherwise stationary. 
-
-- When the sinking velocity is faster, the [Th] has to be decreased near the surface because the production and ad/de-sorption rates have not changed, but the particulate phase falls out at a faster rate. This lesser [Th] at the surface has to be balanced by an increased [Th] at the floor. This is why a faster sinking rate and/or a downwelling region increases the steady state [Th] at depth.
+- When the sinking velocity is faster, the [] has to be decreased near the surface because the production and ad/de-sorption rates have not changed, but the particulate phase falls out at a faster rate. This lesser [] at the surface has to be balanced by an increased [] at the floor. This is why a faster sinking rate increases the steady state [] at depth, as well as the slope along an x-isoline.
 
 ==============================
 Coupled 2D Model: Steady State
 ==============================
 
 **[Th]** 	
-		- zero velocity: The magnitude and distribution of [Th] change very little between 40 and 100 years. After 50 years, 				the solution is 90% similar to the 100 year solution.
+		- zero velocity: The magnitude and distribution of [Th] change very little between 40 and 100 years. After 50 years, 				the solution is 90% similar to the 100 year solution. The solution shows a constant [Th] over depths 4250 - 				5000m, but this is just a relic of the boundary condition that was not considered in the analytical solution.
+
 		- single cell velocity: also takes 50 years
+
 		- two cell velocity: also takes 50 years
 
 **[Th] / [Pa]**	
-		- zero velocity: takes longer than 80 to reach steady state. Still have to run more code.
+		- zero velocity: takes longer than 80 years to reach steady state. Still have to run more code.
+
 		- single cell velocity:
+
 		- two cell velocity:
 
 

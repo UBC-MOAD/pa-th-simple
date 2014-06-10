@@ -57,7 +57,7 @@ class FDgrid:
 		self.a[:, self.jhi - 1] = self.a[:, self.jhi - 2]
 
 
-def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig):
+def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig, string):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
@@ -84,6 +84,7 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig):
 
 	:arg adscheme: function to implement the desired advection scheme 
 
+	:arg string: string, either 'Th' or 'Pa' which determines which title to use
 	"""
 
 	# create the grid
@@ -184,7 +185,10 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig):
 	# plots to flowfig subplots	
 	pylab.subplot(132) 
 	mesh1 = pylab.pcolormesh(g.xx, g.zz, ainit)
-	pylab.title('Initial Dissolved [Th]')
+	if string == 'Th': 
+		pylab.title('Initial Dissolved [Th]')
+	if string == 'Pa':
+		pylab.title('Initial Dissolved [Pa]')
 	pylab.gca().invert_yaxis()
 	pylab.ylabel('depth [m]')
 	pylab.xlabel('x [m]')
@@ -195,7 +199,10 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig):
 
 	pylab.subplot(133) 
 	mesh2 = pylab.pcolormesh(g.xx, g.zz, binit)
-	pylab.title('Initial Particulate [Th]')
+	if string == 'Th':
+		pylab.title('Initial Particulate [Th]')
+	if string == 'Pa':
+		pylab.title('Initial Particulate [Pa]')
 	pylab.gca().invert_yaxis()
 	pylab.ylabel('depth [m]')
 	pylab.xlabel('x [m]')
@@ -207,7 +214,10 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig):
 	meshTh = pylab.subplots(1, 2, figsize = (16.5, 5)) 
 	pylab.subplot(121) 
 	mesh3 = pylab.pcolormesh(g.xx, g.zz, g.a)
-	pylab.title('Final Dissolved [Th], tmax = ' + str(tmax) + 'yrs')
+	if string == 'Th':
+		pylab.title('Final Dissolved [Th], tmax = ' + str(tmax) + 'yrs')
+	if string == 'Pa':
+		pylab.title('Final Dissolved [Pa], tmax = ' + str(tmax) + 'yrs')
 	pylab.gca().invert_yaxis()
 	pylab.ylabel('depth [m]')
 	pylab.xlabel('x [m]')
@@ -218,7 +228,10 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig):
 
 	pylab.subplot(122) 
 	mesh4 = pylab.pcolormesh(g.xx, g.zz, h.a)
-	pylab.title('Final Particulate [Th], tmax = ' + str(tmax) + 'yrs')
+	if string == 'Th':
+		pylab.title('Final Particulate [Th], tmax = ' + str(tmax) + 'yrs')
+	if string == 'Pa':
+		pylab.title('Final Particulate [Pa], tmax = ' + str(tmax) + 'yrs')
 	pylab.gca().invert_yaxis()
 	pylab.ylabel('depth [m]')
 	pylab.xlabel('x [m]')
