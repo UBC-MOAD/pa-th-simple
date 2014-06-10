@@ -19,7 +19,7 @@ from math import pi
 
 class FDgrid:
 
-	def __init__(self, nx, nz, ng, xmin = 1, xmax = 10000, zmin = 0, 
+	def __init__(self, nx, nz, ng, xmin = 1, xmax = 1000000, zmin = 0, 
 		 zmax = 5000):
 
 		self.xmin = xmin
