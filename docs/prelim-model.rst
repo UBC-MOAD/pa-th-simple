@@ -36,7 +36,7 @@ Coupled 2D Model: Underlying Physics
 
 - When the sinking velocity is faster, the [] has to be decreased near the surface because the production and ad/de-sorption rates have not changed, but the particulate phase falls out at a faster rate. This lesser [] at the surface has to be balanced by an increased [] at the floor. This is why a faster sinking rate increases the steady state [] at depth, as well as the slope along an x-isoline.
 
-.. figure:: Pa-Th/images/2D0vel.png
+.. figure:: images/2D0vel.png
 .. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D50yr[Th]0vel.png
 .. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D1vel.png
 .. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D50yr[Th]1vel.png
