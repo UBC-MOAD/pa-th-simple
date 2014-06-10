@@ -21,8 +21,8 @@ Coupled 1D Model
 
 - Unintuitively, it takes longer than this to reach a steady state. Since only the particulate phase of Th is subject to sinking, there could be a series of "stalls" in the sinking trajectory of an atom when is desorbs into the dissolved phase.
 
-.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/1Dinit[Th].png
-.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/1Dfinal[Th].png
+.. figure:: ../images/1Dinit[Th].png
+.. figure:: ../images/1Dfinal[Th].png
   
 ====================================
 Coupled 2D Model: Underlying Physics
@@ -36,12 +36,12 @@ Coupled 2D Model: Underlying Physics
 
 - When the sinking velocity is faster, the [] has to be decreased near the surface because the production and ad/de-sorption rates have not changed, but the particulate phase falls out at a faster rate. This lesser [] at the surface has to be balanced by an increased [] at the floor. This is why a faster sinking rate increases the steady state [] at depth, as well as the slope along an x-isoline.
 
-.. figure:: images/2D0vel.png
-.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D50yr[Th]0vel.png
-.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D1vel.png
-.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D50yr[Th]1vel.png
-.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D2vel.png
-.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D50yr[Th]2vel.png
+.. figure:: ../images/2D0vel.png
+.. figure:: ../images/2D50yr[Th]0vel.png
+.. figure:: ../images/2D1vel.png
+.. figure:: ../images/2D50yr[Th]1vel.png
+.. figure:: ../images/2D2vel.png
+.. figure:: ../images/2D50yr[Th]2vel.png
 
 
 ==============================
