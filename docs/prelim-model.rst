@@ -2,7 +2,11 @@
 Preliminary Model
 *****************
 
-The preliminary model is composed to two major working parts: the Th2D module, which contains all the functions used to produce the results, and the Coupled 2D Model notebook, which displays the results. 
+The preliminary model solves a system of coupled, linear equations. It was initially set up to solve on a 1D domain, and compared with an analytical solution for consistency. Next, on a 2D domain, which was not as easily implemented as expected. The stability of the solution was the biggest obstacle. The CFL condition must be met. 
+
+Points of interest are the time elapsed to reach steady state, the grid resolution required for 90% similarity, and of course the distribution of [Th]/[Pa]. 
+
+The objective of the model is to provide insight into the overturning rate.
 
 
 ================
