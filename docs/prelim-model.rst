@@ -15,6 +15,8 @@ Coupled 1D Model
 
 - The solution propogates from surface to seafloor, and increases linearly with depth. 
 
+- The [Th] distribution is constant *before* the steady state is established because the production, adsorption, and desorption rates are constant.
+
 - It takes a time interval t = [0:tmax] for a particle to sink from an initial depth z = [0:zmax], which means after a time interval tmax = zmax/S, where S is the sinking velocity, the initial distribution has fallen out. 
 
 - Unintuitively, it takes longer than this to reach a steady state. Since only the particulate phase of Th is subject to sinking, there could be a series of "stalls" in the sinking trajectory of an atom when is desorbs into the dissolved phase.
@@ -33,6 +35,14 @@ Coupled 2D Model: Underlying Physics
 - The downwelling region exhibits higher s.s. [], and the upwellling exhibits lower s.s. [].
 
 - When the sinking velocity is faster, the [] has to be decreased near the surface because the production and ad/de-sorption rates have not changed, but the particulate phase falls out at a faster rate. This lesser [] at the surface has to be balanced by an increased [] at the floor. This is why a faster sinking rate increases the steady state [] at depth, as well as the slope along an x-isoline.
+
+.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D0vel.png
+.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D50yr[Th]0vel.png
+.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D1vel.png
+.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D50yr[Th]1vel.png
+.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D2vel.png
+.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/2D50yr[Th]2vel.png
+
 
 ==============================
 Coupled 2D Model: Steady State
