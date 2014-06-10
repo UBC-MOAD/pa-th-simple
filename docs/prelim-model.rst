@@ -46,6 +46,21 @@ Coupled 2D Model: Underlying Physics
 
 - When the sinking velocity is faster, the [Th] has to be decreased near the surface because the production and ad/de-sorption rates have not changed, but the particulate phase falls out at a faster rate. This lesser [Th] at the surface has to be balanced by an increased [Th] at the floor. This is why a faster sinking rate and/or a downwelling region increases the steady state [Th] at depth.
 
+==============================
+Coupled 2D Model: Steady State
+==============================
+
+**[Th]** 	
+		- zero velocity: The magnitude and distribution of [Th] change very little between 40 and 100 years. After 50 years, 				the solution is 90% similar to the 100 year solution.
+		- single cell velocity: also takes 50 years
+		- two cell velocity: also takes 50 years
+
+**[Th] / [Pa]**	- zero velocity: takes longer than 80 to reach steady state. Still have to run more code.
+		- single cell velocity:
+		- two cell velocity:
+
+
+
 =========================
 Coupled 2D Model: Th2D.py
 =========================
@@ -137,7 +152,7 @@ Coupled 2D Model: Th2D.py
 
 .. function:: Th2D.plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T)
 
-	Plot the ratio T/P and outputs to notebook.
+	Plot the ratio T/P and output to notebook.
 
 	:arg DTh: 2D profile of dissolved Th
 
