@@ -32,15 +32,19 @@ Coupled 1D Model
 ====================================
 Coupled 2D Model: Underlying Physics
 ====================================
-The results show that the steady state is reached after 30 years. The steady state is different from steady state in the static case: the downwelling region exhibits higher [Th] (left), and the upwellling exhibits lower [Th] (right), as opposed to a horizontally uniform distribution. 
+- The results show that the steady state is reached after 30 years. The steady state is different from steady state in the static case: the downwelling region exhibits higher [Th] (left), and the upwellling exhibits lower [Th] (right), as opposed to a horizontally uniform distribution. 
 
-Explanation: the velocity scheme is superposed on the background sinking velocity of particulate Th, S = 500 m/yr. The overall sinking rate is therefore minimal in upwelling region, and maximal in downwelling region. The downwelling region should reach a steady state quickly, because the faster the sinking rate, the faster the initial distribution falls out. 
+- The velocity scheme is superposed on the background sinking velocity of particulate Th, S = 500 m/yr. The overall sinking rate is therefore minimal in upwelling region, and maximal in downwelling region. The downwelling region should reach a steady state quickly, because the faster the sinking rate, the faster the initial distribution falls out. 
 
-Why is the steady state different from the zero velocity steady state? 
+- Why is the steady state different from the zero velocity steady state? 
 
-Increasing the sinking velocity in the 1D model increases the maximum [Th] at z = zmax. This is congruent to the horizontally varying effect observed here. 
+- Increasing the sinking velocity in the 1D model increases the maximum [Th] at z = zmax. This is congruent to the horizontally varying effect observed here. 
 
-Why does downwelling and/or a faster sinking rate increase the magnitude of the steady state[Th]?
+- Why does downwelling and/or a faster sinking rate increase the magnitude of the steady state[Th]?
+
+- A non-zero velocity field can move dissolved Th, which is otherwise stationary. 
+
+- When the sinking velocity is faster, the [Th] has to be decreased near the surface because the production and ad/de-sorption rates have not changed, but the particulate phase falls out at a faster rate. This lesser [Th] at the surface has to be balanced by an increased [Th] at the floor. This is why a faster sinking rate and/or a downwelling region increases the steady state [Th] at depth.
 
 =========================
 Coupled 2D Model: Th2D.py
