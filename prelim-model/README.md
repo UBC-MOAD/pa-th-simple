@@ -7,12 +7,12 @@ The links below are to static renderings of the notebooks via
 Descriptions below the links are from the first cell of the notebooks
 (if that cell contains Markdown or raw text).
 
-* ##[1D Particulate Sinking.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/1D Particulate Sinking.ipynb)  
-    
 * ##[ThPa ratio.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/ThPa ratio.ipynb)  
     
     Plots [Th]/[Pa] for three different velocity fields: stationary, single cell, and two cell overturning.  
 
+* ##[1D Numerical and Analytical.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/1D Numerical and Analytical.ipynb)  
+    
 * ##[Coupled 1D Model.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Coupled 1D Model.ipynb)  
     
 * ##[Th 2D Profile.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Th 2D Profile.ipynb)  
