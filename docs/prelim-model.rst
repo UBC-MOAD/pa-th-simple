@@ -19,6 +19,9 @@ Coupled 1D Model
 
 - Unintuitively, it takes longer than this to reach a steady state. Since only the particulate phase of Th is subject to sinking, there could be a series of "stalls" in the sinking trajectory of an atom when is desorbs into the dissolved phase.
 
+.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/1Dinit[Th].png
+.. figure:: /home/abellas/Documents/GEOTRACES/Pa-Th/images/1Dfinal[Th].png
+  
 ====================================
 Coupled 2D Model: Underlying Physics
 ====================================
