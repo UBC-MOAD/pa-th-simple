@@ -7,22 +7,22 @@ The links below are to static renderings of the notebooks via
 Descriptions below the links are from the first cell of the notebooks
 (if that cell contains Markdown or raw text).
 
-* ##[ThPa ratio.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/ThPa ratio.ipynb)  
+* ##[1DThModel.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/1DThModel.ipynb)  
     
-    Plots [Th]/[Pa] for three different velocity fields: stationary, single cell, and two cell overturning.  
+* ##[2DPaProfile.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/2DPaProfile.ipynb)  
+    
+    Solves the [Pa] on a 2D 1e6m x 5e3m grid using an upwind advection scheme, and contains plots of [Pa] profile for a zero velocity field, a single cell velocity field, and a two cell velocity field.  
 
-* ##[1D Numerical and Analytical.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/1D Numerical and Analytical.ipynb)  
-    
-* ##[Coupled 1D Model.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Coupled 1D Model.ipynb)  
-    
-* ##[Th 2D Profile.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Th 2D Profile.ipynb)  
+* ##[2DThProfile.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/2DThProfile.ipynb)  
     
     Solves the [Th] on a 2D grid using an upwind advection scheme, and contains plots of [Th] profile for a zero velocity field, a single cell velocity field, and a two cell velocity field.  
 
-* ##[Pa 2D Profile.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Pa 2D Profile.ipynb)  
+* ##[2DThParatio.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/2DThParatio.ipynb)  
     
-    Solves the [Pa] on a 2D grid using an upwind advection scheme, and contains plots of [Pa] profile for a zero velocity field, a single cell velocity field, and a two cell velocity field.  
+    Solves the [Th]/[Pa] on a 2D grid using an upwind advection scheme, and contains plots of [Th]/[Pa] profile for a zero velocity field, a single cell velocity field, and a two cell velocity field.   
 
+* ##[1DNumericalxAnalytical.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/1DNumericalxAnalytical.ipynb)  
+    
 
 ##License
 
