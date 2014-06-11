@@ -358,7 +358,7 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz):
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
 	flowfig = pylab.subplots(1, 3, figsize = (16, 5))	
 	pylab.subplot(131)
-	pylab.quiver(xx_plt/1e3, zz_plt, ux_plt[:], -uz_plt[:])
+	pylab.quiver(xx_plt/1e3, zz_plt, ux_plt[:], -zmax / xmax * uz_plt[:])
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity field')
 	plt.xlabel('x [km]')
