@@ -93,7 +93,7 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig, string):
 	h = FDgrid(nx, nz, ng)
 
 	# extract and scale the velocities
-	uz = xmax / zmax * V * u[:, :, 0]
+	uz = g.zmax / g.xmax * V * u[:, :, 0]
 	ux = V * u[:, :, 1]
 
 	# define the CFL, sink velocity, and reaction constant
