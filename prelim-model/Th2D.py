@@ -44,7 +44,7 @@ class FDgrid:
 		[self.xx, self.zz] = numpy.meshgrid(self.x, self.z)
 
 		# storage for the solution 
-		self.a = numpy.ones((nz, nx), dtype=numpy.float64)
+		self.a = numpy.zeros((nz, nx), dtype=numpy.float64)
 
 	def scratchArray(self):
 		""" return a scratch array dimensioned for our grid """
@@ -99,8 +99,8 @@ def adflow(g, h, t, T, V, u, nz, nx, k_ad, k_de, Q):
 	tmax = T*(g.zmax - g.zmin)/S            
 
 	# evolution loop
-	anew = g.scratchArray()
-	bnew = h.scratchArray()
+	anew = g.a
+	bnew = h.a
 
 	# define upwind for x, z OUTSIDE loop ONLY while du/dt = 0
 	p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
@@ -147,10 +147,10 @@ def adflow(g, h, t, T, V, u, nz, nx, k_ad, k_de, Q):
 		h.a[:] = bnew[:]
 		t += dt
 
-        return g.a, h.a, T
+        return g, h, T
 
 
-def plotprof(flowfig, g_a, h_a, xmin, xmax, zmin, zmax, nx, nz, string, T):
+def plotprof(flowfig, g, h, xmin, xmax, zmin, zmax, nx, nz, string, T):
         """Plot the dissolved and particulate profile of either [Th] or [Pa]
 
         :arg slowfig: figure with 3 subplots. 1 - vel. field; 2 - dissolved initial distribution; 3 - particulate initial distribution
@@ -182,7 +182,7 @@ def plotprof(flowfig, g_a, h_a, xmin, xmax, zmin, zmax, nx, nz, string, T):
 
         meshTh = pylab.subplots(1, 2, figsize = (16.5, 5)) 
         pylab.subplot(121) 
-        mesh3 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g_a)
+        mesh3 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
         if string == 'Th':
 	        pylab.title('Final Dissolved [Th], tmax = ' + str(10*T) + 'yrs')
         if string == 'Pa':
@@ -191,12 +191,12 @@ def plotprof(flowfig, g_a, h_a, xmin, xmax, zmin, zmax, nx, nz, string, T):
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
         pylab.colorbar(mesh3)
-        plt.clim(numpy.min(g_a[:]), numpy.max(g_a[:]))
+        plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
         pylab.xlim([xmin/1e3, xmax_plt/1e3])
         pylab.ylim([zmax_plt, zmin])
 
         pylab.subplot(122) 
-        mesh4 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h_a)
+        mesh4 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
         if string == 'Th':
 	        pylab.title('Final Particulate [Th], tmax = ' + str(10*T) + 'yrs')
         if string == 'Pa':
@@ -205,7 +205,7 @@ def plotprof(flowfig, g_a, h_a, xmin, xmax, zmin, zmax, nx, nz, string, T):
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
         pylab.colorbar(mesh4)
-        plt.clim(numpy.min(g_a[:]), numpy.max(g_a[:]))
+        plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
         pylab.xlim([xmin/1e3, xmax_plt/1e3])
         pylab.ylim([zmax_plt, zmin])
 
