@@ -57,7 +57,7 @@ class FDgrid:
 		self.a[:, self.jhi - 1] = self.a[:, self.jhi - 2]
 
 
-def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig, string):
+def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig, string, vel):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
@@ -71,10 +71,10 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig, string):
 	:type u: float
 
 	:arg nz: number of grid points in z dimension
-	:type: int
+	:type nz: int
 
 	:arg nx: number of grid points in x dimension
-	:type: int
+	:type nx: int
 
 	:arg k_ad: nz x nx adsorption rate matrix
 	:type k_ad: float
@@ -82,12 +82,16 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig, string):
 	:arg k_de: nz x nx adsorption rate matrix
 	:type k_de: float
 
-	:arg adscheme: function to implement the desired advection scheme 
+	:arg adscheme: function to implement the desired advection scheme
+	:type adscheme: funct 
 
-	:arg string: string, either 'Th' or 'Pa' which determines which title to use
+	:arg string: string, either 'Th' or 'Pa' which determines which title to use on figures
+
+	:arg vel: integer, either 
+	:type vel: int
 	"""
 
-	# create the grid
+	#* create the grid
 	ng = 1
 	g = FDgrid(nx, nz, ng)
 	h = FDgrid(nx, nz, ng)
@@ -101,10 +105,10 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig, string):
 
 	# time info
 	dt = 0.001          #yr
-	t = 0.0
+	#t = 0.0
 	tmax = T*(g.zmax - g.zmin)/S            # time interval to reach bottom from surface
 
-	# set initial conditions
+	#* set initial conditions
 	g.a[:, :] = 0.0
 	h.a[:, :] = 0.0
 
@@ -115,20 +119,6 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig, string):
 	# evolution loop
 	anew = g.scratchArray()
 	bnew = h.scratchArray()
-
-	# time derivative storage
-	dgdt = g.scratchArray()
-	dhdt = h.scratchArray()
-
-	# depth derivative storage
-	dgdz = g.scratchArray()
-	dhdz = h.scratchArray()
-
-	# stability parameter storage
-	p_upx = g.scratchArray
-	n_upx = g.scratchArray
-	p_upz = g.scratchArray
-	n_upz = g.scratchArray
 
 	# define upwind for x, z OUTSIDE loop ONLY while du/dt = 0
 	p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
@@ -240,13 +230,17 @@ def adflow(T, V, u, nz, nx, k_ad, k_de, Q, flowfig, string):
 	pylab.xlim([g.xmin/1e3, xmax_plt/1e3])
 	pylab.ylim([zmax_plt, g.zmin])
 
-	#save [Th] profiles as backup
-	#log_ga = open('ga_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
-	#log_ha = open('ha_'+str(T)+'tmax_'+str(V)+'U.log', 'w')
-	#print>>log_ga, g.a
-	#print>>log_ha, h.a
+	#save profiles as backup
+	if string == 'Th':
+		log_ga = open('DTh'+str(T)+'tmax.log', 'w')
+		log_ha = open('PTh'+str(T)+'tmax.log', 'w')
+	if string == 'Pa':
+		log_ga = open('DPa'+str(T)+'tmax.log', 'w')
+		log_ha = open('PPa'+str(T)+'tmax.log', 'w')
+	json.dump(g.a, log_ga)
+	json.dump(h.a, log_ha)
 
-	return flowfig, meshTh, g.a, h.a
+	return flowfig, meshTh
 
 
 #############################################VELOCITY#################################################################################
