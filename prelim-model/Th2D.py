@@ -61,7 +61,7 @@ def adflow(g, h, t, T, V, u, nz, nx, k_ad, k_de, Q):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
-        :arg t: scale for time at which code is initialized
+        :arg t: scale for time at which code is initiated
         :type t: int
 
 	:arg T: scale for time at which code is terminated
@@ -96,7 +96,8 @@ def adflow(g, h, t, T, V, u, nz, nx, k_ad, k_de, Q):
 
 	# time info
 	dt = 0.001          #yr
-	tmax = T*(g.zmax - g.zmin)/S            
+        t = t * (g.zmax - g.zmin)/S
+	tmax = T * (g.zmax - g.zmin)/S            
 
 	# evolution loop
 	anew = g.a
@@ -147,10 +148,10 @@ def adflow(g, h, t, T, V, u, nz, nx, k_ad, k_de, Q):
 		h.a[:] = bnew[:]
 		t += dt
 
-        return g, h, T
+        return g, h
 
 
-def plotprof(flowfig, g, h, xmin, xmax, zmin, zmax, nx, nz, string, T):
+def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         """Plot the dissolved and particulate profile of either [Th] or [Pa]
 
         :arg slowfig: figure with 3 subplots. 1 - vel. field; 2 - dissolved initial distribution; 3 - particulate initial distribution
@@ -186,7 +187,7 @@ def plotprof(flowfig, g, h, xmin, xmax, zmin, zmax, nx, nz, string, T):
         if string == 'Th':
 	        pylab.title('Final Dissolved [Th], tmax = ' + str(10*T) + 'yrs')
         if string == 'Pa':
-	        pylab.title('Final Dissolved [Pa], tmax = ' + str(10*t) + 'yrs')
+	        pylab.title('Final Dissolved [Pa], tmax = ' + str(10*T) + 'yrs')
         pylab.gca().invert_yaxis()
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
@@ -215,7 +216,7 @@ def plotprof(flowfig, g, h, xmin, xmax, zmin, zmax, nx, nz, string, T):
 
 #############################################VELOCITY#################################################################################
 
-def u_zero(ainit, binit, xmin, xmax, zmin, zmax, nx, nz):
+def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz):
 	""" Produce a matrix of zeros on the input grid to simulate a zero velocity feild
         :arg g_a: the dissolved [] final distribution
 
@@ -275,7 +276,7 @@ def u_zero(ainit, binit, xmin, xmax, zmin, zmax, nx, nz):
         xmax_plt = (nx - 2)*dx
         zmax_plt = (nz - 2)*dz
         pylab.subplot(132) 
-        mesh1 = pylab.pcolormesh(xx_plt/1e3, zz_plt, ainit)
+        mesh1 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
         if string == 'Th': 
 	        pylab.title('Initial Dissolved [Th]')
         if string == 'Pa':
@@ -287,7 +288,7 @@ def u_zero(ainit, binit, xmin, xmax, zmin, zmax, nx, nz):
         pylab.ylim([zmax_plt, zmin])
 
         pylab.subplot(133) 
-        mesh2 = pylab.pcolormesh(xx_plt/1e3, zz_plt, binit)
+        mesh2 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
         if string == 'Th':
 	        pylab.title('Initial Particulate [Th]')
         if string == 'Pa':
@@ -301,7 +302,7 @@ def u_zero(ainit, binit, xmin, xmax, zmin, zmax, nx, nz):
 
 	return u, flowfig
 
-def u_simple(ainit, binit, xmin, xmax, zmin, zmax, nx, nz, string):
+def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 	""" u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
 	:arg xmin: minimum x on the grid
@@ -319,21 +320,22 @@ def u_simple(ainit, binit, xmin, xmax, zmin, zmax, nx, nz, string):
 	"""
 
 	a = xmax
-	b = zmax
-	x = numpy.linspace(a/2, -a/2, nx)
-	z = numpy.linspace(b/2, -b/2, nz)
-	[xx, zz] = numpy.meshgrid(-x, z)
-	rr = numpy.sqrt(xx**2 + zz**2)
-	theta = numpy.arctan(zz/xx)
-	ux = numpy.zeros([nz, nx])
-	uz = numpy.zeros([nz, nx])
-	idx = rr < a*b/(4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)))
-	ux[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-		                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * -zz[idx]
+        b = zmax
+        x = numpy.linspace(a/2, -a/2, nx)
+        z = numpy.linspace(b/2, -b/2, nz)
+        [xx, zz] = numpy.meshgrid(-x, z)
+        rr = numpy.sqrt(xx**2 + zz**2)
+        theta = numpy.arctan(zz/xx)
+        ux = numpy.zeros([nz, nx])
+        uz = numpy.zeros([nz, nx])
+        idx = rr < a*b/4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2))
+        ux[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
+                                            (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * -zz[idx]
 
-	uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-		                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
-	# store the solution in a matrix
+        uz[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
+                                            (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * xx[idx]
+	
+        # store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
 	u[:, :, 0] = uz
 	u[:, :, 1] = ux
@@ -378,7 +380,7 @@ def u_simple(ainit, binit, xmin, xmax, zmin, zmax, nx, nz, string):
         xmax_plt = (nx - 2)*dx
         zmax_plt = (nz - 2)*dz
         pylab.subplot(132) 
-        mesh1 = pylab.pcolormesh(xx_plt/1e3, zz_plt, ainit)
+        mesh1 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
         if string == 'Th': 
 	        pylab.title('Initial Dissolved [Th]')
         if string == 'Pa':
@@ -390,7 +392,7 @@ def u_simple(ainit, binit, xmin, xmax, zmin, zmax, nx, nz, string):
         pylab.ylim([zmax_plt, zmin])
 
         pylab.subplot(133) 
-        mesh2 = pylab.pcolormesh(xx_plt/1e3, zz_plt, binit)
+        mesh2 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
         if string == 'Th':
 	        pylab.title('Initial Particulate [Th]')
         if string == 'Pa':
@@ -403,7 +405,7 @@ def u_simple(ainit, binit, xmin, xmax, zmin, zmax, nx, nz, string):
 
 	return u, flowfig
 
-def u_complex(ainit, binit, xmin, xmax, zmin, zmax, nx, nz):
+def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 	""" u_complex complex computes a rotational, downwelling velocity field
 
 	:arg xmin: minimum x on the grid
@@ -439,11 +441,12 @@ def u_complex(ainit, binit, xmin, xmax, zmin, zmax, nx, nz):
 
 	# use logical indexing to define points of non-zero velocity
 	theta = numpy.arctan(zz/xx)
-	idx = rr < a*b/(4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)))
-	ux[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-		                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * -zz[idx]
-	uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-		                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
+	idx = rr < a*b/4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2))
+        ux[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
+                                            (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * -zz[idx]
+
+        uz[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
+                                            (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * xx[idx]
 
 	# store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
@@ -471,7 +474,7 @@ def u_complex(ainit, binit, xmin, xmax, zmin, zmax, nx, nz):
         xmax_plt = (nx - 2)*dx
         zmax_plt = (nz - 2)*dz
         pylab.subplot(132) 
-        mesh1 = pylab.pcolormesh(xx_plt/1e3, zz_plt, ainit)
+        mesh1 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
         if string == 'Th': 
 	        pylab.title('Initial Dissolved [Th]')
         if string == 'Pa':
@@ -483,7 +486,7 @@ def u_complex(ainit, binit, xmin, xmax, zmin, zmax, nx, nz):
         pylab.ylim([zmax_plt, zmin])
 
         pylab.subplot(133) 
-        mesh2 = pylab.pcolormesh(xx_plt/1e3, zz_plt, binit)
+        mesh2 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
         if string == 'Th':
 	        pylab.title('Initial Particulate [Th]')
         if string == 'Pa':
