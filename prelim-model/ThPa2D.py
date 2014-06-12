@@ -216,7 +216,7 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
 
 #############################################VELOCITY#################################################################################
 
-def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz):
+def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 	""" Produce a matrix of zeros on the input grid to simulate a zero velocity feild
         :arg g_a: the dissolved [] final distribution
 
@@ -328,7 +328,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
         theta = numpy.arctan(zz/xx)
         ux = numpy.zeros([nz, nx])
         uz = numpy.zeros([nz, nx])
-        idx = rr < a*b/4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2))
+        idx = rr < a*b/( 4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)) )
         ux[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
                                             (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * -zz[idx]
 
@@ -441,7 +441,7 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 
 	# use logical indexing to define points of non-zero velocity
 	theta = numpy.arctan(zz/xx)
-	idx = rr < a*b/4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2))
+	idx = rr < a*b/ ( 4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)) )
         ux[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
                                             (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * -zz[idx]
 
