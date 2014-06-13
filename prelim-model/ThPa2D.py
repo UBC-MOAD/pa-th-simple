@@ -95,7 +95,7 @@ def adflow(g, h, t, T, V, u, nz, nx, k_ad, k_de, Q):
 	S = 500        #m/yr
 
 	# time info
-	dt = 0.001          #yr
+	dt = 0.0001          #yr
         t = t * (g.zmax - g.zmin)/S
 	tmax = T * (g.zmax - g.zmin)/S            
 
@@ -206,7 +206,7 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
         pylab.colorbar(mesh4)
-        plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
+        plt.clim(numpy.min(h.a[:]), numpy.max(h.a[:]))
         pylab.xlim([xmin/1e3, xmax_plt/1e3])
         pylab.ylim([zmax_plt, zmin])
 
