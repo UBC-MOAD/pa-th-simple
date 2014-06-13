@@ -95,7 +95,7 @@ def adflow(g, h, t, T, V, u, nz, nx, k_ad, k_de, Q):
 	S = 500        #m/yr
 
 	# time info
-	dt = 0.0001          #yr
+	dt = 0.001          #yr
         t = t * (g.zmax - g.zmin)/S
 	tmax = T * (g.zmax - g.zmin)/S            
 
@@ -329,43 +329,22 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
         ux = numpy.zeros([nz, nx])
         uz = numpy.zeros([nz, nx])
         idx = rr < a*b/( 4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)) )
-        ux[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
-                                            (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * -zz[idx]
+        ux[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
+                                            (b*numpy.sin(theta[idx])) ** 2))/rr[idx] * -zz[idx]
 
-        uz[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
-                                            (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * xx[idx]
+        uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
+                                            (b*numpy.sin(theta[idx])) ** 2))/rr[idx] * xx[idx]
 	
         # store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
 	u[:, :, 0] = uz
 	u[:, :, 1] = ux
 
+	# plot the velocity field that you are actually using (so you can be sure you got it right)
 
-	# plot the velocity field
-
-	# define the velocity field with fewer points for plotting, &
-	# change sign of uz, because python doesn't understand that
-	# down is the positive direction in this case
-	N = 10
-	x = numpy.linspace(a/2, -a/2, N)
-	z = numpy.linspace(b/2, -b/2, N)
-	[xx, zz] = numpy.meshgrid(x, z)
-	ux_plt = numpy.zeros([N, N])
-	uz_plt = numpy.zeros([N, N])
-	rr = numpy.sqrt(xx**2 + zz**2)
-	theta = numpy.arctan(zz/xx)
-	idx = rr < a*b/(4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)))
-	ux_plt[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-		                           (b*numpy.sin(theta[idx]))**2))/rr[idx] * -zz[idx]
-	uz_plt[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-		                            (b*numpy.sin(theta[idx]))**2))/rr[idx] * xx[idx]
-
-	x_plt = numpy.linspace(xmin, xmax, N)
-	z_plt = numpy.linspace(zmin, zmax, N)
-	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
 	flowfig = pylab.subplots(1, 3, figsize = (16, 5))	
 	pylab.subplot(131)
-	pylab.quiver(xx_plt/1e3, zz_plt, ux_plt[:], -zmax / xmax * uz_plt[:])
+	pylab.quiver(x[::2]+a/2, z[::2]+b/2, ux[::2,::2], zmax / xmax * uz[::2,::2])
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity field')
 	plt.xlabel('x [km]')
