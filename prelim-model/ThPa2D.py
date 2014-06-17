@@ -1,4 +1,3 @@
-###################################################TIME LOOP##########################################################################
 """ 
 Finite-difference implementation of upwind sol. for coupled linear advection.
 
@@ -57,7 +56,7 @@ class FDgrid:
 		self.a[:, self.jhi - 1] = self.a[:, self.jhi - 2]
 
 
-def adflow(g, h, t, T, V, u, nz, nx, k_ad, k_de, Q):
+def adflow(g, h, t, T, u, k_ad, k_de, Q):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
@@ -73,12 +72,6 @@ def adflow(g, h, t, T, V, u, nz, nx, k_ad, k_de, Q):
 	:arg u: 3D tensor of shape (nz, nx, 2), z component of velocity in (:, :, 1), x component of velocity in (:, :, 2) 
 	:type u: float
 
-	:arg nz: number of grid points in z dimension
-	:type nz: int
-
-	:arg nx: number of grid points in x dimension
-	:type nx: int
-
 	:arg k_ad: nz x nx adsorption rate matrix
 	:type k_ad: float
 
@@ -87,9 +80,9 @@ def adflow(g, h, t, T, V, u, nz, nx, k_ad, k_de, Q):
 
 	"""
 
-	# extract and scale the velocities
-	uz = g.zmax / g.xmax * V * u[:, :, 0]
-	ux = V * u[:, :, 1]
+	# extract the velocities
+	uz = u[:, :, 0]
+	ux = u[:, :, 1]
 
 	# define the CFL, sink velocity, and reaction constant
 	S = 500        #m/yr
@@ -133,13 +126,13 @@ def adflow(g, h, t, T, V, u, nz, nx, k_ad, k_de, Q):
 				# dissolved:
 				anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
 					    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) / g.dx + 
-					    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) 							* dt
+					    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) * dt
 
 				# particulate:
-				bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / 							h.dz + 
+				bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / h.dz + 
 							  k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
 					    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) / h.dx +
-					    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) 							* dt
+					    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) * dt
 				j += 1
 			i += 1
 
@@ -151,72 +144,7 @@ def adflow(g, h, t, T, V, u, nz, nx, k_ad, k_de, Q):
         return g, h
 
 
-def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
-        """Plot the dissolved and particulate profile of either [Th] or [Pa]
-
-        :arg slowfig: figure with 3 subplots. 1 - vel. field; 2 - dissolved initial distribution; 3 - particulate initial distribution
-
-        :arg xmin: minimum x on the grid
-	
-	:arg xmax: maximum x on the grid
-
-	:arg zmin: minimum z on the grid
-
-	:arg zmax: maximum z on the grid
-
-	:arg nx: number of points in x dimension
-
-	:arg nz: number of points in z dimension
-
-	:arg string: string, either 'Th' or 'Pa' which determines which title to use on figures
-        """
-
-        # define grid
-	x_plt = numpy.linspace(xmin, xmax, nx)
-	z_plt = numpy.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-        dx = (xmax - xmin) / (nx - 1)
-        dz = (zmax - zmin) / (nz - 1)
-        xmax_plt = (nx - 2)*dx
-        zmax_plt = (nz - 2)*dz
-
-
-        meshTh = pylab.subplots(1, 2, figsize = (16.5, 5)) 
-        pylab.subplot(121) 
-        mesh3 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
-        if string == 'Th':
-	        pylab.title('Final Dissolved [Th], tmax = ' + str(10*T) + 'yrs')
-        if string == 'Pa':
-	        pylab.title('Final Dissolved [Pa], tmax = ' + str(10*T) + 'yrs')
-        pylab.gca().invert_yaxis()
-        pylab.ylabel('depth [m]')
-        pylab.xlabel('x [km]')
-        pylab.colorbar(mesh3)
-        plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
-        pylab.xlim([xmin/1e3, xmax_plt/1e3])
-        pylab.ylim([zmax_plt, zmin])
-
-        pylab.subplot(122) 
-        mesh4 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
-        if string == 'Th':
-	        pylab.title('Final Particulate [Th], tmax = ' + str(10*T) + 'yrs')
-        if string == 'Pa':
-	        pylab.title('Final Particulate [Pa], tmax = ' + str(10*T) + 'yrs')
-        pylab.gca().invert_yaxis()
-        pylab.ylabel('depth [m]')
-        pylab.xlabel('x [km]')
-        pylab.colorbar(mesh4)
-        plt.clim(numpy.min(h.a[:]), numpy.max(h.a[:]))
-        pylab.xlim([xmin/1e3, xmax_plt/1e3])
-        pylab.ylim([zmax_plt, zmin])
-
-	return meshTh
-
-
-
-#############################################VELOCITY#################################################################################
-
-def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
+def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	""" Produce a matrix of zeros on the input grid to simulate a zero velocity feild
         :arg g_a: the dissolved [] final distribution
 
@@ -259,7 +187,7 @@ def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-	flowfig = pylab.subplots(1, 3, figsize = (16, 5))	
+	flowfig = pylab.figure(figsize = (49, 5))	
 	pylab.subplot(131)
 	pylab.quiver(xx_plt/1e3, zz_plt, ux[:], uz[:])
 	pylab.gca().invert_yaxis()
@@ -267,7 +195,8 @@ def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 
-        # plot initial dist. to flowfig	
+        # plot initial dist.
+        init = pylab.subplots(1, 2, figsize = (23, 5))
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
@@ -300,9 +229,9 @@ def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
         pylab.ylim([zmax_plt, zmin])
 
 
-	return u, flowfig
+	return u, flowfig, init
 
-def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
+def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	""" u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
 	:arg xmin: minimum x on the grid
@@ -338,14 +267,14 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 
         # store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
-	u[:, :, 0] = uz
-	u[:, :, 1] = ux
+	u[:, :, 0] = uz * V * zmax/xmax
+	u[:, :, 1] = ux * V
 
 	# plot the velocity field you are actually using (so you can be sure you got it right)         
 
 	flowfig = pylab.figure(figsize = (48, 5))	
 	pylab.subplot(131)
-	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], zmax / xmax * uz[::2,::2])
+	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], uz[::2,::2])
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity field')
 	plt.xlabel('x [km]')
@@ -356,10 +285,6 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-        dx = (xmax - xmin) / (nx - 1)
-        dz = (zmax - zmin) / (nz - 1)
-        xmax_plt = (nx - 2)*dx
-        zmax_plt = (nz - 2)*dz
         pylab.subplot(132) 
         mesh1 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
         if string == 'Th': 
@@ -369,8 +294,8 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
         pylab.gca().invert_yaxis()
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
-        pylab.xlim([xmin/1e3, xmax_plt/1e3])
-        pylab.ylim([zmax_plt, zmin])
+        pylab.xlim([xmin/1e3, xmax/1e3])
+        pylab.ylim([zmax, zmin])
 
         pylab.subplot(133) 
         mesh2 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
@@ -381,12 +306,12 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
         pylab.gca().invert_yaxis()
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
-        pylab.xlim([xmin/1e3, xmax_plt/1e3])
-        pylab.ylim([zmax_plt, zmin])
+        pylab.xlim([xmin/1e3, xmax/1e3])
+        pylab.ylim([zmax, zmin])
 
 	return u, flowfig, init
 
-def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
+def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	""" u_complex complex computes a rotational, downwelling velocity field
 
 	:arg xmin: minimum x on the grid
@@ -432,8 +357,8 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 
 	# store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
-	u[:, :, 0] = uz
-	u[:, :, 1] = ux 
+	u[:, :, 0] = uz * V * zmax/xmax
+	u[:, :, 1] = ux * V
 
 	# plot the velocity field you are actually using (so you can be sure you got it right) 
 	x_plt = numpy.linspace(xmin, xmax, nx)
@@ -441,7 +366,7 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
 	flowfig = pylab.figure(figsize = (49, 5))
 	pylab.subplot(131)
-	pylab.quiver(1e-3*xx_plt, zz_plt, ux, 1e-1*uz)
+	pylab.quiver(1e-3*xx_plt, zz_plt, ux, uz)
 	pylab.gca().invert_yaxis()
 	pylab.title('Downwelling Velocity field')
 	plt.xlabel('x [km]')
@@ -452,10 +377,6 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-        dx = (xmax - xmin) / (nx - 1)
-        dz = (zmax - zmin) / (nz - 1)
-        xmax_plt = (nx - 2)*dx
-        zmax_plt = (nz - 2)*dz
         pylab.subplot(132) 
         mesh1 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
         if string == 'Th': 
@@ -465,8 +386,8 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
         pylab.gca().invert_yaxis()
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
-        pylab.xlim([xmin/1e3, xmax_plt/1e3])
-        pylab.ylim([zmax_plt, zmin])
+        pylab.xlim([xmin/1e3, xmax/1e3])
+        pylab.ylim([zmax, zmin])
 
         pylab.subplot(133) 
         mesh2 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
@@ -477,8 +398,8 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
         pylab.gca().invert_yaxis()
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
-        pylab.xlim([xmin/1e3, xmax_plt/1e3])
-        pylab.ylim([zmax_plt, zmin])
+        pylab.xlim([xmin/1e3, xmax/1e3])
+        pylab.ylim([zmax, zmin])
 
 
 	return u, flowfig, init
@@ -601,4 +522,64 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	plt.clim(cmin, cmax)
 
 	return TPratio
+	
+def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
+        """Plot the dissolved and particulate profile of either [Th] or [Pa]
 
+        :arg slowfig: figure with 3 subplots. 1 - vel. field; 2 - dissolved initial distribution; 3 - particulate initial distribution
+
+        :arg xmin: minimum x on the grid
+	
+	:arg xmax: maximum x on the grid
+
+	:arg zmin: minimum z on the grid
+
+	:arg zmax: maximum z on the grid
+
+	:arg nx: number of points in x dimension
+
+	:arg nz: number of points in z dimension
+
+	:arg string: string, either 'Th' or 'Pa' which determines which title to use on figures
+        """
+
+        # define grid
+	x_plt = numpy.linspace(xmin, xmax, nx)
+	z_plt = numpy.linspace(zmin, zmax, nz)
+	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+        dx = (xmax - xmin) / (nx - 1)
+        dz = (zmax - zmin) / (nz - 1)
+        xmax_plt = (nx - 2)*dx
+        zmax_plt = (nz - 2)*dz
+
+
+        meshTh = pylab.subplots(1, 2, figsize = (16.5, 5)) 
+        pylab.subplot(121) 
+        mesh3 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
+        if string == 'Th':
+	        pylab.title('Final Dissolved [Th], tmax = ' + str(10*T) + 'yrs')
+        if string == 'Pa':
+	        pylab.title('Final Dissolved [Pa], tmax = ' + str(10*T) + 'yrs')
+        pylab.gca().invert_yaxis()
+        pylab.ylabel('depth [m]')
+        pylab.xlabel('x [km]')
+        pylab.colorbar(mesh3)
+        plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
+        pylab.xlim([xmin/1e3, xmax_plt/1e3])
+        pylab.ylim([zmax_plt, zmin])
+
+        pylab.subplot(122) 
+        mesh4 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
+        if string == 'Th':
+	        pylab.title('Final Particulate [Th], tmax = ' + str(10*T) + 'yrs')
+        if string == 'Pa':
+	        pylab.title('Final Particulate [Pa], tmax = ' + str(10*T) + 'yrs')
+        pylab.gca().invert_yaxis()
+        pylab.ylabel('depth [m]')
+        pylab.xlabel('x [km]')
+        pylab.colorbar(mesh4)
+        plt.clim(numpy.min(h.a[:]), numpy.max(h.a[:]))
+        pylab.xlim([xmin/1e3, xmax_plt/1e3])
+        pylab.ylim([zmax_plt, zmin])
+
+	return meshTh
