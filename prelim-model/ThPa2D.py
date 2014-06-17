@@ -261,7 +261,7 @@ def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
 	flowfig = pylab.subplots(1, 3, figsize = (16, 5))	
 	pylab.subplot(131)
-	pylab.quiver(xx_plt/1e3, zz_plt, ux[:], -uz[:])
+	pylab.quiver(xx_plt/1e3, zz_plt, ux[:], uz[:])
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity field')
 	plt.xlabel('x [km]')
@@ -321,29 +321,21 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 
 	a = xmax
         b = zmax
-        x = numpy.linspace(a/2, -a/2, nx)
-        z = numpy.linspace(b/2, -b/2, nz)
-        [xx, zz] = numpy.meshgrid(-x, z)
+        x = numpy.linspace(-a/2, a/2, nx)
+        z = numpy.linspace(-b/2, b/2, nz)
+        [xx, zz] = numpy.meshgrid(x, z)
         rr = numpy.sqrt(xx**2 + zz**2)
         theta = numpy.arctan(zz/xx)
         ux = numpy.zeros([nz, nx])
         uz = numpy.zeros([nz, nx])
         idx = rr < a*b/( 4 * numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)) )
 
-        #ux[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                            #(b*numpy.sin(theta[idx])) ** 2))/rr[idx] * -zz[idx]
-
-        #uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                            #(b*numpy.sin(theta[idx])) ** 2))/rr[idx] * xx[idx]
-
         ux[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
                                         (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * zz[idx]
 
         uz[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
-                                        (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * -xx[idx]
+                                        (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * xx[idx]
 
-
-	
         # store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
 	u[:, :, 0] = uz
@@ -351,7 +343,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 
 	# plot the velocity field you are actually using (so you can be sure you got it right)         
 
-	flowfig = pylab.subplots(1, 3, figsize = (16, 5))	
+	flowfig = pylab.figure(figsize = (48, 5))	
 	pylab.subplot(131)
 	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], zmax / xmax * uz[::2,::2])
 	pylab.gca().invert_yaxis()
@@ -359,7 +351,8 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 
-        # plot initial dist. to flowfig	
+        # plot initial dist.
+        init = pylab.subplots(1, 2, figsize = (23, 5))	
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
@@ -391,7 +384,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
         pylab.xlim([xmin/1e3, xmax_plt/1e3])
         pylab.ylim([zmax_plt, zmin])
 
-	return u, flowfig
+	return u, flowfig, init
 
 def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 	""" u_complex complex computes a rotational, downwelling velocity field
@@ -435,7 +428,7 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
                                             (b*numpy.sin(theta[idx])) ** 2))/rr[idx] * -zz[idx]
 
         uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                            (b*numpy.sin(theta[idx])) ** 2))/rr[idx] * xx[idx]
+                                            (b*numpy.sin(theta[idx])) ** 2))/rr[idx] * -xx[idx]
 
 	# store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
@@ -446,15 +439,16 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-	flowfig = pylab.subplots(1, 3, figsize = (16, 5))
+	flowfig = pylab.figure(figsize = (49, 5))
 	pylab.subplot(131)
-	pylab.quiver(1e-3*xx_plt, zz_plt, ux, -uz)
+	pylab.quiver(1e-3*xx_plt, zz_plt, ux, 1e-1*uz)
 	pylab.gca().invert_yaxis()
 	pylab.title('Downwelling Velocity field')
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 
-        # plot initial dist. to flowfig	
+        # plot initial dist.
+        init = pylab.subplots(1, 2, figsize = (23, 5))	
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
@@ -487,7 +481,7 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
         pylab.ylim([zmax_plt, zmin])
 
 
-	return u, flowfig
+	return u, flowfig, init
 
 ###################################################CHEMISTRY##########################################################################
 
