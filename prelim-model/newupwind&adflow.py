@@ -1,4 +1,4 @@
-def adflow(g, h, t, T, u, k_ad, k_de, Q):
+def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
@@ -36,13 +36,13 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q):
 
 def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
-	# evolution loop
-	anew = g.a
-	bnew = h.a
-
 	# extract the velocities
 	uz = u[:, :, 0]
 	ux = u[:, :, 1]
+
+	# evolution loop
+	anew = g.a
+	bnew = h.a
 
 	# define upwind for x, z OUTSIDE loop ONLY while du/dt = 0
 	p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
