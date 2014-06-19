@@ -57,7 +57,7 @@ class FDgrid:
 		self.a[:, self.jhi - 1] = self.a[:, self.jhi - 2]
 		
 
-def adflow(g, h, t, T, u, k_ad, k_de, Q):
+def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
@@ -272,8 +272,8 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 
         # store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
-	u[:, :, 0] = uz * V * zmax/xmax
-	u[:, :, 1] = ux * V
+	u[:, :, 0] = uz / numpy.max(uz) * V * zmax/xmax
+	u[:, :, 1] = ux / numpy.max(ux) * V
 
 	# plot the velocity field you are actually using (so you can be sure you got it right)         
 
@@ -362,8 +362,8 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 
 	# store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
-	u[:, :, 0] = uz * V * zmax/(2*xmax)
-	u[:, :, 1] = ux * V
+	u[:, :, 0] = uz / numpy.max(uz) * V * zmax/(2*xmax)
+	u[:, :, 1] = ux / numpy.max(ux) * V
 
 	# plot the velocity field you are actually using (so you can be sure you got it right) 
 	x_plt = numpy.linspace(xmin, xmax, nx)
