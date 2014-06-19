@@ -252,8 +252,8 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	:arg nz: number of points in z dimension	
 
 	"""
-
-	a = xmax
+        # define velocity on square grid, then scale simulate rectangular grid. 
+	a = zmax
         b = zmax
         x = numpy.linspace(-a/2, a/2, nx)
         z = numpy.linspace(-b/2, b/2, nz)
@@ -270,13 +270,14 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         uz[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
                                         (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * xx[idx]
 
-        # store the solution in a matrix
+        # scale & store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
 	u[:, :, 0] = uz / numpy.max(uz) * V * zmax/xmax
-	u[:, :, 1] = ux / numpy.max(ux) * V
+	u[:, :, 1] = ux / numpy.max(ux) * V 
 
-	# plot the velocity field you are actually using (so you can be sure you got it right)         
-
+	# plot the velocity field you are actually using (so you can be sure you got it right) on rectangular grid.         
+        a = xmax
+        x = numpy.linspace(-a/2, a/2, nx)
 	flowfig = pylab.figure(figsize = (48, 5))	
 	pylab.subplot(131)
 	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], uz[::2,::2])
@@ -334,7 +335,7 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	"""
 
 	# define a grid that will produce downwelling
-	a = xmax
+	a = zmax
 	b = zmax
 	x = numpy.empty(nx)
 	z = numpy.empty(nz)
@@ -360,7 +361,7 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
                                             (b*numpy.sin(theta[idx])) ** 2))/rr[idx] * -xx[idx]
 
-	# store the solution in a matrix
+	# scale & store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
 	u[:, :, 0] = uz / numpy.max(uz) * V * zmax/(2*xmax)
 	u[:, :, 1] = ux / numpy.max(ux) * V
