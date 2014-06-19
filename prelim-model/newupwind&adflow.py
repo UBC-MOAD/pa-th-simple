@@ -1,4 +1,4 @@
-def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
+def adflow(g, h, t, T, u, k_ad, k_de, Q):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
@@ -28,24 +28,23 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	# time info
 	dt = 0.001          #yr
         t = t * (g.zmax - g.zmin)/S
-	T = T * (g.zmax - g.zmin)/S
+	T = T * (g.zmax - g.zmin)/S            
 
-        g, h = adsheme(g, h, dt, t, T, u, k_ad, k_de, Q, S)
+        g, h = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
 
         return g, h
 
+def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
-def upwind(g, h, dt, t, T, u, k_ad, k_de, Q, S):
- 
-	# extract the velocities
-	uz = u[:, :, 0]
-	ux = u[:, :, 1]
-  
 	# evolution loop
 	anew = g.a
 	bnew = h.a
 
-	# define upwind for x, z outside loop while du/dt = 0
+	# extract the velocities
+	uz = u[:, :, 0]
+	ux = u[:, :, 1]
+
+	# define upwind for x, z OUTSIDE loop ONLY while du/dt = 0
 	p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
 	n_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) + 1)
 	p_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) - 1)
@@ -89,5 +88,4 @@ def upwind(g, h, dt, t, T, u, k_ad, k_de, Q, S):
 		g.a[:] = anew[:]
 		h.a[:] = bnew[:]
 		t += dt
-
         return g, h
