@@ -362,7 +362,7 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 
 	# store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
-	u[:, :, 0] = uz * V * zmax/xmax
+	u[:, :, 0] = uz * V * zmax/(2*xmax)
 	u[:, :, 1] = ux * V
 
 	# plot the velocity field you are actually using (so you can be sure you got it right) 
