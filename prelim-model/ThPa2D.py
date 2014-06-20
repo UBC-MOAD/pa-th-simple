@@ -52,9 +52,9 @@ class FDgrid:
 
 	def fillBCs(self):               # BC at x = 0 and x = xmax?
 		self.a[self.ilo, :] = 0
-		self.a[self.ihi - 1, :] = self.a[self.ihi - 2, :]
+		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
-		self.a[:, self.jhi - 1] = self.a[:, self.jhi - 2]
+		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
 		
 
 def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
@@ -89,7 +89,7 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
         t = t * (g.zmax - g.zmin)/S
 	T = T * (g.zmax - g.zmin)/S            
 
-        g, h = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
+        adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
 
         return g, h
 
@@ -499,13 +499,13 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	clean_Pratio = numpy.zeros([nz, nx])
 	clean_Pratio[~idx] = Pratio[~idx]
 
-	# plot
-	tmax = 10*T 
-	TPratio = pylab.subplots(1, 2, figsize = (16, 5))	
+	# plot 
+	TPratio = pylab.subplots(1, 2, figsize = (16, 5))
+	
 	pylab.subplot(121)
-	D = pylab.pcolormesh(xx_plt/1e3, zz_plt, clean_Dratio)
+	D = pylab.pcolormesh(xx_plt*1e-3, zz_plt, clean_Dratio)
 	pylab.gca().invert_yaxis()
-	plt.title('Dissolved [Th]/[Pa], tmax = ' + str(tmax) + 'yrs')
+	plt.title('Dissolved [Th]/[Pa], tmax = ' + str(10*T) + 'yrs')
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 	pylab.colorbar(D)
@@ -514,12 +514,9 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	plt.clim(cmin, cmax)
 
 	pylab.subplot(122)
-	ratio = PPa/PTh
-	idx = numpy.isnan(ratio)
-	ratio = ratio[~idx]
-	P = pylab.pcolormesh(xx_plt/1e3, zz_plt, clean_Pratio)
+	P = pylab.pcolormesh(xx_plt*1e-3, zz_plt, clean_Pratio)
 	pylab.gca().invert_yaxis()
-	plt.title('Particulate [Th]/[Pa], tmax = ' + str(tmax) + 'yrs')
+	plt.title('Particulate [Th]/[Pa], tmax = ' + str(10*T) + 'yrs')
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 	pylab.colorbar(P)
@@ -553,17 +550,18 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
-        xmax_plt = (nx - 2)*dx
-        zmax_plt = (nz - 2)*dz
+        xmax_plt = (nx - 1)*dx
+        zmax_plt = (nz - 1)*dz
+        tmax = 10*T
 
 
         meshTh = pylab.subplots(1, 2, figsize = (16.5, 5)) 
         pylab.subplot(121) 
         mesh3 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
         if string == 'Th':
-	        pylab.title('Final Dissolved [Th], tmax = ' + str(10*T) + 'yrs')
+	        pylab.title('Final Dissolved [Th], tmax = ' + str(tmax) + 'yrs')
         if string == 'Pa':
-	        pylab.title('Final Dissolved [Pa], tmax = ' + str(10*T) + 'yrs')
+	        pylab.title('Final Dissolved [Pa], tmax = ' + str(tmax) + 'yrs')
         pylab.gca().invert_yaxis()
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
@@ -575,9 +573,9 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         pylab.subplot(122) 
         mesh4 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
         if string == 'Th':
-	        pylab.title('Final Particulate [Th], tmax = ' + str(10*T) + 'yrs')
+	        pylab.title('Final Particulate [Th], tmax = ' + str(tmax) + 'yrs')
         if string == 'Pa':
-	        pylab.title('Final Particulate [Pa], tmax = ' + str(10*T) + 'yrs')
+	        pylab.title('Final Particulate [Pa], tmax = ' + str(tmax) + 'yrs')
         pylab.gca().invert_yaxis()
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
