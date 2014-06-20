@@ -102,7 +102,7 @@ def test_h_u1_upwind_adflow():
           0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
           0.00000000e+00]]
 
-    np.testing.assert_allclose(afterh.a, beforeh, rtol=0, atol = 1e-10) 
+    np.testing.assert_allclose(afterh.a, beforeh, rtol=0, atol = 1e-8) 
 
 def test_g_u2_upwind_adflow():
     g = ThPa2D.FDgrid(nx, nz, ng)
@@ -130,7 +130,7 @@ def test_g_u2_upwind_adflow():
        [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
          0.        ,  0.        ,  0.        ,  0.        ,  0.        ]]
 
-    np.testing.assert_allclose(afterg.a, beforeg, rtol=0, atol = 1e-8)
+    np.testing.assert_allclose(afterg.a, beforeg, rtol=0, atol = 1e-7)
 
 def test_h_u2_upwind_adflow():
     g = ThPa2D.FDgrid(nx, nz, ng)
@@ -178,7 +178,7 @@ def test_h_u2_upwind_adflow():
           0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
           0.00000000e+00]]
 
-    np.testing.assert_allclose(afterh.a, beforeh, rtol=0, atol = 1e-10)
+    np.testing.assert_allclose(afterh.a, beforeh, rtol=0, atol = 1e-8)
 
 
 def test_g_jvec_u1():
@@ -208,7 +208,7 @@ def test_g_jvec_u1():
          0.        ,  0.        ,  0.        ,  0.        ,  0.        ]]
 
 
-        np.testing.assert_allclose(gjvec.a, gup, rtol=0, atol = 1e-8)
+        np.testing.assert_allclose(gjvec.a, gup, rtol=0, atol = 1e-6)
 
 
 def test_h_jvec_u1():
@@ -257,7 +257,7 @@ def test_h_jvec_u1():
           0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
           0.00000000e+00]]
 
-        np.testing.assert_allclose(hjvec.a, hup, rtol=0, atol = 1e-10)
+        np.testing.assert_allclose(hjvec.a, hup, rtol=0, atol = 1e-6)
 
 
 def test_g_jvecu2():
@@ -286,7 +286,7 @@ def test_g_jvecu2():
         [ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
          0.        ,  0.        ,  0.        ,  0.        ,  0.        ]]
 
-        np.testing.assert_allclose(gjvec.a, gup, rtol=0, atol = 1e-8)
+        np.testing.assert_allclose(gjvec.a, gup, rtol=0, atol = 1e-6)
 
         
 def test_h_jvecu2():
@@ -336,5 +336,5 @@ def test_h_jvecu2():
           0.00000000e+00,   0.00000000e+00,   0.00000000e+00,
           0.00000000e+00]]
 
-        np.testing.assert_allclose(hjvec.a, hup, rtol=0, atol = 1e-10)
+        np.testing.assert_allclose(hjvec.a, hup, rtol=0, atol = 1e-6)
 

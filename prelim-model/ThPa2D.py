@@ -93,6 +93,7 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 
         return g, h
 
+# vectorize
 def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
 	# extract the velocities
@@ -124,29 +125,26 @@ def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
 		while (i <= g.ihi - 1):
 
-			j = g.jlo + 1
+                        j = numpy.arange(g.jlo + 1, g.jhi - 1, 1, dtype = int)
 
-			while (j <= g.jhi - 1):
+                        # upwind numerical solution
 
-				# upwind numerical solution
+                        # dissolved:
+                        anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
+                            ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) / g.dx + 
+                            uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) * dt
 
-				# dissolved:
-				anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
-					    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) / g.dx + 
-					    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) * dt
+                        # particulate:
+                        bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / h.dz + 
+                                  k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
+                            ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) / h.dx +
+                            uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) * dt
+	                i += 1
 
-				# particulate:
-				bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / h.dz + 
-							  k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
-					    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) / h.dx +
-					    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) * dt
-				j += 1
-			i += 1
-
-		# store the (time) updated solution
-		g.a[:] = anew[:]
-		h.a[:] = bnew[:]
-		t += dt
+                # store the (time) updated solution
+                g.a[:] = anew[:]
+                h.a[:] = bnew[:]
+                t += dt
         return g, h
 
 def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
