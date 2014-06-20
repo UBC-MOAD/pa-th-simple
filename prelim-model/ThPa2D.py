@@ -90,11 +90,10 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
         t = t * (g.zmax - g.zmin)/S
 	T = T * (g.zmax - g.zmin)/S            
 
-        adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
+        g, h = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
 
         return g, h
 
-# vectorize
 def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
 	# extract the velocities
@@ -147,6 +146,9 @@ def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
                 h.a[:] = bnew[:]
                 t += dt
         return g, h
+
+
+
 
 def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	""" Produce a matrix of zeros on the input grid to simulate a zero velocity feild
