@@ -54,6 +54,7 @@ class FDgrid:
 		self.a[self.ilo, :] = 0
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
+                #self.a[:, self.jhi - 1] = self.a[:, self.jhi - 2]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
 		
 
@@ -125,7 +126,7 @@ def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
 		while (i <= g.ihi - 1):
 
-                        j = numpy.arange(g.jlo + 1, g.jhi - 1, 1, dtype = int)
+                        j = numpy.arange(g.jlo + 1, g.jhi, 1, dtype = int)
 
                         # upwind numerical solution
 
