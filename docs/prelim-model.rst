@@ -47,11 +47,11 @@ Coupled 2D Model: Underlying Physics
 .. figure:: ../images/2D1vel.png
 .. figure:: ../images/2D100yr[Th]1vel.png
 .. figure:: ../images/2D100yr[Pa]1vel.png
-.. figure:: ../images/2D100yr[Th]:[Pa]1vel.png
+.. figure:: ../images/2D50yr[Th]:[Pa]1vel.png
 .. figure:: ../images/2D2vel.png
 .. figure:: ../images/2D100yr[Th]2vel.png
 .. figure:: ../images/2D100yr[Pa]2vel.png
-.. figure:: ../images/2D100yr[Th]:[Pa]1vel.png
+.. figure:: ../images/2D100yr[Th]:[Pa]2vel.png
 
 
 ==============================
