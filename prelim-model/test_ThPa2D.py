@@ -105,7 +105,7 @@ def test_h_u1_upwind_adflow():
           5.98891668e-07,   5.98891663e-07,   5.98891661e-07,
           5.98891661e-07]]
 
-        np.testing.assert_allclose(afterh.a, beforeh, rtol=0, atol = 1e-10) 
+        np.testing.assert_allclose(afterh.a, beforeh, rtol=0, atol = 1e-8) 
 
 def test_g_u2_upwind_adflow():
         g = ThPa2D.FDgrid(nx, nz, ng)
@@ -181,7 +181,7 @@ def test_h_u2_upwind_adflow():
           5.98891662e-07,   5.98891669e-07,   5.98891669e-07,
           5.98891669e-07]]
 
-        np.testing.assert_allclose(afterh.a, beforeh, rtol=0, atol = 1e-10)
+        np.testing.assert_allclose(afterh.a, beforeh, rtol=0, atol = 1e-8)
 
 def test_g_jvec_u1():
         """This and the following seven tests test a vectorized version of upwind against 
@@ -262,7 +262,7 @@ def test_h_jvec_u1():
           5.98891668e-07,   5.98891663e-07,   5.98891661e-07,
           5.98891661e-07]]
 
-        np.testing.assert_allclose(hjvec.a, hup, rtol=0, atol = 1e-10)
+        np.testing.assert_allclose(hjvec.a, hup, rtol=0, atol = 1e-8)
 
 
 def test_g_jvecu2():
@@ -341,7 +341,7 @@ def test_h_jvecu2():
           5.98891662e-07,   5.98891669e-07,   5.98891669e-07,
           5.98891669e-07]]
 
-        np.testing.assert_allclose(hjvec.a, hup, rtol=0, atol = 1e-10)
+        np.testing.assert_allclose(hjvec.a, hup, rtol=0, atol = 1e-8)
 
 def test_g_ivecu1():
         g = ThPa2D.FDgrid(nx, nz, ng)
@@ -368,6 +368,8 @@ def test_g_ivecu1():
          0.0002664 ,  0.0002664 ,  0.0002664 ,  0.0002664 ,  0.00023982],
        [ 0.00023982,  0.00023982,  0.00023982,  0.00023982,  0.00023982,
          0.00023982,  0.00023982,  0.00023982,  0.00023982,  0.00023982]]
+
+        np.testing.assert_allclose(gjvec.a, gup, rtol=0, atol = 1e-8)
 
 def test_h_ivecu1():
         g = ThPa2D.FDgrid(nx, nz, ng)
@@ -414,6 +416,8 @@ def test_h_ivecu1():
           5.98891664e-07,   5.98891667e-07,   5.98891669e-07,
           5.98891668e-07,   5.98891663e-07,   5.98891661e-07,
           5.98891661e-07]]
+
+        np.testing.assert_allclose(hjvec.a, hup, rtol=0, atol = 1e-8)
 
 def test_g_ivecu2():
         g = ThPa2D.FDgrid(nx, nz, ng)
@@ -488,4 +492,4 @@ def test_h_ivecu2():
           5.98891662e-07,   5.98891669e-07,   5.98891669e-07,
           5.98891669e-07]]
 
-        np.testing.assert_allclose(hjvec.a, hup, rtol=0, atol = 1e-10)
+        np.testing.assert_allclose(hjvec.a, hup, rtol=0, atol = 1e-8)
