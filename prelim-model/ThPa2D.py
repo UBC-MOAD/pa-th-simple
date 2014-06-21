@@ -124,7 +124,7 @@ def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
                 i = numpy.arange(g.ilo + 1, g.ihi, 1, dtype = int)
                 j = numpy.arange(g.jlo + 1, g.jhi, 1, dtype = int)
-
+                [i , j] = numpy.meshgrid(i,j)
                 # upwind numerical solution
 
                 # dissolved:
