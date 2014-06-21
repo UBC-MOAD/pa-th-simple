@@ -54,11 +54,10 @@ class FDgrid:
 		self.a[self.ilo, :] = 0
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
-                #self.a[:, self.jhi - 1] = self.a[:, self.jhi - 2]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
 		
 
-def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
+def adflow(g, h, t, T, u, k_ad, k_de, Q):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
@@ -82,6 +81,10 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 
 	"""
 
+	# extract the velocities
+	uz = u[:, :, 0]
+	ux = u[:, :, 1]
+
 	# define the CFL, sink velocity, and reaction constant
 	S = 500        #m/yr
 
@@ -89,16 +92,6 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	dt = 0.001          #yr
         t = t * (g.zmax - g.zmin)/S
 	T = T * (g.zmax - g.zmin)/S            
-
-        g, h = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
-
-        return g, h
-
-def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
-
-	# extract the velocities
-	uz = u[:, :, 0]
-	ux = u[:, :, 1]
 
 	# evolution loop
 	anew = g.a
@@ -121,27 +114,34 @@ def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 		# update both g.ilo and g.ihi -- we could set them equal instead.
 		# But this is more general
 
+		i = g.ilo + 1
 
-                i = numpy.arange(g.ilo + 1, g.ihi, 1, dtype = int)
-                j = numpy.arange(g.jlo + 1, g.jhi, 1, dtype = int)
-                [i , j] = numpy.meshgrid(i,j)
-                # upwind numerical solution
+		while (i <= g.ihi - 1):
 
-                # dissolved:
-                anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
-                    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) / g.dx + 
-                    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) * dt
+			j = g.jlo + 1
 
-                # particulate:
-                bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / h.dz + 
-                          k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
-                    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) / h.dx +
-                    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) * dt
+			while (j <= g.jhi - 1):
 
-                # store the (time) updated solution
-                g.a[:] = anew[:]
-                h.a[:] = bnew[:]
-                t += dt
+				# upwind numerical solution
+
+				# dissolved:
+				anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
+					    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) / g.dx + 
+					    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) * dt
+
+				# particulate:
+				bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / h.dz + 
+							  k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
+					    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) / h.dx +
+					    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) * dt
+				j += 1
+			i += 1
+
+		# store the (time) updated solution
+		g.a[:] = anew[:]
+		h.a[:] = bnew[:]
+		t += dt
+
         return g, h
 
 
@@ -341,8 +341,10 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	z = numpy.empty(nz)
 	x[:round(nx/4)] = numpy.linspace(-a/2, 0, len(x[:round(nx/4)]))
 	x[round(nx/4) : round(nx/2)] = numpy.linspace(0, a/2, len(x[round(nx/4) : round(nx/2)]))
+
 	x[round(nx/2) : round(3*nx/4)] = numpy.linspace(a/2, 0, len(x[round(nx/2) : round(3*nx/4)]))
 	x[round(3*nx/4) : nx] = numpy.linspace(0, -a/2, len(x[round(3*nx/4) : nx]))
+
 	z[:round(nz/2)] = numpy.linspace(-b/2, 0, len(z[:round(nz/2)]))
 	z[round(nz/2) : nz] = numpy.linspace(0, b/2, len(z[round(nz/2) : nz]))
 	[xx, zz] = numpy.meshgrid(x, z)
@@ -355,11 +357,11 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	theta = numpy.arctan(zz/xx)
 	idx = rr < a*b/ ( 4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)) )
 
-        ux[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                            (b*numpy.sin(theta[idx])) ** 2))/rr[idx] * -zz[idx]
+        ux[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
+                                            (b*numpy.cos(theta[idx])) ** 2))/rr[idx] * -zz[idx]
 
-        uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.cos(theta[idx])) ** 2 + 
-                                            (b*numpy.sin(theta[idx])) ** 2))/rr[idx] * -xx[idx]
+        uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
+                                            (b*numpy.cos(theta[idx])) ** 2))/rr[idx] * -xx[idx]
 
 	# scale & store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
