@@ -57,7 +57,7 @@ class FDgrid:
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
 		
 
-def adflow(g, h, t, T, u, k_ad, k_de, Q):
+def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
@@ -81,10 +81,6 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q):
 
 	"""
 
-	# extract the velocities
-	uz = u[:, :, 0]
-	ux = u[:, :, 1]
-
 	# define the CFL, sink velocity, and reaction constant
 	S = 500        #m/yr
 
@@ -92,6 +88,16 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q):
 	dt = 0.001          #yr
         t = t * (g.zmax - g.zmin)/S
 	T = T * (g.zmax - g.zmin)/S            
+
+        g, h = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
+
+        return g, h
+
+def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
+
+	# extract the velocities
+	uz = u[:, :, 0]
+	ux = u[:, :, 1]
 
 	# evolution loop
 	anew = g.a
@@ -114,37 +120,85 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q):
 		# update both g.ilo and g.ihi -- we could set them equal instead.
 		# But this is more general
 
-		i = g.ilo + 1
 
-		while (i <= g.ihi - 1):
+                i = numpy.arange(g.ilo + 1, g.ihi, 1, dtype = int)
+                j = numpy.arange(g.jlo + 1, g.jhi, 1, dtype = int)
+                [i , j] = numpy.meshgrid(i,j)
+                # upwind numerical solution
 
-			j = g.jlo + 1
+                # dissolved:
+                anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
+                    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) / g.dx + 
+                    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) * dt
 
-			while (j <= g.jhi - 1):
+                # particulate:
+                bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / h.dz + 
+                          k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
+                    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) / h.dx +
+                    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) * dt
 
-				# upwind numerical solution
-
-				# dissolved:
-				anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
-					    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) / g.dx + 
-					    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) * dt
-
-				# particulate:
-				bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / h.dz + 
-							  k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
-					    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) / h.dx +
-					    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) * dt
-				j += 1
-			i += 1
-
-		# store the (time) updated solution
-		g.a[:] = anew[:]
-		h.a[:] = bnew[:]
-		t += dt
-
+                # store the (time) updated solution
+                g.a[:] = anew[:]
+                h.a[:] = bnew[:]
+                t += dt
         return g, h
 
 
+def TVD(g, h, t, T, u, k_ad, k_de, Q, S, dt):
+
+	# extract the velocities
+	uz = u[:, :, 0]
+	ux = u[:, :, 1]
+
+	# evolution loop
+	anew = g.a
+	bnew = h.a
+
+	# define upwind for x, z OUTSIDE loop ONLY while du/dt = 0
+	p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
+	n_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) + 1)
+	p_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) - 1)
+	n_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) + 1)
+
+	while (t < T):
+
+		# fill the boundary conditions
+		g.fillBCs()
+		h.fillBCs()
+
+		# loop over zones: note since we are periodic and both endpoints
+		# are on the computational domain boundary, we don't have to
+		# update both g.ilo and g.ihi -- we could set them equal instead.
+		# But this is more general
+
+
+                i = numpy.arange(g.ilo + 1, g.ihi, 1, dtype = int)
+                j = numpy.arange(g.jlo + 1, g.jhi, 1, dtype = int)
+                [i , j] = numpy.meshgrid(i,j)
+                # upwind numerical solution
+
+                # dissolved:
+                anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
+                                          
+                    ux[i, j] * ( n_upx[i, j]*(g.a[i, j - 1] - g.a[i, j + 1]) + p_upx[i, j]*(g.a[i, j + 1] - g.a[i, j - 1]) ) / g.dx + 
+                    uz[i, j] * ( n_upz[i, j]*(g.a[i - 1, j] - g.a[i + 1, j]) + p_upz[i, j]*(g.a[i + 1, j] - g.a[i - 1, j]) ) / g.dz ) * dt
+
+                # particulate:
+                bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / h.dz + 
+                          k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
+                    ux[i, j] * ( n_upx[i, j]*(h.a[i, j - 1] - h.a[i, j + 1]) + p_upx[i, j]*(h.a[i, j + 1] - h.a[i, j - 1] ) ) / h.dx +
+                    uz[i, j] * ( n_upz[i, j]*(h.a[i - 1, j] - h.a[i + 1, j]) + p_upz[i, j]*(h.a[i + 1, j] - h.a[i - 1, j] ) ) / h.dz ) * dt
+
+
+
+
+
+
+                # store the (time) updated solution
+                g.a[:] = anew[:]
+                h.a[:] = bnew[:]
+                t += dt
+        return g, h
 
 
 
