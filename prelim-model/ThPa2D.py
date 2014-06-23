@@ -57,7 +57,7 @@ class FDgrid:
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
 		
 
-def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
+def adflow(g_in, h_in, t, T, u, k_ad, k_de, Q, adscheme):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
@@ -80,7 +80,8 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	:type k_de: float
 
 	"""
-
+        g = g_in
+        h = h_in
 	# define the CFL, sink velocity, and reaction constant
 	S = 500        #m/yr
 
@@ -89,12 +90,14 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
         t = t * (g.zmax - g.zmin)/S
 	T = T * (g.zmax - g.zmin)/S            
 
-        g, h = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
+        g_out, h_out = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
 
-        return g, h
+        return g_out, h_out
 
-def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
+def upwind(g_in, h_in, t, T, u, k_ad, k_de, Q, S, dt):
 
+        g = g_in
+        h = h_in
 	# extract the velocities
 	uz = u[:, :, 0]
 	ux = u[:, :, 1]
@@ -188,10 +191,6 @@ def TVD(g, h, t, T, u, k_ad, k_de, Q, S, dt):
                           k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
                     ux[i, j] * ( n_upx[i, j]*(h.a[i, j - 1] - h.a[i, j + 1]) + p_upx[i, j]*(h.a[i, j + 1] - h.a[i, j - 1] ) ) / h.dx +
                     uz[i, j] * ( n_upz[i, j]*(h.a[i - 1, j] - h.a[i + 1, j]) + p_upz[i, j]*(h.a[i + 1, j] - h.a[i - 1, j] ) ) / h.dz ) * dt
-
-
-
-
 
 
                 # store the (time) updated solution
@@ -316,13 +315,11 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         theta = numpy.arctan(zz/xx)
         ux = numpy.zeros([nz, nx])
         uz = numpy.zeros([nz, nx])
-        idx = rr < a*b/( 4 * numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)) )
+        idx = rr < a
 
-        ux[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
-                                        (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * zz[idx]
+        ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
 
-        uz[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
-                                        (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * xx[idx]
+        uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
 
         # scale & store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
@@ -409,13 +406,11 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 
 	# use logical indexing to define points of non-zero velocity
 	theta = numpy.arctan(zz/xx)
-	idx = rr < a*b/ ( 4*numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)) )
+	idx = rr < a
 
-        ux[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
-                                            (b*numpy.cos(theta[idx])) ** 2))/rr[idx] * -zz[idx]
+        ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -zz[idx]
 
-        uz[idx] = numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
-                                            (b*numpy.cos(theta[idx])) ** 2))/rr[idx] * -xx[idx]
+        uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
 
 	# scale & store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
