@@ -29,7 +29,8 @@ u2, flowfig, init = ThPa2D.u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, 'T
 
 def test_g_u1_upwind_adflow():
         """ This and the following three tests test the solution in the pasted matrix
-        produced by adflow before the time loop was removed and placed in the function upwind. 
+        produced by adflow before the time loop was removed and placed in the function 
+        upwind. 
         """
         g = ThPa2D.FDgrid(nx, nz, ng)
         h = ThPa2D.FDgrid(nx, nz, ng)
@@ -184,8 +185,8 @@ def test_h_u2_upwind_adflow():
         np.testing.assert_allclose(afterh.a, beforeh, rtol=0, atol = 1e-8)
 
 def test_g_jvec_u1():
-        """This and the following seven tests test a vectorized version of upwind against 
-        the solution produced by upwind when i and j were loops. 
+        """This and the following seven tests test a vectorized version of 
+        upwind against the solution produced by upwind when i and j were loops. 
         """
         g = ThPa2D.FDgrid(nx, nz, ng)
         h = ThPa2D.FDgrid(nx, nz, ng)
@@ -493,3 +494,32 @@ def test_h_ivecu2():
           5.98891669e-07]]
 
         np.testing.assert_allclose(hjvec.a, hup, rtol=0, atol = 1e-8)
+
+
+def test_TVD_g_u1():
+        """This and the following three tests test whether the TVD 
+        advection scheme produces the same result as the upwind advection scheme.
+        """
+        g = ThPa2D.FDgrid(nx, nz, ng)
+        h = ThPa2D.FDgrid(nx, nz, ng)
+        gTVD, hTVD = ThPa2D.adflow(g, h, t, T, u2, k_ad, k_de, Q, ThPa2D.TVD)
+
+
+def test_TVD_h_u1():
+        g = ThPa2D.FDgrid(nx, nz, ng)
+        h = ThPa2D.FDgrid(nx, nz, ng)
+        gTVD, hTVD = ThPa2D.adflow(g, h, t, T, u2, k_ad, k_de, Q, ThPa2D.TVD)
+
+
+def test_TVD_g_u2():
+        g = ThPa2D.FDgrid(nx, nz, ng)
+        h = ThPa2D.FDgrid(nx, nz, ng)
+        gTVD, hTVD = ThPa2D.adflow(g, h, t, T, u2, k_ad, k_de, Q, ThPa2D.TVD)
+
+
+def test_TVD_h_u2():
+        g = ThPa2D.FDgrid(nx, nz, ng)
+        h = ThPa2D.FDgrid(nx, nz, ng)
+        gTVD, hTVD = ThPa2D.adflow(g, h, t, T, u2, k_ad, k_de, Q, ThPa2D.TVD)
+
+
