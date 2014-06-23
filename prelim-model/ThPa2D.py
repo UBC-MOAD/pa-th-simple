@@ -44,20 +44,20 @@ class FDgrid:
 		[self.xx, self.zz] = numpy.meshgrid(self.x, self.z)
 
 		# storage for the solution 
-		self.a = numpy.zeros((nz, nx), dtype=numpy.float64)
+		self.a = numpy.ones((nz, nx), dtype=numpy.float64)
 
 	def scratchArray(self):
 		""" return a scratch array dimensioned for our grid """
 		return numpy.zeros((self.nz, self.nx), dtype=numpy.float64)
 
-	def fillBCs(self):               # BC at x = 0 and x = xmax?
+	def fillBCs(self):             
 		self.a[self.ilo, :] = 0
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
 		
 
-def adflow(g_in, h_in, t, T, u, k_ad, k_de, Q, adscheme):
+def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
@@ -80,24 +80,24 @@ def adflow(g_in, h_in, t, T, u, k_ad, k_de, Q, adscheme):
 	:type k_de: float
 
 	"""
-        g = g_in
-        h = h_in
+
 	# define the CFL, sink velocity, and reaction constant
-	S = 500        #m/yr
+	#S = 500        #m/yr
+        S = 0
 
 	# time info
 	dt = 0.001          #yr
-        t = t * (g.zmax - g.zmin)/S
-	T = T * (g.zmax - g.zmin)/S            
+        t = t * 10
+	T = T * 10
+        #t = t * (g.zmax - g.zmin)/S
+	#T = T * (g.zmax - g.zmin)/S            
 
-        g_out, h_out = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
+        g, h = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
 
-        return g_out, h_out
+        return g, h
 
-def upwind(g_in, h_in, t, T, u, k_ad, k_de, Q, S, dt):
+def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
-        g = g_in
-        h = h_in
 	# extract the velocities
 	uz = u[:, :, 0]
 	ux = u[:, :, 1]
@@ -232,7 +232,6 @@ def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	z = numpy.linspace(b/2, -b/2, nz)
 	[xx, zz] = numpy.meshgrid(-x, z)
 	rr = numpy.sqrt(xx**2 + zz**2)
-	theta = numpy.arctan(zz/xx)
 	ux = numpy.zeros([nz, nx])
 	uz = numpy.zeros([nz, nx])
 
@@ -312,10 +311,9 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         z = numpy.linspace(-b/2, b/2, nz)
         [xx, zz] = numpy.meshgrid(x, z)
         rr = numpy.sqrt(xx**2 + zz**2)
-        theta = numpy.arctan(zz/xx)
         ux = numpy.zeros([nz, nx])
         uz = numpy.zeros([nz, nx])
-        idx = rr < a
+        idx = rr < a/2
 
         ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
 
@@ -405,12 +403,18 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	uz = numpy.zeros([nz, nx])
 
 	# use logical indexing to define points of non-zero velocity
-	theta = numpy.arctan(zz/xx)
-	idx = rr < a
+	idx = rr < a/2
 
         ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -zz[idx]
 
         uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
+
+        # remove nans
+        nanfill = numpy.zeros((nz, nx))
+        id_nan = numpy.isnan(ux)
+        ux[id_nan] = nanfill[id_nan]
+        id_nan = numpy.isnan(uz)
+        uz[id_nan] = nanfill[id_nan]
 
 	# scale & store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
