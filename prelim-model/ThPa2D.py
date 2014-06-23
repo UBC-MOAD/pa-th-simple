@@ -84,11 +84,10 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	# define the CFL, sink velocity, and reaction constant
 	#S = 500        #m/yr
         S = 0
-
-	# time info
-	dt = 0.001          #yr
-        t = t * 10
-	T = T * 10
+	# time info (yr)
+	dt = 0.001   
+        t = t*10
+        T = T*10
         #t = t * (g.zmax - g.zmin)/S
 	#T = T * (g.zmax - g.zmin)/S            
 
