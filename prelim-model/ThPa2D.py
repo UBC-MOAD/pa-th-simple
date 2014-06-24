@@ -231,7 +231,6 @@ def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	z = numpy.linspace(b/2, -b/2, nz)
 	[xx, zz] = numpy.meshgrid(-x, z)
 	rr = numpy.sqrt(xx**2 + zz**2)
-	theta = numpy.arctan(zz/xx)
 	ux = numpy.zeros([nz, nx])
 	uz = numpy.zeros([nz, nx])
 
@@ -311,16 +310,13 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         z = numpy.linspace(-b/2, b/2, nz)
         [xx, zz] = numpy.meshgrid(x, z)
         rr = numpy.sqrt(xx**2 + zz**2)
-        theta = numpy.arctan(zz/xx)
         ux = numpy.zeros([nz, nx])
         uz = numpy.zeros([nz, nx])
-        idx = rr < a*b/( 4 * numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)) )
-        # in order to have a consistent flow field, we need the opposite ux direction
-        ux[idx] = -numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
-                                        (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * zz[idx]
+        idx = rr < a/2
 
-        uz[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
-                                        (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * xx[idx]
+        ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
+
+        uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
 
         # scale & store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
@@ -332,8 +328,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         x = numpy.linspace(-a/2, a/2, nx)
 	flowfig = pylab.figure(figsize = (48, 5))	
 	pylab.subplot(131)
-	# note that uz is negative downward, to plot "normal" vectors we need to plot -uz
-	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], -uz[::2,::2])
+	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], uz[::2,::2])
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity field')
 	plt.xlabel('x [km]')
@@ -414,9 +409,12 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 
         uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
 
-	# change sign of uz so flow is positive (downwelling) in center
-        uz[idx] = - numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
-                                            (b*numpy.cos(theta[idx])) ** 2))/rr[idx] * -xx[idx]
+        # remove nans
+        nanfill = numpy.zeros((nz, nx))
+        id_nan = numpy.isnan(ux)
+        ux[id_nan] = nanfill[id_nan]
+        id_nan = numpy.isnan(uz)
+        uz[id_nan] = nanfill[id_nan]
 
 	# scale & store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
@@ -429,8 +427,7 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
 	flowfig = pylab.figure(figsize = (49, 5))
 	pylab.subplot(131)
-	# plot the negative uz field as postive is downward
-	pylab.quiver(1e-3*xx_plt, zz_plt, ux, -uz)
+	pylab.quiver(1e-3*xx_plt, zz_plt, ux, uz)
 	pylab.gca().invert_yaxis()
 	pylab.title('Downwelling Velocity field')
 	plt.xlabel('x [km]')
@@ -640,8 +637,7 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
         pylab.colorbar(mesh4)
-	# change limits to be based on h.a not g.a
-        plt.clim(numpy.min(h.a[:]), numpy.max(h.a[:]))
+        plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
         pylab.xlim([xmin/1e3, xmax_plt/1e3])
         pylab.ylim([zmax_plt, zmin])
 
