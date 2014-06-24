@@ -429,7 +429,8 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
 	flowfig = pylab.figure(figsize = (49, 5))
 	pylab.subplot(131)
-	pylab.quiver(1e-3*xx_plt, zz_plt, ux, uz)
+	# plot -uz as quiver expects positive uz in the upward direction
+	pylab.quiver(1e-3*xx_plt, zz_plt, ux, -uz)
 	pylab.gca().invert_yaxis()
 	pylab.title('Downwelling Velocity field')
 	plt.xlabel('x [km]')
