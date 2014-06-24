@@ -328,7 +328,8 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         x = numpy.linspace(-a/2, a/2, nx)
 	flowfig = pylab.figure(figsize = (48, 5))	
 	pylab.subplot(131)
-	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], uz[::2,::2])
+	# note that uz is negative downward, to plot "normal" vectors we need to plot -uz
+	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], -uz[::2,::2])
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity field')
 	plt.xlabel('x [km]')
