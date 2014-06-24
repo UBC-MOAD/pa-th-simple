@@ -327,11 +327,10 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	# plot the velocity field you are actually using (so you can be sure you got it right) on rectangular grid.         
         a = xmax
         x = numpy.linspace(-a/2, a/2, nx)
-	flowfig = pylab.figure(figsize = (48, 5))	
-	pylab.subplot(131)
+	flowfig = pylab.figure(figsize = (30, 10))	
 	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], uz[::2,::2])
 	pylab.gca().invert_yaxis()
-	plt.title('Velocity field')
+	plt.title('Velocity Field')
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 
@@ -340,7 +339,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-        pylab.subplot(132) 
+        pylab.subplot(121) 
         mesh1 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
         if string == 'Th': 
 	        pylab.title('Initial Dissolved [Th]')
@@ -352,7 +351,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         pylab.xlim([xmin/1e3, xmax/1e3])
         pylab.ylim([zmax, zmin])
 
-        pylab.subplot(133) 
+        pylab.subplot(122) 
         mesh2 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
         if string == 'Th':
 	        pylab.title('Initial Particulate [Th]')
@@ -365,6 +364,48 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         pylab.ylim([zmax, zmin])
 
 	return u, flowfig, init
+
+def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
+        """Correct the analytical solution to conserve mass discretely
+        """
+        # extract velocity components
+        uz = u[:, :, 0]
+        ux = u[:, :, 1]
+        
+        # define upstream 
+        p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
+        n_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) + 1)
+        p_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) - 1)
+        n_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) + 1)
+
+        # set up vectorized correction 
+        dx = (xmax - xmin) / (nx - 1)
+        dz = (zmax - zmin) / (nz - 1)
+        ux_new = ux 
+        i = numpy.arange(1, nz - 1, 1, dtype = int)
+        j = numpy.arange(1, nx - 1, 1, dtype = int)
+        i, j = numpy.meshgrid(i, j)
+            
+        ux_new[i, j] = ux[i, j + 1]*n_upx[i, j] + ux[i, j - 1]*p_upx[i, j] - dx/dz* (uz[i + 1, j]*p_upz[i, j] -uz[i,j] + 
+          
+                                                                               uz[i - 1, j]*n_upz[i, j])
+        
+        # store result
+        u[:, :, 1] = ux_new
+        # plot result        
+        a = xmax
+        b = zmax
+        x = numpy.linspace(-a/2, a/2, nx)
+        z = numpy.linspace(-b/2, b/2, nz)
+        flowfig = pylab.figure(figsize = (30, 10))
+        # scale uz by 10 for visual effect
+        pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux_new[::2,::2], 10*uz[::2,::2])
+        pylab.gca().invert_yaxis()
+        plt.title('Corrected Velocity Field')
+        plt.xlabel('x [km]')
+        plt.ylabel('depth [m]')  
+
+        return u, flowfig
 
 def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	""" u_complex complex computes a rotational, downwelling velocity field
@@ -395,8 +436,8 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	[xx, zz] = numpy.meshgrid(x, z)
 	zz[0:, nx/2:] = - zz[0:, nx/2:]  
 	rr = numpy.sqrt(xx**2 + zz**2)
-	ux = numpy.zeros([nz, nx])
-	uz = numpy.zeros([nz, nx])
+	ux = numpy.zeros((nz, nx))
+	uz = numpy.zeros((nz, nx))
 
 	# use logical indexing to define points of non-zero velocity
 	idx = rr < a/2
