@@ -44,14 +44,14 @@ class FDgrid:
 		[self.xx, self.zz] = numpy.meshgrid(self.x, self.z)
 
 		# storage for the solution 
-		self.a = numpy.ones((nz, nx), dtype=numpy.float64)
+		self.a = numpy.zeros((nz, nx), dtype=numpy.float64)
 
 	def scratchArray(self):
 		""" return a scratch array dimensioned for our grid """
 		return numpy.zeros((self.nz, self.nx), dtype=numpy.float64)
 
 	def fillBCs(self):             
-		self.a[self.ilo, :] = 1
+		self.a[self.ilo, :] = 0
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
@@ -82,14 +82,15 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	"""
 
 	# define the CFL, sink velocity, and reaction constant
-	#S = 500        #m/yr
-        S = 0
-	# time info (yr)
+	S = 500        #m/yr
+        #S = 0
+	
+        # time info (yr)
 	dt = 0.001   
-        t = t*10
-        T = T*10
-        #t = t * (g.zmax - g.zmin)/S
-	#T = T * (g.zmax - g.zmin)/S            
+        #t = t*10
+        #T = T*10
+        t = t * (g.zmax - g.zmin)/S
+	T = T * (g.zmax - g.zmin)/S            
 
         g, h = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
 
@@ -314,8 +315,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         uz = numpy.zeros([nz, nx])
         idx = rr < a/2
 
-	# invert direction of ux to make flow go around an ellipse
-        ux[idx] = - numpy.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
+        ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
 
         uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
 
@@ -329,8 +329,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         x = numpy.linspace(-a/2, a/2, nx)
 	flowfig = pylab.figure(figsize = (48, 5))	
 	pylab.subplot(131)
-	# because uz is positive downward; but quiver using the standard, positive upward, we need to plot -uz
-	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], -uz[::2,::2])
+	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], uz[::2,::2])
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity field')
 	plt.xlabel('x [km]')
@@ -387,17 +386,12 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	# define a grid that will produce downwelling
 	a = zmax
 	b = zmax
-	x = numpy.empty(nx)
-	z = numpy.empty(nz)
-        #nx should always be divisible by 4
-        x[:(nx-1)/4] = numpy.linspace(-a/2, 0, len(x[:(nx - 1)/4]))
-        x[(nx-1)/4: (nx-1)/2] = numpy.linspace(0, a/2, len(x[(nx-1)/4 : (nx-1)/2]))
+	x = numpy.zeros(nx)
 
-        x[(nx-1)/2 : 3*(nx-1)/4] = numpy.linspace(a/2, 0, len(x[(nx-1)/2 : 3*(nx-1)/4]))
-        x[3*(nx-1)/4 :] = numpy.linspace(0, -a/2, len(x[3*(nx-1)/4 :]))
-
-	z[:nz/2 - 1] = numpy.linspace(-b/2, 0, len(z[:nz/2 - 1]))
-	z[nz/2 : nz - 1] = numpy.linspace(0, b/2, len(z[nz/2 : nz - 1]))
+        #nx should always be odd
+        x[0:(nx+1)/2] = numpy.linspace(-a/2, a/2, (nx+1)/2)
+        x[(nx-1)/2:] = numpy.linspace(a/2, -a/2, (nx+1)/2)
+        z = numpy.linspace(-b/2, b/2, nz)
 	[xx, zz] = numpy.meshgrid(x, z)
 	zz[0:, nx/2:] = - zz[0:, nx/2:]  
 	rr = numpy.sqrt(xx**2 + zz**2)
@@ -408,8 +402,8 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	idx = rr < a/2
 
         ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -zz[idx]
-	# change uz to have downwelling in center
-        uz[idx] = - numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
+
+        uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
 
         # remove nans
         nanfill = numpy.zeros((nz, nx))
@@ -429,8 +423,7 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
 	flowfig = pylab.figure(figsize = (49, 5))
 	pylab.subplot(131)
-	# plot -uz as quiver expects positive uz in the upward direction
-	pylab.quiver(1e-3*xx_plt, zz_plt, ux, -uz)
+	pylab.quiver(1e-3*xx_plt, zz_plt, ux, uz)
 	pylab.gca().invert_yaxis()
 	pylab.title('Downwelling Velocity field')
 	plt.xlabel('x [km]')
@@ -569,9 +562,9 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 	pylab.colorbar(D)
-	cmin = 0
-	cmax = numpy.max((numpy.max(clean_Dratio), numpy.max(clean_Pratio)))
-	plt.clim(cmin, cmax)
+	#cmin = 0
+	#cmax = numpy.max((numpy.max(clean_Dratio), numpy.max(clean_Pratio)))
+	#plt.clim(cmin, cmax)
 
 	pylab.subplot(122)
 	P = pylab.pcolormesh(xx_plt*1e-3, zz_plt, clean_Pratio)
@@ -580,7 +573,7 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 	pylab.colorbar(P)
-	plt.clim(cmin, cmax)
+	#plt.clim(cmin, cmax)
 
 	return TPratio
 	
@@ -626,7 +619,7 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
         pylab.colorbar(mesh3)
-        plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
+        #plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
         pylab.xlim([xmin/1e3, xmax_plt/1e3])
         pylab.ylim([zmax_plt, zmin])
 
@@ -640,8 +633,7 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
         pylab.colorbar(mesh4)
-	# change limits to be based on h not g
-        plt.clim(numpy.min(h.a[:]), numpy.max(h.a[:]))
+        #plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
         pylab.xlim([xmin/1e3, xmax_plt/1e3])
         pylab.ylim([zmax_plt, zmin])
 
