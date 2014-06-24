@@ -51,7 +51,7 @@ class FDgrid:
 		return numpy.zeros((self.nz, self.nx), dtype=numpy.float64)
 
 	def fillBCs(self):             
-		self.a[self.ilo, :] = 0
+		self.a[self.ilo, :] = 1
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
@@ -387,14 +387,15 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	b = zmax
 	x = numpy.empty(nx)
 	z = numpy.empty(nz)
-	x[:round(nx/4)] = numpy.linspace(-a/2, 0, len(x[:round(nx/4)]))
-	x[round(nx/4) : round(nx/2)] = numpy.linspace(0, a/2, len(x[round(nx/4) : round(nx/2)]))
+        #nx should always be divisible by 4
+        x[:(nx-1)/4] = numpy.linspace(-a/2, 0, len(x[:(nx - 1)/4]))
+        x[(nx-1)/4: (nx-1)/2] = numpy.linspace(0, a/2, len(x[(nx-1)/4 : (nx-1)/2]))
 
-	x[round(nx/2) : round(3*nx/4)] = numpy.linspace(a/2, 0, len(x[round(nx/2) : round(3*nx/4)]))
-	x[round(3*nx/4) : nx] = numpy.linspace(0, -a/2, len(x[round(3*nx/4) : nx]))
+        x[(nx-1)/2 : 3*(nx-1)/4] = numpy.linspace(a/2, 0, len(x[(nx-1)/2 : 3*(nx-1)/4]))
+        x[3*(nx-1)/4 :] = numpy.linspace(0, -a/2, len(x[3*(nx-1)/4 :]))
 
-	z[:round(nz/2)] = numpy.linspace(-b/2, 0, len(z[:round(nz/2)]))
-	z[round(nz/2) : nz] = numpy.linspace(0, b/2, len(z[round(nz/2) : nz]))
+	z[:nz/2 - 1] = numpy.linspace(-b/2, 0, len(z[:nz/2 - 1]))
+	z[nz/2 : nz - 1] = numpy.linspace(0, b/2, len(z[nz/2 : nz - 1]))
 	[xx, zz] = numpy.meshgrid(x, z)
 	zz[0:, nx/2:] = - zz[0:, nx/2:]  
 	rr = numpy.sqrt(xx**2 + zz**2)
