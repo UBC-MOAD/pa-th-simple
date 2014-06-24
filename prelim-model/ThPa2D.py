@@ -231,6 +231,7 @@ def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	z = numpy.linspace(b/2, -b/2, nz)
 	[xx, zz] = numpy.meshgrid(-x, z)
 	rr = numpy.sqrt(xx**2 + zz**2)
+	theta = numpy.arctan(zz/xx)
 	ux = numpy.zeros([nz, nx])
 	uz = numpy.zeros([nz, nx])
 
@@ -310,13 +311,16 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         z = numpy.linspace(-b/2, b/2, nz)
         [xx, zz] = numpy.meshgrid(x, z)
         rr = numpy.sqrt(xx**2 + zz**2)
+        theta = numpy.arctan(zz/xx)
         ux = numpy.zeros([nz, nx])
         uz = numpy.zeros([nz, nx])
-        idx = rr < a/2
+        idx = rr < a*b/( 4 * numpy.sqrt(1/4 * ((b*numpy.cos(theta))**2 + (a*numpy.sin(theta))**2)) )
+        # in order to have a consistent flow field, we need the opposite ux direction
+        ux[idx] = -numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
+                                        (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * zz[idx]
 
-        ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
-
-        uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
+        uz[idx] = numpy.sin(2*pi*rr[idx] / (a*b / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
+                                        (b*numpy.cos(theta[idx])) ** 2)))/rr[idx] * xx[idx]
 
         # scale & store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
