@@ -314,7 +314,8 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         uz = numpy.zeros([nz, nx])
         idx = rr < a/2
 
-        ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
+	# invert direction of ux to make flow go around an ellipse
+        ux[idx] = - numpy.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
 
         uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
 
@@ -638,7 +639,8 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
         pylab.colorbar(mesh4)
-        plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
+	# change limits to be based on h not g
+        plt.clim(numpy.min(h.a[:]), numpy.max(h.a[:]))
         pylab.xlim([xmin/1e3, xmax_plt/1e3])
         pylab.ylim([zmax_plt, zmin])
 
