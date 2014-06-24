@@ -414,12 +414,9 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 
         uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
 
-        # remove nans
-        nanfill = numpy.zeros((nz, nx))
-        id_nan = numpy.isnan(ux)
-        ux[id_nan] = nanfill[id_nan]
-        id_nan = numpy.isnan(uz)
-        uz[id_nan] = nanfill[id_nan]
+	# change sign of uz so flow is positive (downwelling) in center
+        uz[idx] = - numpy.sin(2*pi*rr[idx] / numpy.sqrt((a*numpy.sin(theta[idx])) ** 2 + 
+                                            (b*numpy.cos(theta[idx])) ** 2))/rr[idx] * -xx[idx]
 
 	# scale & store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
@@ -643,7 +640,8 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
         pylab.colorbar(mesh4)
-        plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
+	# change limits to be based on h.a not g.a
+        plt.clim(numpy.min(h.a[:]), numpy.max(h.a[:]))
         pylab.xlim([xmin/1e3, xmax_plt/1e3])
         pylab.ylim([zmax_plt, zmin])
 
