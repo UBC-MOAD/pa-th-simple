@@ -408,8 +408,8 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	idx = rr < a/2
 
         ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -zz[idx]
-
-        uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
+	# change uz to have downwelling in center
+        uz[idx] = - numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
 
         # remove nans
         nanfill = numpy.zeros((nz, nx))
