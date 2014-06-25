@@ -44,14 +44,14 @@ class FDgrid:
 		[self.xx, self.zz] = numpy.meshgrid(self.x, self.z)
 
 		# storage for the solution 
-		self.a = numpy.zeros((nz, nx), dtype=numpy.float64)
+		self.a = numpy.ones((nz, nx), dtype=numpy.float64)
 
 	def scratchArray(self):
 		""" return a scratch array dimensioned for our grid """
 		return numpy.zeros((self.nz, self.nx), dtype=numpy.float64)
 
 	def fillBCs(self):             
-		self.a[self.ilo, :] = 0
+		self.a[self.ilo, :] = 1
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
@@ -82,15 +82,15 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	"""
 
 	# define the CFL, sink velocity, and reaction constant
-	S = 500        #m/yr
-        #S = 0
+	#S = 500        #m/yr
+        S = 0
 	
         # time info (yr)
 	dt = 0.001   
-        #t = t*10
-        #T = T*10
-        t = t * (g.zmax - g.zmin)/S
-	T = T * (g.zmax - g.zmin)/S            
+        t = t*10
+        T = T*10
+        #t = t * (g.zmax - g.zmin)/S
+	#T = T * (g.zmax - g.zmin)/S            
 
         g, h = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
 
@@ -315,7 +315,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         uz = numpy.zeros([nz, nx])
         idx = rr < a/2
 
-        ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
+        ux[idx] = -numpy.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
 
         uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
 
@@ -328,7 +328,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
         a = xmax
         x = numpy.linspace(-a/2, a/2, nx)
 	flowfig = pylab.figure(figsize = (30, 10))	
-	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], uz[::2,::2])
+	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], -uz[::2,::2])
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity Field')
 	plt.xlabel('x [km]')
@@ -365,7 +365,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 
 	return u, flowfig, init
 
-def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
+def u_correct(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the analytical solution to conserve mass discretely
         """
         # extract velocity components
@@ -373,8 +373,6 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         ux = u[:, :, 1]
         
         # define upstream 
-        p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
-        n_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) + 1)
         p_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) - 1)
         n_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) + 1)
 
@@ -385,11 +383,13 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         i = numpy.arange(1, nz - 1, 1, dtype = int)
         j = numpy.arange(1, nx - 1, 1, dtype = int)
         i, j = numpy.meshgrid(i, j)
+
+
             
-        ux_new[i, j] = ux[i, j + 1]*n_upx[i, j] + ux[i, j - 1]*p_upx[i, j] - dx/dz* (uz[i + 1, j]*p_upz[i, j] -uz[i,j] + 
+        ux_new[i, j] = ux[i, j + 1]*n_upx[i, j] + ux[i, j - 1]*p_upx[i, j] + dx/dz* (uz[i + 1, j]*p_upz[i, j] -uz[i,j] + 
           
                                                                                uz[i - 1, j]*n_upz[i, j])
-        
+
         # store result
         u[:, :, 1] = ux_new
         # plot result        
@@ -399,7 +399,7 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         z = numpy.linspace(-b/2, b/2, nz)
         flowfig = pylab.figure(figsize = (30, 10))
         # scale uz by 10 for visual effect
-        pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux_new[::2,::2], 10*uz[::2,::2])
+        pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux_new[::2,::2], 100*uz[::2,::2])
         pylab.gca().invert_yaxis()
         plt.title('Corrected Velocity Field')
         plt.xlabel('x [km]')
@@ -444,7 +444,7 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 
         ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -zz[idx]
 
-        uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
+        uz[idx] = -numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
 
         # remove nans
         nanfill = numpy.zeros((nz, nx))
@@ -464,7 +464,7 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
 	flowfig = pylab.figure(figsize = (49, 5))
 	pylab.subplot(131)
-	pylab.quiver(1e-3*xx_plt, zz_plt, ux, uz)
+	pylab.quiver(1e-3*xx_plt, zz_plt, ux, -uz)
 	pylab.gca().invert_yaxis()
 	pylab.title('Downwelling Velocity field')
 	plt.xlabel('x [km]')
