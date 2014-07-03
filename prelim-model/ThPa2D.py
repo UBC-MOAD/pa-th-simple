@@ -82,15 +82,12 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	"""
 
 	# define the CFL, sink velocity, and reaction constant
-	#S = 500        #m/yr
         S = 0
 	
         # time info (yr)
 	dt = 0.001   
-        t = t*10
-        T = T*10
-        #t = t * (g.zmax - g.zmin)/S
-	#T = T * (g.zmax - g.zmin)/S            
+        t = t * (g.zmax - g.zmin)/S
+	T = T * (g.zmax - g.zmin)/S            
 
         g, h = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
 
@@ -198,8 +195,6 @@ def TVD(g, h, t, T, u, k_ad, k_de, Q, S, dt):
                 h.a[:] = bnew[:]
                 t += dt
         return g, h
-
-
 
 
 def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
@@ -547,12 +542,13 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         x = numpy.linspace(-a/2, a/2, nx)
         z = numpy.linspace(-b/2, b/2, nz)
         flowfig = pylab.figure(figsize = (30, 10))
-        # scale uz by 10 for visual effect
         pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -dx/dz*uz)
         pylab.gca().invert_yaxis()
         plt.title('Corrected Velocity Field')
         plt.xlabel('x [km]')
         plt.ylabel('depth [m]') 
+        
+        return u, flowfig
 
 
 ###################################################CHEMISTRY##########################################################################
