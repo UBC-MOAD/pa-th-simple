@@ -239,7 +239,7 @@ def u_zero(xmin, xmax, zmin, zmax, nx, nz, V):
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-	flowfig = pylab.figure(figsize = (30, 10))	
+	flowfig = pylab.figure(figsize = (25, 5))	
 	pylab.quiver(1e-3 * xx_plt, zz_plt, ux[:], uz[:])
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity field')
@@ -287,8 +287,8 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
 	# plot the velocity field you are actually using (so you can be sure you got it right) on rectangular grid.         
         a = xmax
         x = numpy.linspace(-a/2, a/2, nx)
-	flowfig = pylab.figure(figsize = (30, 10))	
-	pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], -uz[::2,::2])
+	flowfig = pylab.figure(figsize = (25, 5))	
+	pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -uz)
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity Field')
 	plt.xlabel('x [km]')
@@ -335,9 +335,9 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         b = zmax
         x = numpy.linspace(-a/2, a/2, nx)
         z = numpy.linspace(-b/2, b/2, nz)
-        flowfig = pylab.figure(figsize = (30, 10))
+        flowfig = pylab.figure(figsize = (25, 5))
         # scale uz by 10 for visual effect
-        pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], -dx/dz*uz[::2,::2])
+        pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -dx/dz*uz)
         pylab.gca().invert_yaxis()
         plt.title('Corrected Velocity Field')
         plt.xlabel('x [km]')
@@ -400,7 +400,7 @@ def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-	flowfig = pylab.figure(figsize = (30, 10))
+	flowfig = pylab.figure(figsize = (25, 5))
 	pylab.quiver(1e-3*xx_plt, zz_plt, ux, -uz)
 	pylab.gca().invert_yaxis()
 	pylab.title('Downwelling Velocity field')
@@ -448,7 +448,7 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         b = zmax
         x = numpy.linspace(-a/2, a/2, nx)
         z = numpy.linspace(-b/2, b/2, nz)
-        flowfig = pylab.figure(figsize = (30, 10))
+        flowfig = pylab.figure(figsize = (25, 5))
         pylab.quiver(1e-3 * (x+a/2), z+b/2, ux, -dx/dz * uz)
         pylab.gca().invert_yaxis()
         plt.title('Corrected Velocity Field')
@@ -467,6 +467,8 @@ def plot_init(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
         dz = (zmax - zmin) / (nz - 1)
         xmax_plt = (nx - 2)*dx
         zmax_plt = (nz - 2)*dz
+
+        init = pylab.subplots(1, 2, figsize = (25, 5))
 
         pylab.subplot(121) 
         mesh1 = pylab.pcolormesh(1e-3 * xx_plt, zz_plt, g.a)
@@ -641,7 +643,7 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         tmax = 10*T
 
 
-        meshTh = pylab.subplots(1, 2, figsize = (30, 10)) 
+        meshTh = pylab.subplots(1, 2, figsize = (25, 5)) 
         pylab.subplot(121) 
         mesh3 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
         if string == 'Th':
