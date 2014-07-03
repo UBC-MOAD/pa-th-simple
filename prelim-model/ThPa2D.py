@@ -365,7 +365,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 
 	return u, flowfig, init
 
-def u_correct(u, xmin, xmax, zmin, zmax, nx, nz):
+def u_sc(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the analytical solution to conserve mass discretely
         """
         # extract velocity components
@@ -380,15 +380,22 @@ def u_correct(u, xmin, xmax, zmin, zmax, nx, nz):
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
         ux_new = ux 
-        i = numpy.arange(1, nz - 1, 1, dtype = int)
-        j = numpy.arange(1, nx - 1, 1, dtype = int)
-        i, j = numpy.meshgrid(i, j)
 
+        # vectorize region where z > 0, ux > 0
+        i = numpy.arange(1, nz/2, 1, dtype = int)
+        j = 1
+        while j <= nx-2:
 
+            ux_new[i, j] = ux_new[i, j - 1] + dx/dz* (( uz[i,j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j])
+            j += 1
+
+        # vectorize region z < 0, ux < 0
+        i = numpy.arange(nz/2, nz - 1, 1, dtype = int)
+        j = nx - 2
+        while j >= 1:
             
-        ux_new[i, j] = ux[i, j + 1]*n_upx[i, j] + ux[i, j - 1]*p_upx[i, j] + dx/dz* (uz[i + 1, j]*p_upz[i, j] -uz[i,j] + 
-          
-                                                                               uz[i - 1, j]*n_upz[i, j])
+            ux_new[i, j] = ux_new[i, j + 1] - dx/dz* ((uz[i,j] - uz[i + 1, j]) *p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j])
+            j -= 1
 
         # store result
         u[:, :, 1] = ux_new
