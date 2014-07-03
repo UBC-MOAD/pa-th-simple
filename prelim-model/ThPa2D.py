@@ -111,6 +111,10 @@ def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
         # save inverses for speed
         g.dx_i = 1/g.dx
+        g.dz_i = 1/g.dz
+        h.dx_i = 1/h.dx
+        h.dz_i = 1/h.dz
+
 	while (t < T):
 
 		# fill the boundary conditions
@@ -131,13 +135,13 @@ def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
                 # dissolved:
                 anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
                     ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) * g.dx_i + 
-                    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) * dt
+                    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) * g.dz_i ) * dt
 
                 # particulate:
-                bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) / h.dz + 
+                bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) * h.dz_i + 
                           k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
-                    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) / h.dx +
-                    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) / h.dz ) * dt
+                    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) * h.dx_i +
+                    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) * h.dz_i ) * dt
 
                 # store the (time) updated solution
                 g.a[:] = anew[:]
