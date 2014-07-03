@@ -44,14 +44,14 @@ class FDgrid:
 		[self.xx, self.zz] = numpy.meshgrid(self.x, self.z)
 
 		# storage for the solution 
-		self.a = numpy.ones((nz, nx), dtype=numpy.float64)
+		self.a = numpy.zeros((nz, nx), dtype=numpy.float64)
 
 	def scratchArray(self):
 		""" return a scratch array dimensioned for our grid """
 		return numpy.zeros((self.nz, self.nx), dtype=numpy.float64)
 
 	def fillBCs(self):             
-		self.a[self.ilo, :] = 1
+		self.a[self.ilo, :] = 0
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
@@ -82,7 +82,7 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	"""
 
 	# define the CFL, sink velocity, and reaction constant
-        S = 0
+        S = 500
 	
         # time info (yr)
 	dt = 0.001   
@@ -197,7 +197,7 @@ def TVD(g, h, t, T, u, k_ad, k_de, Q, S, dt):
         return g, h
 
 
-def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
+def u_zero(xmin, xmax, zmin, zmax, nx, nz, V):
 	""" Produce a matrix of zeros on the input grid to simulate a zero velocity feild
         :arg g_a: the dissolved [] final distribution
 
@@ -239,51 +239,16 @@ def u_zero(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-	flowfig = pylab.figure(figsize = (49, 5))	
-	pylab.subplot(131)
-	pylab.quiver(xx_plt/1e3, zz_plt, ux[:], uz[:])
+	flowfig = pylab.figure(figsize = (30, 10))	
+	pylab.quiver(1e-3 * xx_plt, zz_plt, ux[:], uz[:])
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity field')
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 
-        # plot initial dist.
-        init = pylab.subplots(1, 2, figsize = (23, 5))
-	x_plt = numpy.linspace(xmin, xmax, nx)
-	z_plt = numpy.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-        dx = (xmax - xmin) / (nx - 1)
-        dz = (zmax - zmin) / (nz - 1)
-        xmax_plt = (nx - 2)*dx
-        zmax_plt = (nz - 2)*dz
-        pylab.subplot(132) 
-        mesh1 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
-        if string == 'Th': 
-	        pylab.title('Initial Dissolved [Th]')
-        if string == 'Pa':
-	        pylab.title('Initial Dissolved [Pa]')
-        pylab.gca().invert_yaxis()
-        pylab.ylabel('depth [m]')
-        pylab.xlabel('x [km]')
-        pylab.xlim([xmin/1e3, xmax_plt/1e3])
-        pylab.ylim([zmax_plt, zmin])
+	return u, flowfig
 
-        pylab.subplot(133) 
-        mesh2 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
-        if string == 'Th':
-	        pylab.title('Initial Particulate [Th]')
-        if string == 'Pa':
-	        pylab.title('Initial Particulate [Pa]')
-        pylab.gca().invert_yaxis()
-        pylab.ylabel('depth [m]')
-        pylab.xlabel('x [km]')
-        pylab.xlim([xmin/1e3, xmax_plt/1e3])
-        pylab.ylim([zmax_plt, zmin])
-
-
-	return u, flowfig, init
-
-def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
+def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
 	""" u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
 	:arg xmin: minimum x on the grid
@@ -329,36 +294,8 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 
-        # plot initial dist.
-        init = pylab.subplots(1, 2, figsize = (23, 5))	
-	x_plt = numpy.linspace(xmin, xmax, nx)
-	z_plt = numpy.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-        pylab.subplot(121) 
-        mesh1 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
-        if string == 'Th': 
-	        pylab.title('Initial Dissolved [Th]')
-        if string == 'Pa':
-	        pylab.title('Initial Dissolved [Pa]')
-        pylab.gca().invert_yaxis()
-        pylab.ylabel('depth [m]')
-        pylab.xlabel('x [km]')
-        pylab.xlim([xmin/1e3, xmax/1e3])
-        pylab.ylim([zmax, zmin])
 
-        pylab.subplot(122) 
-        mesh2 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
-        if string == 'Th':
-	        pylab.title('Initial Particulate [Th]')
-        if string == 'Pa':
-	        pylab.title('Initial Particulate [Pa]')
-        pylab.gca().invert_yaxis()
-        pylab.ylabel('depth [m]')
-        pylab.xlabel('x [km]')
-        pylab.xlim([xmin/1e3, xmax/1e3])
-        pylab.ylim([zmax, zmin])
-
-	return u, flowfig, init
+	return u, flowfig
 
 def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the analytical solution to conserve mass discretely
@@ -373,15 +310,14 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
 
         # set up vectorized correction 
         dx = (xmax - xmin) / (nx - 1)
-        dz = (zmax - zmin) / (nz - 1)
-        ux_new = ux 
+        dz = (zmax - zmin) / (nz - 1) 
 
         # vectorize region where z > 0, ux > 0
         i = numpy.arange(1, nz/2, 1, dtype = int)
         j = 1
         while j <= nx-2:
 
-            ux_new[i, j] = ux_new[i, j - 1] + dx/dz* (( uz[i,j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j])
+            ux[i, j] = ux[i, j - 1] + dx/dz* (( uz[i,j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j])
             j += 1
 
         # vectorize region z < 0, ux < 0
@@ -389,11 +325,11 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         j = nx - 2
         while j >= 1:
             
-            ux_new[i, j] = ux_new[i, j + 1] - dx/dz* ((uz[i,j] - uz[i + 1, j]) *p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j])
+            ux[i, j] = ux[i, j + 1] - dx/dz* ((uz[i,j] - uz[i + 1, j]) *p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j])
             j -= 1
 
         # store result
-        u[:, :, 1] = ux_new
+        u[:, :, 1] = ux
         # plot result        
         a = xmax
         b = zmax
@@ -401,7 +337,7 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         z = numpy.linspace(-b/2, b/2, nz)
         flowfig = pylab.figure(figsize = (30, 10))
         # scale uz by 10 for visual effect
-        pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux_new[::2,::2], -dx/dz*uz[::2,::2])
+        pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux[::2,::2], -dx/dz*uz[::2,::2])
         pylab.gca().invert_yaxis()
         plt.title('Corrected Velocity Field')
         plt.xlabel('x [km]')
@@ -409,7 +345,7 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
 
         return u, flowfig
 
-def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
+def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
 	""" u_complex complex computes a rotational, downwelling velocity field
 
 	:arg xmin: minimum x on the grid
@@ -464,45 +400,15 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 	x_plt = numpy.linspace(xmin, xmax, nx)
 	z_plt = numpy.linspace(zmin, zmax, nz)
 	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-	flowfig = pylab.figure(figsize = (49, 5))
-	pylab.subplot(131)
+	flowfig = pylab.figure(figsize = (30, 10))
 	pylab.quiver(1e-3*xx_plt, zz_plt, ux, -uz)
 	pylab.gca().invert_yaxis()
 	pylab.title('Downwelling Velocity field')
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 
-        # plot initial dist.
-        init = pylab.subplots(1, 2, figsize = (23, 5))	
-	x_plt = numpy.linspace(xmin, xmax, nx)
-	z_plt = numpy.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
-        pylab.subplot(132) 
-        mesh1 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
-        if string == 'Th': 
-	        pylab.title('Initial Dissolved [Th]')
-        if string == 'Pa':
-	        pylab.title('Initial Dissolved [Pa]')
-        pylab.gca().invert_yaxis()
-        pylab.ylabel('depth [m]')
-        pylab.xlabel('x [km]')
-        pylab.xlim([xmin/1e3, xmax/1e3])
-        pylab.ylim([zmax, zmin])
 
-        pylab.subplot(133) 
-        mesh2 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
-        if string == 'Th':
-	        pylab.title('Initial Particulate [Th]')
-        if string == 'Pa':
-	        pylab.title('Initial Particulate [Pa]')
-        pylab.gca().invert_yaxis()
-        pylab.ylabel('depth [m]')
-        pylab.xlabel('x [km]')
-        pylab.xlim([xmin/1e3, xmax/1e3])
-        pylab.ylim([zmax, zmin])
-
-
-	return u, flowfig, init
+	return u, flowfig
 
 def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the complex velocity field to conserve mass on grid-by-grid basis
@@ -511,7 +417,8 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         uz = u[:,:,0]
         p_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) - 1)
         n_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) + 1)
-
+        dx = (xmax - xmin) / (nx - 1)
+        dz = (zmax - zmin) / (nz - 1)
         # vectorize region z > 0
         i = numpy.arange(1, nz/2, 1, dtype = int)
         j = 1
@@ -542,7 +449,7 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         x = numpy.linspace(-a/2, a/2, nx)
         z = numpy.linspace(-b/2, b/2, nz)
         flowfig = pylab.figure(figsize = (30, 10))
-        pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -dx/dz*uz)
+        pylab.quiver(1e-3 * (x+a/2), z+b/2, ux, -dx/dz * uz)
         pylab.gca().invert_yaxis()
         plt.title('Corrected Velocity Field')
         plt.xlabel('x [km]')
@@ -550,6 +457,42 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         
         return u, flowfig
 
+def plot_init(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
+
+        # plot initial dist.
+	x_plt = numpy.linspace(xmin, xmax, nx)
+	z_plt = numpy.linspace(zmin, zmax, nz)
+	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+        dx = (xmax - xmin) / (nx - 1)
+        dz = (zmax - zmin) / (nz - 1)
+        xmax_plt = (nx - 2)*dx
+        zmax_plt = (nz - 2)*dz
+
+        pylab.subplot(121) 
+        mesh1 = pylab.pcolormesh(1e-3 * xx_plt, zz_plt, g.a)
+        if string == 'Th': 
+	        pylab.title('Initial Dissolved [Th]')
+        if string == 'Pa':
+	        pylab.title('Initial Dissolved [Pa]')
+        pylab.gca().invert_yaxis()
+        pylab.ylabel('depth [m]')
+        pylab.xlabel('x [km]')
+        pylab.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
+        pylab.ylim([zmax_plt, zmin])
+
+        pylab.subplot(122) 
+        mesh2 = pylab.pcolormesh(1e-3 * xx_plt, zz_plt, h.a)
+        if string == 'Th':
+	        pylab.title('Initial Particulate [Th]')
+        if string == 'Pa':
+	        pylab.title('Initial Particulate [Pa]')
+        pylab.gca().invert_yaxis()
+        pylab.ylabel('depth [m]')
+        pylab.xlabel('x [km]')
+        pylab.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
+        pylab.ylim([zmax_plt, zmin])
+
+        return init
 
 ###################################################CHEMISTRY##########################################################################
 
@@ -698,7 +641,7 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         tmax = 10*T
 
 
-        meshTh = pylab.subplots(1, 2, figsize = (16.5, 5)) 
+        meshTh = pylab.subplots(1, 2, figsize = (30, 10)) 
         pylab.subplot(121) 
         mesh3 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
         if string == 'Th':
