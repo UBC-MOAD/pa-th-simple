@@ -365,7 +365,7 @@ def u_simple(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 
 	return u, flowfig, init
 
-def u_sc(u, xmin, xmax, zmin, zmax, nx, nz):
+def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the analytical solution to conserve mass discretely
         """
         # extract velocity components
@@ -406,11 +406,11 @@ def u_sc(u, xmin, xmax, zmin, zmax, nx, nz):
         z = numpy.linspace(-b/2, b/2, nz)
         flowfig = pylab.figure(figsize = (30, 10))
         # scale uz by 10 for visual effect
-        pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux_new[::2,::2], 100*uz[::2,::2])
+        pylab.quiver(1e-3*(x[::2]+a/2), z[::2]+b/2, ux_new[::2,::2], -dx/dz*uz[::2,::2])
         pylab.gca().invert_yaxis()
         plt.title('Corrected Velocity Field')
         plt.xlabel('x [km]')
-        plt.ylabel('depth [m]')  
+        plt.ylabel('depth [m]') 
 
         return u, flowfig
 
@@ -508,6 +508,52 @@ def u_complex(g, h, xmin, xmax, zmin, zmax, nx, nz, V, string):
 
 
 	return u, flowfig, init
+
+def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
+        """Correct the complex velocity field to conserve mass on grid-by-grid basis
+        """
+        ux = u[:,:,1]
+        uz = u[:,:,0]
+        p_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) - 1)
+        n_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) + 1)
+
+        # vectorize region z > 0
+        i = numpy.arange(1, nz/2, 1, dtype = int)
+        j = 1
+
+        while j <= nx/2 - 1:
+            ux[i, j] = ux[i, j - 1]+ dx/dz * ((uz[i - 1, j] - uz[i, j])*p_upz[i, j] + (uz[i, j] - uz[i + 1, j])*n_upz[i, j])
+            j += 1
+             
+        while j <= nx - 2:
+            ux[i, j] = ux[i, j + 1] - dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
+            j += 1
+               
+        # vectorize region z < 0
+        i = numpy.arange(nz/2, nz - 1, 1, dtype = int)
+        j = 1
+        while j <= nx/2 - 1:
+            ux[i, j] = ux[i, j + 1] - dx/dz * ( (uz[i, j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i, j])*n_upz[i, j] )
+            j += 1
+            
+        while j <= nx - 2:
+            ux[i, j] = ux[i, j - 1] + dx/dz * ( (uz[i - 1, j] - uz[i, j])*n_upz[i, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j] )
+            j += 1
+            
+            
+        # plot result        
+        a = xmax
+        b = zmax
+        x = numpy.linspace(-a/2, a/2, nx)
+        z = numpy.linspace(-b/2, b/2, nz)
+        flowfig = pylab.figure(figsize = (30, 10))
+        # scale uz by 10 for visual effect
+        pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -dx/dz*uz)
+        pylab.gca().invert_yaxis()
+        plt.title('Corrected Velocity Field')
+        plt.xlabel('x [km]')
+        plt.ylabel('depth [m]') 
+
 
 ###################################################CHEMISTRY##########################################################################
 
