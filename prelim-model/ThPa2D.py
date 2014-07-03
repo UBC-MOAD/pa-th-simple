@@ -83,11 +83,11 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 
 	# define the CFL, sink velocity, and reaction constant
         S = 500
-	
+	S_i = 1/S 
         # time info (yr)
 	dt = 0.001   
-        t = t * (g.zmax - g.zmin)/S
-	T = T * (g.zmax - g.zmin)/S            
+        t = t * (g.zmax - g.zmin)*S_i
+	T = T * (g.zmax - g.zmin)*S_i            
 
         g, h = adscheme(g, h, t, T, u, k_ad, k_de, Q, S, dt)
 
@@ -109,6 +109,8 @@ def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 	p_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) - 1)
 	n_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) + 1)
 
+        # save inverses for speed
+        g.dx_i = 1/g.dx
 	while (t < T):
 
 		# fill the boundary conditions
@@ -128,7 +130,7 @@ def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
                 # dissolved:
                 anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
-                    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) / g.dx + 
+                    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) * g.dx_i + 
                     uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) / g.dz ) * dt
 
                 # particulate:
@@ -313,7 +315,7 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         dz = (zmax - zmin) / (nz - 1) 
 
         # vectorize region where z > 0, ux > 0
-        i = numpy.arange(1, nz/2, 1, dtype = int)
+        i = numpy.arange(1, nz/2 - 1, 1, dtype = int)
         j = 1
         while j <= nx-2:
 
@@ -321,7 +323,7 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
             j += 1
 
         # vectorize region z < 0, ux < 0
-        i = numpy.arange(nz/2, nz - 1, 1, dtype = int)
+        i = numpy.arange(nz/2, nz - 2, 1, dtype = int)
         j = nx - 2
         while j >= 1:
             
