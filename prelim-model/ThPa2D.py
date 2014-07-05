@@ -285,6 +285,14 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
 
         uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
 
+
+        # remove nans
+        nanfill = numpy.zeros((nz, nx))
+        id_nan = numpy.isnan(ux)
+        ux[id_nan] = nanfill[id_nan]
+        id_nan = numpy.isnan(uz)
+        uz[id_nan] = nanfill[id_nan]
+
         # scale & store the solution in a matrix
 	u = numpy.zeros([nz, nx, 2])
 	u[:, :, 0] = uz / numpy.max(uz) * V * zmax/xmax
@@ -303,13 +311,15 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
 
 	return u, flowfig
 
-def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
+def u_simple_c(u, u_fine, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the analytical solution to conserve mass discretely
-        """
+        """        
+
         # extract velocity components
-        uz = u[:, :, 0]
-        ux = u[:, :, 1]
+        uz = u_fine[:, :, 0]
+        ux = u[:,:,1]
         
+
         # define upstream 
         p_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) - 1)
         n_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) + 1)
@@ -318,24 +328,30 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1) 
 
-        # vectorize region where z > 0, ux > 0
-        i = numpy.arange(1, nz/2 - 1, 1, dtype = int)
+        # QUAD 1 & 2
+        i = numpy.arange(1, nz/2, 1, dtype = int)
         j = 1
-        while j <= nx-2:
-
-            ux[i, j] = ux[i, j - 1] + dx/dz* (( uz[i,j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j])
-            j += 1
-
-        # vectorize region z < 0, ux < 0
-        i = numpy.arange(nz/2, nz - 2, 1, dtype = int)
-        j = nx - 2
-        while j >= 1:
+        while j <= nx - 1:
             
-            ux[i, j] = ux[i, j + 1] - dx/dz* ((uz[i,j] - uz[i + 1, j]) *p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j])
-            j -= 1
+            ux[i, j] = ux[i, j - 1] + dx / dz * ( (uz[2*i - 1,j] - uz[2*i + 1, j])*p_upz[i, j] + 
+                                                 (uz[2*i - 1, j] - uz[2*i + 1,j])*n_upz[i, j] )
+            j += 1    
+    
+
+        # QUAD 3 & 4
+        i = numpy.arange(nz/2, nz - 1, 1, dtype = int)
+        j = nx - 2
+
+        while j >= 0:
+
+            ux[i, j] = ux[i, j + 1] - dx / dz * ( (uz[2*i - 1, j] - uz[2*i + 1,j])*n_upz[i,j] + 
+                                                  (uz[2*i - 1,j] - uz[2*i + 1, j])*p_upz[i, j] )
+            j -= 1   
+
 
         # store result
         u[:, :, 1] = ux
+        uz = u[:,:,0]
         # plot result        
         a = xmax
         b = zmax
