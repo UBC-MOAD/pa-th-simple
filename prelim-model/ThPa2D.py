@@ -291,14 +291,14 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
 	# left side of domain, where flow is upward, go 1/2 step down
         idx = numpy.logical_and(rr < a/2, xx <= 0)
 
-        ux[idx] = -numpy.sin(2*pi*rrup[idx] / a) / rrup[idx] * (zz[idx]-hdz)
-        uz[idx] = numpy.sin(2*pi*rrup[idx] / a) / rrup[idx] * xx[idx]
+        ux[idx] = -numpy.sin(2*pi*rrdw[idx] / a) / rrdw[idx] * (zz[idx]-hdz)
+        uz[idx] = numpy.sin(2*pi*rrdw[idx] / a) / rrdw[idx] * xx[idx]
 
 	# right side of domain where flow is downward, go 1/2 step up
 	jdx = numpy.logical_and(rr < a/2, xx > 0)
 
-        ux[jdx] = -numpy.sin(2*pi*rrdw[jdx] / a) / rrdw[jdx] * (zz[jdx]+hdz)
-        uz[jdx] = numpy.sin(2*pi*rrdw[jdx] / a) / rrdw[jdx] * xx[jdx]
+        ux[jdx] = -numpy.sin(2*pi*rrup[jdx] / a) / rrup[jdx] * (zz[jdx]+hdz)
+        uz[jdx] = numpy.sin(2*pi*rrup[jdx] / a) / rrup[jdx] * xx[jdx]
 
         # remove nans
         nanfill = numpy.zeros((nz, nx))
@@ -340,40 +340,52 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         # set up vectorized correction 
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
-        ux_new = ux 
 
         # vectorize region where z > 0, ux > 0
         i = numpy.arange(1, nz/2, 1, dtype = int)
         j = 1
-        while j <= nx-2:
 
-            ux_new[i, j] = ux_new[i, j - 1] + dx/dz* (( uz[i,j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j])
+        # QUAD 1
+        while j <= (nx - 1)/2:
+            ux[i, j] = ux[i, j - 1] + dx/dz * ( uz[i,j] - uz[i + 1, j] )
             j += 1
+
+        # QUAD 2
+        j = nx - 2
+        while j > (nx - 1)/2:
+            ux[i, j] = ux[i, j + 1] - dx/dz * (uz[i - 1, j] - uz[i, j])
+            j -= 1
 
         # vectorize region z < 0, ux < 0
         i = numpy.arange(nz/2, nz - 1, 1, dtype = int)
+
+        # QUAD 3
         j = nx - 2
-        while j >= 1:
-            
-            ux_new[i, j] = ux_new[i, j + 1] - dx/dz* ((uz[i,j] - uz[i + 1, j]) *p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j])
+        while j >= (nx - 1)/2:           
+            ux[i, j] = ux[i, j + 1] - dx/dz * (uz[i - 1, j] - uz[i,j])
             j -= 1
+        
+        # QUAD 4
+        j = 1
+        while j < (nx - 1)/2:           
+            ux[i, j] = ux[i, j - 1] + dx/dz * (uz[i,j] - uz[i + 1, j]) 
+            j += 1
 
         # store result
-        u[:, :, 1] = ux_new
+        u[:, :, 1] = ux
         # plot result        
         a = xmax
         b = zmax
         x = numpy.linspace(-a/2, a/2, nx)
         z = numpy.linspace(-b/2, b/2, nz)
         flowfig = pylab.figure(figsize = (25, 5))
-        pylab.quiver(1e-3*(x+a/2), z+b/2, ux_new, -dx/dz*uz)
+        pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -dx/dz*uz)
         pylab.gca().invert_yaxis()
         plt.title('Corrected Velocity Field')
         plt.xlabel('x [km]')
         plt.ylabel('depth [m]') 
 
         return u, flowfig
-
 
 def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
 	""" u_complex complex computes a rotational, downwelling velocity field
