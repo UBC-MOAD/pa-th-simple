@@ -275,16 +275,27 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
         b = zmax
         x = numpy.linspace(-a/2, a/2, nx)
         z = numpy.linspace(-b/2, b/2, nz)
+	# calculate size of half a grid cell in the vertical
+	hdz = 0.5*b/nz
         [xx, zz] = numpy.meshgrid(x, z)
         rr = numpy.sqrt(xx**2 + zz**2)
+	# calculate the radius half a grid cell up and half a grid cell down
+	rrup = numpy.sqrt(xx**2 + (zz+hdz)**2)
+	rrdw = numpy.sqrt(xx**2 + (zz-hdz)**2)
+	
         ux = numpy.zeros([nz, nx])
         uz = numpy.zeros([nz, nx])
-        idx = rr < a/2
+	# left side of domain, where flow is upward, go 1/2 step down
+        idx = numpy.logical_and(rr < a/2, xx <= 0)
 
-        ux[idx] = -numpy.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
+        ux[idx] = -numpy.sin(2*pi*rrdw[idx] / a) / rrdw[idx] * (zz[idx]-hdz)
+        uz[idx] = numpy.sin(2*pi*rrdw[idx] / a) / rrdw[idx] * xx[idx]
 
-        uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
+	# right side of domain where flow is downward, go 1/2 step up
+	jdx = numpy.logical_and(rr < a/2, xx > 0)
 
+        ux[jdx] = -numpy.sin(2*pi*rrup[jdx] / a) / rrup[jdx] * (zz[jdx]+hdz)
+        uz[jdx] = numpy.sin(2*pi*rrup[jdx] / a) / rrup[jdx] * xx[jdx]
 
         # remove nans
         nanfill = numpy.zeros((nz, nx))
@@ -302,7 +313,7 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
         a = xmax
         x = numpy.linspace(-a/2, a/2, nx)
 	flowfig = pylab.figure(figsize = (25, 5))	
-	pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -uz)
+	pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -uz,pivot = 'mid')
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity Field')
 	plt.xlabel('x [km]')
@@ -332,7 +343,8 @@ def u_simple_c(u, u_fine, xmin, xmax, zmin, zmax, nx, nz):
         i = numpy.arange(1, nz/2, 1, dtype = int)
         j = 1
         while j <= nx - 1:
-            
+
+            # USE UPSTREAM HERE FOR uz
             ux[i, j] = ux[i, j - 1] + dx / dz * ( uz[2*i - 1, j] - uz[2*i + 1, j] )
             j += 1    
     
@@ -343,6 +355,7 @@ def u_simple_c(u, u_fine, xmin, xmax, zmin, zmax, nx, nz):
 
         while j >= 0:
 
+            # USE UPSTREAM HERE FOR uz
             ux[i, j] = ux[i, j + 1] - dx / dz * ( uz[2*i - 1, j] - uz[2*i + 1, j] )
             j -= 1   
 
