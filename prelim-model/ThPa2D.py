@@ -291,14 +291,14 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
 	# left side of domain, where flow is upward, go 1/2 step down
         idx = numpy.logical_and(rr < a/2, xx <= 0)
 
-        ux[idx] = -numpy.sin(2*pi*rrdw[idx] / a) / rrdw[idx] * (zz[idx]-hdz)
-        uz[idx] = numpy.sin(2*pi*rrdw[idx] / a) / rrdw[idx] * xx[idx]
+        ux[idx] = -numpy.sin(2*pi*rrup[idx] / a) / rrup[idx] * (zz[idx]-hdz)
+        uz[idx] = numpy.sin(2*pi*rrup[idx] / a) / rrup[idx] * xx[idx]
 
 	# right side of domain where flow is downward, go 1/2 step up
 	jdx = numpy.logical_and(rr < a/2, xx > 0)
 
-        ux[jdx] = -numpy.sin(2*pi*rrup[jdx] / a) / rrup[jdx] * (zz[jdx]+hdz)
-        uz[jdx] = numpy.sin(2*pi*rrup[jdx] / a) / rrup[jdx] * xx[jdx]
+        ux[jdx] = -numpy.sin(2*pi*rrdw[jdx] / a) / rrdw[jdx] * (zz[jdx]+hdz)
+        uz[jdx] = numpy.sin(2*pi*rrdw[jdx] / a) / rrdw[jdx] * xx[jdx]
 
         # remove nans
         nanfill = numpy.zeros((nz, nx))
