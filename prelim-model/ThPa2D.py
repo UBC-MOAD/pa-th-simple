@@ -703,7 +703,7 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
 
 	return meshTh
 
-def divtest(u, xmax, xmin, zmax, zmin, nx, nz)
+def divtest(u, xmax, xmin, zmax, zmin, nx, nz):
 
         ux = u[:,:,1]
         uz = u[:,:,0]
@@ -743,6 +743,7 @@ def divtest(u, xmax, xmin, zmax, zmin, nx, nz)
             j -= 1    
                 
         # plot the results
+        pylab.figure(figsize = (25, 5))
         divplot = pylab.pcolormesh(div)
         pylab.colorbar(divplot)
         pylab.gca().invert_yaxis()
