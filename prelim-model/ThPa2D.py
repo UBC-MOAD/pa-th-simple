@@ -345,7 +345,7 @@ def u_simple_c(g, h, u, nx, nz):
         uz = u[:, :, 0]
         ux = u[:, :, 1]
 
-        # define upstream 
+        # define upstream in z
         p_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) - 1)
         n_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) + 1)
 
@@ -354,18 +354,21 @@ def u_simple_c(g, h, u, nx, nz):
         j = 1
         while j <= nx-2:
 
-            ux[i, j] = (g.a[i, j - 1] + h.a[i, j - 1]) / (g.a[i, j] + h.a[i, j]) * (ux[i, j - 1] - p_upz[i, j] * uz[i + 1, j] + n_upz[i, j] * uz[i - 1, j]) + p_upz[i, j] * uz[i, j] - n_upz[i, j] * uz[i, j]
-            
-            j += 1
+                ux[i, j] = ( ux[i, j - 1] * (g.a[i, j - 1] + h.a[i, j - 1]) - p_upz[i, j] * uz[i + 1, j] * (g.a[i + 1, j] + h.a[i + 1, j]) + 
+                n_upz[i, j] * uz[i - 1, j] * (g.a[i - 1, j] + h.a[i - 1, j]) ) / (g.a[i, j] + h.a[i, j]) + p_upz[i, j] * uz[i, j] - n_upz[i, j] * uz[i, j]
+
+                j += 1
 
         # vectorize z < 0 region, ux < 0
         i = numpy.arange(nz/2, nz - 1, 1, dtype = int)
         j = nx - 2
         while j >= 1:
 
-            ux[i, j] = -(g.a[i, j + 1] + h.a[i, j + 1]) / (g.a[i, j] + h.a[i, j]) * (-ux[i, j + 1] + n_upz[i, j] * uz[i - 1, j] - p_upz[i, j] * uz[i - 1, j]) + n_upz[i, j] * uz[i, j] - p_upz[i, j] * uz[i, j]
-            
-            j -= 1
+                ux[i, j] = ( ux[i, j + 1] * (g.a[i, j + 1] + h.a[i, j + 1]) +  n_upz[i, j] * uz[i - 1, j] * -(g.a[i - 1, j] + h.a[i - 1, j]) - 
+                        p_upz[i, j] * uz[i + 1, j] * -(g.a[i + 1, j] + h.a[i + 1, j]) ) / (g.a[i, j] + h.a[i, j]) + n_upz[i, j] * uz[i, j] - p_upz[i, j] * uz[i, j]
+
+
+                j -= 1
 
         # store result
         u[:, :, 1] = ux
