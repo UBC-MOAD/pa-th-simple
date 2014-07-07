@@ -702,3 +702,49 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         pylab.ylim([zmax_plt, zmin])
 
 	return meshTh
+
+def divtest(u, xmax, xmin, zmax, zmin, nx, nz)
+
+        ux = u[:,:,1]
+        uz = u[:,:,0]
+
+        # set up vectorized correction \n",
+        dx = (xmax - xmin) / (nx - 1)
+        dz = (zmax - zmin) / (nz - 1) 
+
+        # QUAD 1
+        i = numpy.arange(0, nz/2, 1, dtype = int)
+        j = 1
+        div = numpy.zeros((nz, nx))
+        while j <= (nx - 1)/2:
+
+            div[i,j] = dz * (ux[i, j - 1] - ux[i, j]) + dx * (uz[i,j] - uz[i + 1, j])
+            j += 1    
+
+        # QUAD 2
+        i = numpy.arange(1, nz/2, 1, dtype = int)
+        while j < nx - 2:
+
+            div[i, j] = dz * (ux[i, j - 1] - ux[i, j]) + dx * (uz[i - 1, j] - uz[i,j])
+            j += 1    
+
+        # QUAD 3
+        i = numpy.arange(nz/2, nz, 1, dtype = int)
+        while j >= (nx - 1)/2:
+
+            div[i, j] = dz * (ux[i, j] - ux[i, j + 1]) + dx * (uz[i - 1, j] - uz[i,j])
+            j -= 1    
+
+        # QUAD 4
+        i = numpy.arange(nz/2, nz - 1, 1, dtype = int)
+        while j >= 0:
+
+            div[i, j] = dz * (ux[i, j] - ux[i, j + 1]) + dx * (uz[i,j] - uz[i + 1, j])
+            j -= 1    
+                
+        # plot the results
+        divplot = pylab.pcolormesh(div)
+        pylab.colorbar(divplot)
+        pylab.gca().invert_yaxis()
+
+        return divplot
