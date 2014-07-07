@@ -363,7 +363,7 @@ def u_simple_c(g, h, u, nx, nz):
         j = nx - 2
         while j >= 1:
 
-            ux[i, j] = -(g.a[i, j - 1] + h.a[i, j - 1]) / (g.a[i, j] + h.a[i, j]) * (-ux[i, j + 1] + n_upz[i, j] * uz[i - 1, j] - p_upz[i, j] * uz[i - 1, j]) + n_upz[i, j] * uz[i, j] - p_upz[i, j] * uz[i, j]
+            ux[i, j] = -(g.a[i, j + 1] + h.a[i, j + 1]) / (g.a[i, j] + h.a[i, j]) * (-ux[i, j + 1] + n_upz[i, j] * uz[i - 1, j] - p_upz[i, j] * uz[i - 1, j]) + n_upz[i, j] * uz[i, j] - p_upz[i, j] * uz[i, j]
             
             j -= 1
 
