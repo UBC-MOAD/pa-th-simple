@@ -93,7 +93,7 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 
         return g, h
 
-def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
+def upstream(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
 	# extract the velocities
 	uz = u[:, :, 0]
