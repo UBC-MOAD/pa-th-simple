@@ -452,13 +452,11 @@ def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
 
 	return u, flowfig
 
-def u_complex_c(u, u_fine, xmin, xmax, zmin, zmax, nx, nz):
+def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the complex velocity field to conserve mass on grid-by-grid basis
         """
         ux = u[:,:,1]
-        uz = u_fine[:,:,0]
-
-        #define upstream
+        uz = u[:,:,0]
         p_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) - 1)
         n_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) + 1)
         dx = (xmax - xmin) / (nx - 1)
@@ -468,28 +466,25 @@ def u_complex_c(u, u_fine, xmin, xmax, zmin, zmax, nx, nz):
         j = 1
 
         while j <= nx/2 - 1:
-            ux[i, j] = ux[i, j - 1]+ dx/dz * ( uz[2*i - 1, j] - uz[2*i + 1, j] )
+            ux[i, j] = ux[i, j - 1]+ dx/dz * ((uz[i - 1, j] - uz[i, j])*p_upz[i, j] + (uz[i, j] - uz[i + 1, j])*n_upz[i, j])
             j += 1
              
         while j <= nx - 2:
-            ux[i, j] = ux[i, j + 1] - dx/dz * ( uz[2*i - 1, j] - uz[2*i + 1, j] )
+            ux[i, j] = ux[i, j + 1] - dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
             j += 1
                
         # vectorize region z < 0
         i = numpy.arange(nz/2, nz - 1, 1, dtype = int)
         j = 1
         while j <= nx/2 - 1:
-            ux[i, j] = ux[i, j + 1] - dx/dz * ( uz[2*i - 1, j] - uz[2*i + 1, j] )
+            ux[i, j] = ux[i, j + 1] - dx/dz * ( (uz[i, j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i, j])*n_upz[i, j] )
             j += 1
             
         while j <= nx - 2:
-            ux[i, j] = ux[i, j - 1] + dx/dz * ( uz[2*i - 1, j] - uz[2*i + 1, j] )
+            ux[i, j] = ux[i, j - 1] + dx/dz * ( (uz[i - 1, j] - uz[i, j])*n_upz[i, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j] )
             j += 1
             
-        
-        # store result
-        u[:,:,1] = ux
-        uz = u[:,:,0]    
+            
         # plot result        
         a = xmax
         b = zmax
