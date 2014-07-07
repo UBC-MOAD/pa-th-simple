@@ -325,36 +325,46 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
 
 	return u, flowfig
 
-def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
-        """Correct the analytical solution to conserve mass discretely
+def u_simple_c(g, h, u, nx, nz):
+        """Correct the analytical solution to conserve mass discretely using a flux based method
+        0 = ( Pa_up / Pa_ij ) * ( u_up + w_up ) - ( u_ij + w_ij )       for u > 0, w > 0
+        0 = ( Pa_up / Pa_ij ) * ( u_up - w_up ) - ( u_ij - w_ij )       for u > 0, w < 0
+        0 = -( Pa_up / Pa_ij ) * ( -u_up + w_up ) + ( -u_ij + w_ij )    for u < 0, w > 0
+        0 = -( Pa_up / Pa_ij ) * ( -u_up - w_up ) + ( -u_ij - w_ij )    for u < 0, w < 0
         """
+
+        # extract dimensions
+        xmin = g.xmin 
+        xmax = g.xmax 
+        zmin = g.zmin 
+        zmax = g.zmax 
+        dx = (xmax - xmin) / (nx - 1)
+        dz = (zmax - zmin) / (nz - 1)
+
         # extract velocity components
         uz = u[:, :, 0]
         ux = u[:, :, 1]
-        
+
         # define upstream 
         p_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) - 1)
         n_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) + 1)
 
-        # set up vectorized correction 
-        dx = (xmax - xmin) / (nx - 1)
-        dz = (zmax - zmin) / (nz - 1)
-        ux = ux 
-
-        # vectorize region where z > 0, ux > 0
+        # vectorize z > 0 region, where ux > 0
         i = numpy.arange(1, nz/2, 1, dtype = int)
         j = 1
         while j <= nx-2:
 
-            ux[i, j] = ux[i, j - 1] + dx/dz* (( uz[i,j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j])
+            ux[i, j] = (g.a[i, j - 1] + h.a[i, j - 1]) / (g.a[i, j] + h.a[i, j]) * (ux[i, j - 1] - p_upz[i, j] * uz[i + 1, j] + n_upz[i, j] * uz[i - 1, j]) + p_upz[i, j] * uz[i, j] - n_upz[i, j] * uz[i, j]
+            
             j += 1
 
-        # vectorize region z < 0, ux < 0
+        # vectorize z < 0 region, ux < 0
         i = numpy.arange(nz/2, nz - 1, 1, dtype = int)
         j = nx - 2
         while j >= 1:
+
+            ux[i, j] = -(g.a[i, j - 1] + h.a[i, j - 1]) / (g.a[i, j] + h.a[i, j]) * (-ux[i, j + 1] + n_upz[i, j] * uz[i - 1, j] - p_upz[i, j] * uz[i - 1, j]) + n_upz[i, j] * uz[i, j] - p_upz[i, j] * uz[i, j]
             
-            ux[i, j] = ux[i, j + 1] - dx/dz* ((uz[i,j] - uz[i + 1, j]) *p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j])
             j -= 1
 
         # store result
