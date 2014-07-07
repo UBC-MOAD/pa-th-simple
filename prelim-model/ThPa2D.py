@@ -134,14 +134,13 @@ def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
                 # dissolved:
                 anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
-                    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) * g.dx_i + 
-                    uz[i, j] * ( n_upz[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz[i, j]*g.a[i + 1, j] ) * g.dz_i ) * dt
+                                ux[i, j] * ( n_upx[i, j]*(g.a[i, j - 1] - g.a[i, j]) + p_upx[i, j]*(g.a[i, j] - g.a[i, j + 1]) ) * g.dx_i + 
+                                uz[i, j] * ( n_upz[i, j]*(g.a[i - 1, j] - g.a[i, j]) + p_upz[i, j]*(g.a[i, j] - g.a[i + 1, j]) ) * g.dz_i ) * dt
 
                 # particulate:
-                bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) * h.dz_i + 
-                          k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
-                    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) * h.dx_i +
-                    uz[i, j] * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j] ) * h.dz_i ) * dt
+                bnew[i, j] = h.a[i, j] + k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + ( S*( n_upz[i, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz[i, j]*(h.a[i, j] - h.a[i + 1, j]) ) * h.dz_i +     
+                                ux[i, j] * ( n_upx[i, j]*(h.a[i, j - 1] - h.a[i, j]) + p_upx[i, j]*(h.a[i, j] - h.a[i, j + 1]) ) * h.dx_i +
+                                uz[i, j] * ( n_upz[i, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz[i, j]*(h.a[i, j] - h.a[i + 1, j]) ) * h.dz_i ) * dt
 
                 # store the (time) updated solution
                 g.a[:] = anew[:]
@@ -191,22 +190,18 @@ def flux(g, h, t, T, u, k_ad, k_de, Q, S, dt):
                 # upwind numerical solution
 
                 # dissolved:
-                anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
-                                          
-                      ( n_upx[i, j]*(g.a[i, j - 1]*ux[i, j - 1] - g.a[i, j]*ux[i, j]) + 
-                        p_upx[i, j]*(g.a[i, j]*ux[i, j] - g.a[i, j + 1]*ux[i, j + 1]) ) * g.dx_i + 
-                      ( n_upz[i, j]*(g.a[i - 1, j]*uz[i - 1, j] - g.a[i, j]*uz[i, j]) + 
-                        p_upz[i, j]*(g.a[i, j]*ux[i, j] - g.a[i + 1, j]*uz[i + 1, j]) ) * g.dz_i ) * dt
+                anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +                 
+                                ( n_upx[i, j]*(g.a[i, j - 1]*ux[i, j - 1] - g.a[i, j]*ux[i, j]) + 
+                                  p_upx[i, j]*(g.a[i, j]*ux[i, j] - g.a[i, j + 1]*ux[i, j + 1]) ) * g.dx_i + 
+                                ( n_upz[i, j]*(g.a[i - 1, j]*uz[i - 1, j] - g.a[i, j]*uz[i, j]) + 
+                                  p_upz[i, j]*(g.a[i, j]*ux[i, j] - g.a[i + 1, j]*uz[i + 1, j]) ) * g.dz_i ) * dt
 
                 # particulate:
-                bnew[i, j] = h.a[i, j] + 
-                ( S *( n_upz[i, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz[i, j]*(h.a[i, j] - h.a[i + 1, j]) )* h.dz_i + 
-                          k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
-                          
-                    ( n_upx[i, j]*(h.a[i, j - 1]*ux[i, j - 1] - h.a[i, j]*ux[i, j]) + 
-                      p_upx[i, j]*(h.a[i, j]*ux[i, j] - h.a[i, j + 1]*ux[i, j + 1]) ) * h.dx_i +
-                    ( n_upz[i, j]*(h.a[i - 1, j]*uz[i - 1, j] - h.a[i, j]*uz[i, j]) + 
-                      p_upz[i, j]*(h.a[i, j]*uz[i, j] - h.a[i + 1, j]*uz[i + 1, j]) ) * h.dz_i ) * dt
+                bnew[i, j] = h.a[i, j] + ( S *( n_upz[i, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz[i, j]*(h.a[i, j] - h.a[i + 1, j]) )* h.dz_i + k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] +      
+                                ( n_upx[i, j]*(h.a[i, j - 1]*ux[i, j - 1] - h.a[i, j]*ux[i, j]) + 
+                                  p_upx[i, j]*(h.a[i, j]*ux[i, j] - h.a[i, j + 1]*ux[i, j + 1]) ) * h.dx_i +
+                                ( n_upz[i, j]*(h.a[i - 1, j]*uz[i - 1, j] - h.a[i, j]*uz[i, j]) + 
+                                  p_upz[i, j]*(h.a[i, j]*uz[i, j] - h.a[i + 1, j]*uz[i + 1, j]) ) * h.dz_i ) * dt
 
                 # store the (time) updated solution
                 g.a[:] = anew[:]
@@ -341,30 +336,16 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
         b = zmax
         x = numpy.linspace(-a/2, a/2, nx)
         z = numpy.linspace(-b/2, b/2, nz)
-
-	# calculate size of half a grid cell in the vertical
-	hdz = 0.5*b/nz
         [xx, zz] = numpy.meshgrid(x, z)
         rr = numpy.sqrt(xx**2 + zz**2)
-
-	# calculate the radius half a grid cell up and half a grid cell down
-	rrup = numpy.sqrt(xx**2 + (zz+hdz)**2)
-	rrdw = numpy.sqrt(xx**2 + (zz-hdz)**2)
-	
         ux = numpy.zeros([nz, nx])
         uz = numpy.zeros([nz, nx])
+        idx = rr < a/2
 
-	# left side of domain, where flow is upward, go 1/2 step down
-        idx = numpy.logical_and(rr < a/2, xx <= 0)
+        ux[idx] = -numpy.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
 
-        ux[idx] = -numpy.sin(2*pi*rrdw[idx] / a) / rrdw[idx] * (zz[idx]-hdz)
-        uz[idx] = numpy.sin(2*pi*rrdw[idx] / a) / rrdw[idx] * xx[idx]
+        uz[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
 
-	# right side of domain where flow is downward, go 1/2 step up
-	jdx = numpy.logical_and(rr < a/2, xx > 0)
-
-        ux[jdx] = -numpy.sin(2*pi*rrup[jdx] / a) / rrup[jdx] * (zz[jdx]+hdz)
-        uz[jdx] = numpy.sin(2*pi*rrup[jdx] / a) / rrup[jdx] * xx[jdx]
 
         # remove nans
         nanfill = numpy.zeros((nz, nx))
@@ -382,7 +363,7 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
         a = xmax
         x = numpy.linspace(-a/2, a/2, nx)
 	flowfig = pylab.figure(figsize = (25, 5))	
-	pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -uz, pivot = 'mid')
+	pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -uz)
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity Field')
 	plt.xlabel('x [km]')
