@@ -149,7 +149,73 @@ def upwind(g, h, t, T, u, k_ad, k_de, Q, S, dt):
                 t += dt
         return g, h
 
+def flux(g, h, t, T, u, k_ad, k_de, Q, S, dt):
+        """Flux based advection scheme
+        """
 
+	# extract the velocities
+	uz = u[:, :, 0]
+	ux = u[:, :, 1]
+
+	# evolution loop
+	anew = g.a
+	bnew = h.a
+
+	# define upwind for x, z OUTSIDE loop ONLY while du/dt = 0
+	p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
+	n_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) + 1)
+	p_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) - 1)
+	n_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) + 1)
+
+        # save inverses for speed
+        g.dx_i = 1/g.dx
+        g.dz_i = 1/g.dz
+        h.dx_i = 1/h.dx
+        h.dz_i = 1/h.dz
+
+	while (t < T):
+
+		# fill the boundary conditions
+		g.fillBCs()
+		h.fillBCs()
+
+		# loop over zones: note since we are periodic and both endpoints
+		# are on the computational domain boundary, we don't have to
+		# update both g.ilo and g.ihi -- we could set them equal instead.
+		# But this is more general
+
+
+                i = numpy.arange(g.ilo + 1, g.ihi, 1, dtype = int)
+                j = numpy.arange(g.jlo + 1, g.jhi, 1, dtype = int)
+                [i , j] = numpy.meshgrid(i,j)
+                # upwind numerical solution
+
+                # dissolved:
+                anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
+                                          
+                      ( n_upx[i, j]*(g.a[i, j - 1]*ux[i, j - 1] - g.a[i, j]*ux[i, j]) + 
+                        p_upx[i, j]*(g.a[i, j]*ux[i, j] - g.a[i, j + 1]*ux[i, j + 1]) ) * g.dx_i + 
+                      ( n_upz[i, j]*(g.a[i - 1, j]*uz[i - 1, j] - g.a[i, j]*uz[i, j]) + 
+                        p_upz[i, j]*(g.a[i, j]*ux[i, j] - g.a[i + 1, j]*uz[i + 1, j]) ) * g.dz_i ) * dt
+
+                # particulate:
+                bnew[i, j] = h.a[i, j] + 
+                ( S *( n_upz[i, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz[i, j]*(h.a[i, j] - h.a[i + 1, j]) )* h.dz_i + 
+                          k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
+                          
+                    ( n_upx[i, j]*(h.a[i, j - 1]*ux[i, j - 1] - h.a[i, j]*ux[i, j]) + 
+                      p_upx[i, j]*(h.a[i, j]*ux[i, j] - h.a[i, j + 1]*ux[i, j + 1]) ) * h.dx_i +
+                    ( n_upz[i, j]*(h.a[i - 1, j]*uz[i - 1, j] - h.a[i, j]*uz[i, j]) + 
+                      p_upz[i, j]*(h.a[i, j]*uz[i, j] - h.a[i + 1, j]*uz[i + 1, j]) ) * h.dz_i ) * dt
+
+                # store the (time) updated solution
+                g.a[:] = anew[:]
+                h.a[:] = bnew[:]
+                t += dt
+        return g, h
+    
+    
+    
 def TVD(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
 	# extract the velocities
