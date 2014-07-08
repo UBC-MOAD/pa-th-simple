@@ -10,7 +10,7 @@ The upwind discretization is: a_new = a_old + C *(aold_{i+1} - aold_{i-1})
  
 """
 from __future__ import division
-import numpy
+import numpy as np
 import pylab
 import math
 import ThPa2D
@@ -38,17 +38,17 @@ class FDgrid:
 
 		# physical coords
 		self.dx = (xmax - xmin) / (nx - 1)
-		self.x = xmin + (numpy.arange(nx) - ng) * self.dx
+		self.x = xmin + (np.arange(nx) - ng) * self.dx
 		self.dz = (zmax - zmin) / (nz - 1)
-		self.z = zmin + (numpy.arange(nz) - ng) * self.dz
-		[self.xx, self.zz] = numpy.meshgrid(self.x, self.z)
+		self.z = zmin + (np.arange(nz) - ng) * self.dz
+		[self.xx, self.zz] = np.meshgrid(self.x, self.z)
 
 		# storage for the solution 
-		self.a = numpy.zeros((nz, nx), dtype=numpy.float64)
+		self.a = np.zeros((nz, nx), dtype=np.float64)
 
 	def scratchArray(self):
 		""" return a scratch array dimensioned for our grid """
-		return numpy.zeros((self.nz, self.nx), dtype=numpy.float64)
+		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
 	def fillBCs(self):             
 		self.a[self.ilo, :] = 0
@@ -104,10 +104,10 @@ def upstream(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 	bnew = h.a
 
 	# define upwind for x, z OUTSIDE loop ONLY while du/dt = 0
-	p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
-	n_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) + 1)
-	p_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) - 1)
-	n_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) + 1)
+	p_upx = np.sign(ux)*0.5*( np.sign(ux) - 1)
+	n_upx = np.sign(ux)*0.5*( np.sign(ux) + 1)
+	p_upz = np.sign(uz + S)*0.5*( np.sign(uz + S) - 1)
+	n_upz = np.sign(uz + S)*0.5*( np.sign(uz + S) + 1)
 
         # save inverses for speed
         g.dx_i = 1/g.dx
@@ -127,9 +127,9 @@ def upstream(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 		# But this is more general
 
 
-                i = numpy.arange(g.ilo + 1, g.ihi, 1, dtype = int)
-                j = numpy.arange(g.jlo + 1, g.jhi, 1, dtype = int)
-                [i , j] = numpy.meshgrid(i,j)
+                i = np.arange(g.ilo + 1, g.ihi, 1, dtype = int)
+                j = np.arange(g.jlo + 1, g.jhi, 1, dtype = int)
+                [i , j] = np.meshgrid(i,j)
                 # upwind numerical solution
 
                 # dissolved:
@@ -161,10 +161,10 @@ def flux(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 	bnew = h.a
 
 	# define upwind for x, z OUTSIDE loop ONLY while du/dt = 0
-	p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
-	n_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) + 1)
-	p_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) - 1)
-	n_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) + 1)
+	p_upx = np.sign(ux)*0.5*( np.sign(ux) - 1)
+	n_upx = np.sign(ux)*0.5*( np.sign(ux) + 1)
+	p_upz = np.sign(uz + S)*0.5*( np.sign(uz + S) - 1)
+	n_upz = np.sign(uz + S)*0.5*( np.sign(uz + S) + 1)
 
         # save inverses for speed
         g.dx_i = 1/g.dx
@@ -184,9 +184,9 @@ def flux(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 		# But this is more general
 
 
-                i = numpy.arange(g.ilo + 1, g.ihi, 1, dtype = int)
-                j = numpy.arange(g.jlo + 1, g.jhi, 1, dtype = int)
-                [i , j] = numpy.meshgrid(i,j)
+                i = np.arange(g.ilo + 1, g.ihi, 1, dtype = int)
+                j = np.arange(g.jlo + 1, g.jhi, 1, dtype = int)
+                [i , j] = np.meshgrid(i,j)
                 # upwind numerical solution
 
                 # dissolved:
@@ -222,10 +222,10 @@ def TVD(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 	bnew = h.a
 
 	# define upwind for x, z OUTSIDE loop ONLY while du/dt = 0
-	p_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) - 1)
-	n_upx = numpy.sign(ux)*0.5*( numpy.sign(ux) + 1)
-	p_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) - 1)
-	n_upz = numpy.sign(uz + S)*0.5*( numpy.sign(uz + S) + 1)
+	p_upx = np.sign(ux)*0.5*( np.sign(ux) - 1)
+	n_upx = np.sign(ux)*0.5*( np.sign(ux) + 1)
+	p_upz = np.sign(uz + S)*0.5*( np.sign(uz + S) - 1)
+	n_upz = np.sign(uz + S)*0.5*( np.sign(uz + S) + 1)
 
 	while (t < T):
 
@@ -239,9 +239,9 @@ def TVD(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 		# But this is more general
 
 
-                i = numpy.arange(g.ilo + 1, g.ihi, 1, dtype = int)
-                j = numpy.arange(g.jlo + 1, g.jhi, 1, dtype = int)
-                [i , j] = numpy.meshgrid(i,j)
+                i = np.arange(g.ilo + 1, g.ihi, 1, dtype = int)
+                j = np.arange(g.jlo + 1, g.jhi, 1, dtype = int)
+                [i , j] = np.meshgrid(i,j)
                 # upwind numerical solution
 
                 # dissolved:
@@ -290,22 +290,22 @@ def u_zero(xmin, xmax, zmin, zmax, nx, nz, V):
 	# define grid
 	a = xmax
 	b = zmax
-	x = numpy.linspace(a/2, -a/2, nx)
-	z = numpy.linspace(b/2, -b/2, nz)
-	[xx, zz] = numpy.meshgrid(-x, z)
-	rr = numpy.sqrt(xx**2 + zz**2)
-	ux = numpy.zeros([nz, nx])
-	uz = numpy.zeros([nz, nx])
+	x = np.linspace(a/2, -a/2, nx)
+	z = np.linspace(b/2, -b/2, nz)
+	[xx, zz] = np.meshgrid(-x, z)
+	rr = np.sqrt(xx**2 + zz**2)
+	ux = np.zeros([nz, nx])
+	uz = np.zeros([nz, nx])
 
 	# store the solution in a matrix
-	u = numpy.zeros([nz, nx, 2])
+	u = np.zeros([nz, nx, 2])
 	u[:, :, 0] = uz
 	u[:, :, 1] = ux
 	
 	# plot result
-	x_plt = numpy.linspace(xmin, xmax, nx)
-	z_plt = numpy.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+	x_plt = np.linspace(xmin, xmax, nx)
+	z_plt = np.linspace(zmin, zmax, nz)
+	[xx_plt, zz_plt] = np.meshgrid(x_plt, z_plt)
 	flowfig = pylab.figure(figsize = (25, 5))	
 	pylab.quiver(1e-3 * xx_plt, zz_plt, ux[:], uz[:])
 	pylab.gca().invert_yaxis()
@@ -317,66 +317,50 @@ def u_zero(xmin, xmax, zmin, zmax, nx, nz, V):
 
 
 def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
-	""" u_simple computes a simple rotational, divergenceless flow field on a specified grid
+        """ u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
-	:arg xmin: minimum x on the grid
-	
-	:arg xmax: maximum x on the grid
+        :arg xmin: minimum x on the grid
+        :arg xmax: maximum x on the grid
+        :arg zmin: minimum z on the grid
+        :arg zmax: maximum z on the grid
+        :arg nx: number of points in x dimension
+        :arg nz: number of points in z dimension	
 
-	:arg zmin: minimum z on the grid
-
-	:arg zmax: maximum z on the grid
-
-	:arg nx: number of points in x dimension
-
-	:arg nz: number of points in z dimension	
-
-	"""
+        """
         # define velocity on square grid, then scale simulate rectangular grid. 
-	a = zmax
+        a = zmax
         b = zmax
-        x = numpy.linspace(-a/2, a/2, nx)
-        z = numpy.linspace(-b/2, b/2, nz)
+        x = np.linspace(-a/2, a/2, nx)
+        hdz = 0.5*b/nz
+        z = np.linspace(-b/2-hdz, b/2+hdz, nz+1)
 
-	# calculate size of half a grid cell in the vertical
-	hdz = 0.5*b/nz
-        [xx, zz] = numpy.meshgrid(x, z)
-        rr = numpy.sqrt(xx**2 + zz**2)
+        [xx, zz] = np.meshgrid(x, z)
+        rr = np.sqrt(xx**2 + zz**2)
 
-	# calculate the radius half a grid cell up and half a grid cell down
-	rrup = numpy.sqrt(xx**2 + (zz+hdz)**2)
-	rrdw = numpy.sqrt(xx**2 + (zz-hdz)**2)
-	
-        ux = numpy.zeros([nz, nx])
-        uz = numpy.zeros([nz, nx])
+        ux = np.zeros([nz+1, nx])
+        uz = np.zeros([nz+1, nx])
 
-	# left side of domain, where flow is upward, go 1/2 step down
-        idx = numpy.logical_and(rr < a/2, xx <= 0)
+        idx = rr < a/2
 
-        ux[idx] = -numpy.sin(2*pi*rrdw[idx] / a) / rrdw[idx] * (zz[idx]-hdz)
-        uz[idx] = numpy.sin(2*pi*rrdw[idx] / a) / rrdw[idx] * xx[idx]
+        ux[idx] = -np.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
+        uz[idx] = np.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
 
-	# right side of domain where flow is downward, go 1/2 step up
-	jdx = numpy.logical_and(rr < a/2, xx > 0)
+        # make sure top two and bottom two rows are zero
+        uz[0:2,:] = 0.
+        uz[nz-1:nz+1,:] = 0.
 
-        ux[jdx] = -numpy.sin(2*pi*rrup[jdx] / a) / rrup[jdx] * (zz[jdx]+hdz)
-        uz[jdx] = numpy.sin(2*pi*rrup[jdx] / a) / rrup[jdx] * xx[jdx]
 
-        # remove nans
-        nanfill = numpy.zeros((nz, nx))
-        id_nan = numpy.isnan(ux)
-        ux[id_nan] = nanfill[id_nan]
-        id_nan = numpy.isnan(uz)
-        uz[id_nan] = nanfill[id_nan]
+        # scale & store the solution in a matrix, shifting up and down
+        u = np.zeros([nz, nx, 2])
+        u[:, :nx/2, 0] = uz[0:nz,:nx/2] / np.max(uz) * V * zmax/xmax
+        u[:, nx/2:, 0] = uz[1:,nx/2:] / np.max(uz) * V * zmax/xmax
+        u[:, :nx/2, 1] = ux[0:nz,:nx/2] / np.max(ux) * V 
+        u[:, nx/2:, 1] = ux[1:,nx/2:] / np.max(ux) * V
 
-        # scale & store the solution in a matrix
-	u = numpy.zeros([nz, nx, 2])
-	u[:, :, 0] = uz / numpy.max(uz) * V * zmax/xmax
-	u[:, :, 1] = ux / numpy.max(ux) * V 
 
-	# plot the velocity field you are actually using (so you can be sure you got it right) on rectangular grid.         
+	# plot the velocity field        
         a = xmax
-        x = numpy.linspace(-a/2, a/2, nx)
+        x = np.linspace(-a/2, a/2, nx)
 	flowfig = pylab.figure(figsize = (25, 5))	
 	pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -uz, pivot = 'mid')
 	pylab.gca().invert_yaxis()
@@ -388,51 +372,53 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
 	return u, flowfig
 
 def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
+        
         """Correct the analytical solution to conserve mass discretely
         """
         # extract velocity components
         uz = u[:, :, 0]
         ux = u[:, :, 1]
         
-        # define upstream 
-        p_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) - 1)
-        n_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) + 1)
+        # define upstream as the sum of two adjacent grid point vel.s
+        p_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) - 1)
+        n_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) + 1)
 
         # set up vectorized correction 
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
-        ux = ux 
 
         # vectorize region where z > 0, ux > 0
-        i = numpy.arange(1, nz/2, 1, dtype = int)
+        i = np.arange(1, nz/2, 1, dtype = int)
         j = 1
         while j <= nx-2:
-
-            ux[i, j] = ux[i, j - 1] + dx/dz* ( (uz[i,j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j] )
+            # note shift in p_upz and n_upz
+            ux[i, j] = ux[i, j - 1] + dx/dz* (( uz[i,j] - uz[i + 1, j])*p_upz[i, j] 
+                                               + (uz[i - 1, j] - uz[i,j])*n_upz[i-1, j])
             j += 1
 
         # vectorize region z < 0, ux < 0
-        i = numpy.arange(nz/2, nz - 1, 1, dtype = int)
+        i = np.arange(nz/2, nz - 1, 1, dtype = int)
         j = nx - 2
         while j >= 1:
             
-            ux[i, j] = ux[i, j + 1] - dx/dz* ( (uz[i,j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i, j] )
+            ux[i, j] = ux[i, j + 1] - dx/dz* ((uz[i,j] - uz[i + 1, j]) *p_upz[i, j] 
+                                              + (uz[i - 1, j] - uz[i,j])*n_upz[i-1, j])
             j -= 1
 
         # store result
         u[:, :, 1] = ux
-        # plot result        
+	# plot the velocity field 
         a = xmax
         b = zmax
-        x = numpy.linspace(-a/2, a/2, nx)
-        z = numpy.linspace(-b/2, b/2, nz)
-        flowfig = pylab.figure(figsize = (25, 5))
-        # scale uz by 10 for visual effect
-        pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -dx/dz*uz)
-        pylab.gca().invert_yaxis()
-        plt.title('Corrected Velocity Field')
-        plt.xlabel('x [km]')
-        plt.ylabel('depth [m]') 
+        hdz = 0.5*b/nz
+        x = np.linspace(-a/2, a/2, nx)
+        z = np.linspace(-b/2, b/2, nz)      
+	flowfig = pylab.figure(figsize = (25, 5))	
+	pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -uz, pivot = 'mid')
+	pylab.gca().invert_yaxis()
+	plt.title('Divergenceless Velocity Field')
+	plt.xlabel('x [km]')
+	plt.ylabel('depth [m]')
 
         return u, flowfig
 
@@ -456,41 +442,41 @@ def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
 	# define a grid that will produce downwelling
 	a = zmax
 	b = zmax
-	x = numpy.zeros(nx)
+	x = np.zeros(nx)
 
         #nx should always be odd
-        x[0:(nx+1)/2] = numpy.linspace(-a/2, a/2, (nx+1)/2)
-        x[(nx-1)/2:] = numpy.linspace(a/2, -a/2, (nx+1)/2)
-        z = numpy.linspace(-b/2, b/2, nz)
-	[xx, zz] = numpy.meshgrid(x, z)
+        x[0:(nx+1)/2] = np.linspace(-a/2, a/2, (nx+1)/2)
+        x[(nx-1)/2:] = np.linspace(a/2, -a/2, (nx+1)/2)
+        z = np.linspace(-b/2, b/2, nz)
+	[xx, zz] = np.meshgrid(x, z)
 	zz[0:, nx/2:] = - zz[0:, nx/2:]  
-	rr = numpy.sqrt(xx**2 + zz**2)
-	ux = numpy.zeros((nz, nx))
-	uz = numpy.zeros((nz, nx))
+	rr = np.sqrt(xx**2 + zz**2)
+	ux = np.zeros((nz, nx))
+	uz = np.zeros((nz, nx))
 
 	# use logical indexing to define points of non-zero velocity
 	idx = rr < a/2
 
-        ux[idx] = numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -zz[idx]
+        ux[idx] = np.sin(2*pi*rr[idx] / a) / rr[idx] * -zz[idx]
 
-        uz[idx] = -numpy.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
+        uz[idx] = -np.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
 
         # remove nans
-        nanfill = numpy.zeros((nz, nx))
-        id_nan = numpy.isnan(ux)
+        nanfill = np.zeros((nz, nx))
+        id_nan = np.isnan(ux)
         ux[id_nan] = nanfill[id_nan]
-        id_nan = numpy.isnan(uz)
+        id_nan = np.isnan(uz)
         uz[id_nan] = nanfill[id_nan]
 
 	# scale & store the solution in a matrix
-	u = numpy.zeros([nz, nx, 2])
-	u[:, :, 0] = uz / numpy.max(uz) * V * zmax/xmax
-	u[:, :, 1] = ux / numpy.max(ux) * V
+	u = np.zeros([nz, nx, 2])
+	u[:, :, 0] = uz / np.max(uz) * V * zmax/xmax
+	u[:, :, 1] = ux / np.max(ux) * V
 
 	# plot the velocity field you are actually using (so you can be sure you got it right) 
-	x_plt = numpy.linspace(xmin, xmax, nx)
-	z_plt = numpy.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+	x_plt = np.linspace(xmin, xmax, nx)
+	z_plt = np.linspace(zmin, zmax, nz)
+	[xx_plt, zz_plt] = np.meshgrid(x_plt, z_plt)
 	flowfig = pylab.figure(figsize = (25, 5))
 	pylab.quiver(1e-3*xx_plt, zz_plt, ux, -uz)
 	pylab.gca().invert_yaxis()
@@ -506,12 +492,12 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """
         ux = u[:,:,1]
         uz = u[:,:,0]
-        p_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) - 1)
-        n_upz = numpy.sign(uz)*0.5*( numpy.sign(uz) + 1)
+        p_upz = np.sign(uz)*0.5*( np.sign(uz) - 1)
+        n_upz = np.sign(uz)*0.5*( np.sign(uz) + 1)
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
         # vectorize region z > 0
-        i = numpy.arange(1, nz/2, 1, dtype = int)
+        i = np.arange(1, nz/2, 1, dtype = int)
         j = 1
 
         while j <= nx/2 - 1:
@@ -523,7 +509,7 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
             j += 1
                
         # vectorize region z < 0
-        i = numpy.arange(nz/2, nz - 1, 1, dtype = int)
+        i = np.arange(nz/2, nz - 1, 1, dtype = int)
         j = 1
         while j <= nx/2 - 1:
             ux[i, j] = ux[i, j + 1] - dx/dz * ( (uz[i, j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i, j])*n_upz[i, j] )
@@ -537,8 +523,8 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         # plot result        
         a = xmax
         b = zmax
-        x = numpy.linspace(-a/2, a/2, nx)
-        z = numpy.linspace(-b/2, b/2, nz)
+        x = np.linspace(-a/2, a/2, nx)
+        z = np.linspace(-b/2, b/2, nz)
         flowfig = pylab.figure(figsize = (25, 5))
         pylab.quiver(1e-3 * (x+a/2), z+b/2, ux, -dx/dz * uz)
         pylab.gca().invert_yaxis()
@@ -551,9 +537,9 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
 def plot_init(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
 
         # plot initial dist.
-	x_plt = numpy.linspace(xmin, xmax, nx)
-	z_plt = numpy.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+	x_plt = np.linspace(xmin, xmax, nx)
+	z_plt = np.linspace(zmin, zmax, nz)
+	[xx_plt, zz_plt] = np.meshgrid(x_plt, z_plt)
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
         xmax_plt = (nx - 2)*dx
@@ -609,29 +595,29 @@ def k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
 	"""
 	# physical coords
 	dx = (xmax - xmin) / (nx - 1)
-	x = xmin + (numpy.arange(nx) - 1) * dx
+	x = xmin + (np.arange(nx) - 1) * dx
 	dz = (zmax - zmin) / (nz - 1)
-	z = zmin + (numpy.arange(nz) - 1) * dz
-	[xx, zz] = numpy.meshgrid(x, z)
+	z = zmin + (np.arange(nz) - 1) * dz
+	[xx, zz] = np.meshgrid(x, z)
 
 	if string == 'Pa':
 
-		k_ad = numpy.ones(numpy.shape(zz))
+		k_ad = np.ones(np.shape(zz))
 		k_ad[:, :] = 0.08
 		k_ad[251 <= z, :] = 0.06
 		k_ad[500 <= z, :] = 0.04
 
-		k_de = numpy.zeros((numpy.shape(zz)))
+		k_de = np.zeros((np.shape(zz)))
 		k_de[:] = 1.6
 		
 		Q = 0.00246
 
 	if string == 'Th':
-		k_ad = numpy.ones(numpy.shape(zz))
+		k_ad = np.ones(np.shape(zz))
 		k_ad[251 <= z, :] = 0.75
 		k_ad[500 <= z, :] = 0.5
 
-		k_de = numpy.ones(numpy.shape(zz))
+		k_de = np.ones(np.shape(zz))
 
 		Q = 0.0267
 	
@@ -663,19 +649,19 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	"""
 
 	# define grid
-	x_plt = numpy.linspace(xmin, xmax, nx)
-	z_plt = numpy.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+	x_plt = np.linspace(xmin, xmax, nx)
+	z_plt = np.linspace(zmin, zmax, nz)
+	[xx_plt, zz_plt] = np.meshgrid(x_plt, z_plt)
 
 	# remove NaNs
 	Dratio = DTh/DPa
-	idx = numpy.isnan(Dratio)
-	clean_Dratio = numpy.zeros([nz, nx])
+	idx = np.isnan(Dratio)
+	clean_Dratio = np.zeros([nz, nx])
 	clean_Dratio[~idx] = Dratio[~idx]
 
 	Pratio = PTh/PPa
-	idx = numpy.isnan(Pratio)
-	clean_Pratio = numpy.zeros([nz, nx])
+	idx = np.isnan(Pratio)
+	clean_Pratio = np.zeros([nz, nx])
 	clean_Pratio[~idx] = Pratio[~idx]
 
 	# plot 
@@ -688,9 +674,7 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 	pylab.colorbar(D)
-	#cmin = 0
-	#cmax = numpy.max((numpy.max(clean_Dratio), numpy.max(clean_Pratio)))
-	#plt.clim(cmin, cmax)
+
 
 	pylab.subplot(122)
 	P = pylab.pcolormesh(xx_plt*1e-3, zz_plt, clean_Pratio)
@@ -699,7 +683,7 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 	pylab.colorbar(P)
-	#plt.clim(cmin, cmax)
+
 
 	return TPratio
 	
@@ -724,9 +708,9 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         """
 
         # define grid
-	x_plt = numpy.linspace(xmin, xmax, nx)
-	z_plt = numpy.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = numpy.meshgrid(x_plt, z_plt)
+	x_plt = np.linspace(xmin, xmax, nx)
+	z_plt = np.linspace(zmin, zmax, nz)
+	[xx_plt, zz_plt] = np.meshgrid(x_plt, z_plt)
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
         xmax_plt = (nx - 1)*dx
@@ -745,7 +729,6 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
         pylab.colorbar(mesh3)
-        #plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
         pylab.xlim([xmin/1e3, xmax_plt/1e3])
         pylab.ylim([zmax_plt, zmin])
 
@@ -759,7 +742,6 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         pylab.ylabel('depth [m]')
         pylab.xlabel('x [km]')
         pylab.colorbar(mesh4)
-        #plt.clim(numpy.min(g.a[:]), numpy.max(g.a[:]))
         pylab.xlim([xmin/1e3, xmax_plt/1e3])
         pylab.ylim([zmax_plt, zmin])
 
@@ -775,30 +757,30 @@ def divtest(u, xmax, xmin, zmax, zmin, nx, nz):
         dz = (zmax - zmin) / (nz - 1) 
 
         # QUAD 1
-        i = numpy.arange(0, nz/2, 1, dtype = int)
+        i = np.arange(0, nz/2, 1, dtype = int)
         j = 1
-        div = numpy.zeros((nz, nx))
+        div = np.zeros((nz, nx))
         while j <= (nx - 1)/2:
 
             div[i,j] = dz * (ux[i, j - 1] - ux[i, j]) + dx * (uz[i,j] - uz[i + 1, j])
             j += 1    
 
         # QUAD 2
-        i = numpy.arange(1, nz/2, 1, dtype = int)
+        i = np.arange(1, nz/2, 1, dtype = int)
         while j < nx - 2:
 
             div[i, j] = dz * (ux[i, j - 1] - ux[i, j]) + dx * (uz[i - 1, j] - uz[i,j])
             j += 1    
 
         # QUAD 3
-        i = numpy.arange(nz/2, nz, 1, dtype = int)
+        i = np.arange(nz/2, nz, 1, dtype = int)
         while j >= (nx - 1)/2:
 
             div[i, j] = dz * (ux[i, j] - ux[i, j + 1]) + dx * (uz[i - 1, j] - uz[i,j])
             j -= 1    
 
         # QUAD 4
-        i = numpy.arange(nz/2, nz - 1, 1, dtype = int)
+        i = np.arange(nz/2, nz - 1, 1, dtype = int)
         while j >= 0:
 
             div[i, j] = dz * (ux[i, j] - ux[i, j + 1]) + dx * (uz[i,j] - uz[i + 1, j])
