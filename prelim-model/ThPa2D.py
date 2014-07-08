@@ -315,6 +315,7 @@ def u_zero(xmin, xmax, zmin, zmax, nx, nz, V):
 
 	return u, flowfig
 
+
 def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
 	""" u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
@@ -385,8 +386,6 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
 
 
 	return u, flowfig
-
-
 
 def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the analytical solution to conserve mass discretely
