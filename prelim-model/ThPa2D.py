@@ -264,23 +264,8 @@ def TVD(g, h, t, T, u, k_ad, k_de, Q, S, dt):
         return g, h
 
 
-def u_zero(nx, nz):
+def u_zero(nz, nx):
 	""" Produce a matrix of zeros on the input grid to simulate a zero velocity feild
-        :arg g_a: the dissolved [] final distribution
-
-        :arg h_a: the particulate [] final distribution
-
-        :arg ainit: the dissolved [] initial distribution 
-
-        :arg binit: the particulate [] initial distribution
- 
-	:arg xmin: minimum x on the grid
-	
-	:arg xmax: maximum x on the grid
-
-	:arg zmin: minimum z on the grid
-
-	:arg zmax: maximum z on the grid
 
 	:arg nx: number of points in x dimension
 
@@ -461,20 +446,7 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
             ux[i, j] = ux[i, j - 1] + dx/dz * ( (uz[i - 1, j] - uz[i, j])*n_upz[i, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j] )
             j += 1
             
-            
-        # plot result        
-        a = xmax
-        b = zmax
-        x = np.linspace(-a/2, a/2, nx)
-        z = np.linspace(-b/2, b/2, nz)
-        flowfig = pylab.figure(figsize = (25, 5))
-        pylab.quiver(1e-3 * (x+a/2), z+b/2, ux, -dx/dz * uz)
-        pylab.gca().invert_yaxis()
-        plt.title('Corrected Velocity Field')
-        plt.xlabel('x [km]')
-        plt.ylabel('depth [m]') 
-        
-        return u, flowfig
+        return u
 
 def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
 
