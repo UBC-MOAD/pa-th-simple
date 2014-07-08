@@ -264,7 +264,7 @@ def TVD(g, h, t, T, u, k_ad, k_de, Q, S, dt):
         return g, h
 
 
-def u_zero(xmin, xmax, zmin, zmax, nx, nz, V):
+def u_zero(nx, nz):
 	""" Produce a matrix of zeros on the input grid to simulate a zero velocity feild
         :arg g_a: the dissolved [] final distribution
 
@@ -287,33 +287,11 @@ def u_zero(xmin, xmax, zmin, zmax, nx, nz, V):
 	:arg nz: number of points in z dimension
 
 	"""
-	# define grid
-	a = xmax
-	b = zmax
-	x = np.linspace(a/2, -a/2, nx)
-	z = np.linspace(b/2, -b/2, nz)
-	[xx, zz] = np.meshgrid(-x, z)
-	rr = np.sqrt(xx**2 + zz**2)
-	ux = np.zeros([nz, nx])
-	uz = np.zeros([nz, nx])
 
 	# store the solution in a matrix
 	u = np.zeros([nz, nx, 2])
-	u[:, :, 0] = uz
-	u[:, :, 1] = ux
-	
-	# plot result
-	x_plt = np.linspace(xmin, xmax, nx)
-	z_plt = np.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = np.meshgrid(x_plt, z_plt)
-	flowfig = pylab.figure(figsize = (25, 5))	
-	pylab.quiver(1e-3 * xx_plt, zz_plt, ux[:], uz[:])
-	pylab.gca().invert_yaxis()
-	plt.title('Velocity field')
-	plt.xlabel('x [km]')
-	plt.ylabel('depth [m]')
 
-	return u, flowfig
+	return u
 
 
 def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
@@ -357,20 +335,7 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
         u[:, :nx/2, 1] = ux[0:nz, :nx/2] / np.max(ux) * V 
         u[:, nx/2:, 1] = ux[1:, nx/2:] / np.max(ux) * V
 
-
-	# plot the velocity field        
-        a = xmax
-        x = np.linspace(-a/2, a/2, nx)
-        z = np.linspace(-b/2, b/2, nz)
-	flowfig = pylab.figure(figsize = (25, 5))	
-	pylab.quiver(1e-3*(x+a/2), z+b/2, u[:,:,1], -100*u[:,:,0], pivot = 'mid')
-	pylab.gca().invert_yaxis()
-	plt.title('Velocity Field')
-	plt.xlabel('x [km]')
-	plt.ylabel('depth [m]')
-
-
-	return u, flowfig
+	return u
 
 def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         
@@ -378,7 +343,7 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """
         # extract velocity components
         uz = u[:, :, 0]
-        ux = u[:, :, 1]
+        ux = np.zeros((nz,nx))
         
         # define upstream as the sum of two adjacent grid point vel.s
         p_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) - 1)
@@ -408,21 +373,8 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
 
         # store result
         u[:, :, 1] = ux
-	# plot the velocity field 
-        a = xmax
-        b = zmax
-        hdz = 0.5*b/nz
-        x = np.linspace(-a/2, a/2, nx)
-        z = np.linspace(-b/2, b/2, nz)      
-	flowfig = pylab.figure(figsize = (25, 5))	
-	pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -100*uz, pivot = 'mid')
-	pylab.gca().invert_yaxis()
-	plt.title('Divergenceless Velocity Field')
-	plt.xlabel('x [km]')
-	plt.ylabel('depth [m]')
 
-        return u, flowfig
-
+        return u
 def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
 	""" u_complex complex computes a rotational, downwelling velocity field
 
@@ -474,19 +426,8 @@ def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
 	u[:, :, 0] = uz / np.max(uz) * V * zmax/xmax
 	u[:, :, 1] = ux / np.max(ux) * V
 
-	# plot the velocity field you are actually using (so you can be sure you got it right) 
-	x_plt = np.linspace(xmin, xmax, nx)
-	z_plt = np.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = np.meshgrid(x_plt, z_plt)
-	flowfig = pylab.figure(figsize = (25, 5))
-	pylab.quiver(1e-3*xx_plt, zz_plt, ux, -uz)
-	pylab.gca().invert_yaxis()
-	pylab.title('Downwelling Velocity field')
-	plt.xlabel('x [km]')
-	plt.ylabel('depth [m]')
 
-
-	return u, flowfig
+	return u
 
 def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the complex velocity field to conserve mass on grid-by-grid basis
@@ -535,7 +476,7 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         
         return u, flowfig
 
-def plot_init(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
+def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
 
         # plot initial dist.
 	x_plt = np.linspace(xmin, xmax, nx)
@@ -571,6 +512,14 @@ def plot_init(g, h, xmin, xmax, zmin, zmax, nx, nz, string):
         pylab.xlabel('x [km]')
         pylab.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
         pylab.ylim([zmax_plt, zmin])
+
+	# plot the velocity field        
+	flowfig = pylab.figure(figsize = (25, 5))	
+	pylab.quiver(1e-3*x_plt, z_plt, u[:,:,1], -100*u[:,:,0], pivot = 'mid')
+	pylab.gca().invert_yaxis()
+	plt.title('Velocity Field')
+	plt.xlabel('x [km]')
+	plt.ylabel('depth [m]')
 
         return init
 
@@ -748,7 +697,7 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
 
 	return meshTh
 
-def divtest(u, xmax, xmin, zmax, zmin, nx, nz):
+def divtest(xmax, xmin, zmax, zmin, nx, nz):
 
         ux = u[:,:,1]
         uz = u[:,:,0]
