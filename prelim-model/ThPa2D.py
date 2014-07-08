@@ -352,17 +352,18 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
 
         # scale & store the solution in a matrix, shifting up and down
         u = np.zeros([nz, nx, 2])
-        u[:, :nx/2, 0] = uz[0:nz,:nx/2] / np.max(uz) * V * zmax/xmax
-        u[:, nx/2:, 0] = uz[1:,nx/2:] / np.max(uz) * V * zmax/xmax
-        u[:, :nx/2, 1] = ux[0:nz,:nx/2] / np.max(ux) * V 
-        u[:, nx/2:, 1] = ux[1:,nx/2:] / np.max(ux) * V
+        u[:, :nx/2, 0] = uz[0:nz, :nx/2] / np.max(uz) * V * zmax/xmax
+        u[:, nx/2:, 0] = uz[1:, nx/2:] / np.max(uz) * V * zmax/xmax
+        u[:, :nx/2, 1] = ux[0:nz, :nx/2] / np.max(ux) * V 
+        u[:, nx/2:, 1] = ux[1:, nx/2:] / np.max(ux) * V
 
 
 	# plot the velocity field        
         a = xmax
         x = np.linspace(-a/2, a/2, nx)
+        z = np.linspace(-b/2, b/2, nz)
 	flowfig = pylab.figure(figsize = (25, 5))	
-	pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -uz, pivot = 'mid')
+	pylab.quiver(1e-3*(x+a/2), z+b/2, u[:,:,1], -100*u[:,:,0], pivot = 'mid')
 	pylab.gca().invert_yaxis()
 	plt.title('Velocity Field')
 	plt.xlabel('x [km]')
@@ -414,7 +415,7 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         x = np.linspace(-a/2, a/2, nx)
         z = np.linspace(-b/2, b/2, nz)      
 	flowfig = pylab.figure(figsize = (25, 5))	
-	pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -uz, pivot = 'mid')
+	pylab.quiver(1e-3*(x+a/2), z+b/2, ux, -100*uz, pivot = 'mid')
 	pylab.gca().invert_yaxis()
 	plt.title('Divergenceless Velocity Field')
 	plt.xlabel('x [km]')
