@@ -308,6 +308,13 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
         ux[idx] = -np.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
         uz[idx] = np.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
 
+        # remove nans
+        nanfill = np.zeros((nz, nx))
+        id_nan = np.isnan(ux)
+        ux[id_nan] = nanfill[id_nan]
+        id_nan = np.isnan(uz)
+        uz[id_nan] = nanfill[id_nan]
+
         # make sure top two and bottom two rows are zero
         uz[0:2,:] = 0.
         uz[nz-1:nz+1,:] = 0.
@@ -360,6 +367,8 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         u[:, :, 1] = ux
 
         return u
+
+
 def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
 	""" u_complex complex computes a rotational, downwelling velocity field
 
@@ -385,12 +394,13 @@ def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
         #nx should always be odd
         x[0:(nx+1)/2] = np.linspace(-a/2, a/2, (nx+1)/2)
         x[(nx-1)/2:] = np.linspace(a/2, -a/2, (nx+1)/2)
-        z = np.linspace(-b/2, b/2, nz)
+        hdz = 0.5*b/nz
+        z = np.linspace(-b/2-hdz, b/2+hdz, nz+1)
 	[xx, zz] = np.meshgrid(x, z)
 	zz[0:, nx/2:] = - zz[0:, nx/2:]  
 	rr = np.sqrt(xx**2 + zz**2)
-	ux = np.zeros((nz, nx))
-	uz = np.zeros((nz, nx))
+	ux = np.zeros((nz+1, nx))
+	uz = np.zeros((nz+1, nx))
 
 	# use logical indexing to define points of non-zero velocity
 	idx = rr < a/2
@@ -406,46 +416,66 @@ def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
         id_nan = np.isnan(uz)
         uz[id_nan] = nanfill[id_nan]
 
-	# scale & store the solution in a matrix
-	u = np.zeros([nz, nx, 2])
-	u[:, :, 0] = uz / np.max(uz) * V * zmax/xmax
-	u[:, :, 1] = ux / np.max(ux) * V
+        # make sure top two and bottom two rows are zero
+        uz[0:2,:] = 0.
+        uz[nz-1:nz+1,:] = 0.
 
+        # scale & store the solution in a matrix, shifting up and down
+        u = np.zeros([nz, nx, 2])
+        u[:, :nx/4, 0] = uz[0:nz, :nx/4] / np.max(uz) * V * zmax/xmax
+        u[:, nx/4:, 0] = uz[1:, nx/4:] / np.max(uz) * V * zmax/xmax
+        u[:, nx/2:, 0] = uz[1:, nx/2:] / np.max(uz) * V * zmax/xmax
+        u[:, 3*nx/4:, 0] = uz[0:nz, 3*nx/4:] / np.max(uz) * V * zmax/xmax
+
+        u[:, :nx/4, 1] = ux[0:nz, :nx/4] / np.max(ux) * V 
+        u[:, nx/4:, 1] = ux[1:, nx/4:] / np.max(ux) * V
+        u[:, nx/2:, 1] = ux[1:, nx/2:] / np.max(ux) * V 
+        u[:, 3*nx/4:, 1] = ux[0:nz, 3*nx/4:] / np.max(ux) * V
 
 	return u
 
 def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the complex velocity field to conserve mass on grid-by-grid basis
         """
-        ux = u[:,:,1]
+        # extract velocities
+        ux = np.zeros((nz, nx))
         uz = u[:,:,0]
-        p_upz = np.sign(uz)*0.5*( np.sign(uz) - 1)
-        n_upz = np.sign(uz)*0.5*( np.sign(uz) + 1)
+
+        # define upstream as the sum of two adjacent grid point vel.s
+        p_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) - 1)
+        n_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) + 1)
+
+        # spatial step
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
+
         # vectorize region z > 0
         i = np.arange(1, nz/2, 1, dtype = int)
         j = 1
+        while j < nx/2:
+            ux[i, j] = ux[i, j - 1] + dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
+            j += 1
 
-        while j <= nx/2 - 1:
-            ux[i, j] = ux[i, j - 1]+ dx/dz * ((uz[i - 1, j] - uz[i, j])*p_upz[i, j] + (uz[i, j] - uz[i + 1, j])*n_upz[i, j])
-            j += 1
-             
-        while j <= nx - 2:
+        j = nx - 2
+        while j > nx/2:
             ux[i, j] = ux[i, j + 1] - dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
-            j += 1
-               
+            j -= 1
+
         # vectorize region z < 0
         i = np.arange(nz/2, nz - 1, 1, dtype = int)
-        j = 1
-        while j <= nx/2 - 1:
-            ux[i, j] = ux[i, j + 1] - dx/dz * ( (uz[i, j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i, j])*n_upz[i, j] )
-            j += 1
-            
+        j = nx/2 - 1
+        while j >= 1:
+            ux[i, j] = ux[i, j + 1] - dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
+            j -= 1
+
+        j = nx/2 + 1
         while j <= nx - 2:
-            ux[i, j] = ux[i, j - 1] + dx/dz * ( (uz[i - 1, j] - uz[i, j])*n_upz[i, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j] )
+            ux[i, j] = ux[i, j - 1] + dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
             j += 1
             
+        # store solution
+        u[:,:,1] = ux
+        
         return u
 
 def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
@@ -669,7 +699,7 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
 
 	return meshTh
 
-def divtest(xmax, xmin, zmax, zmin, nx, nz):
+def divtest(u, xmax, xmin, zmax, zmin, nx, nz):
 
         ux = u[:,:,1]
         uz = u[:,:,0]
