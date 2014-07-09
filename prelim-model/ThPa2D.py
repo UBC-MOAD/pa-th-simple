@@ -437,13 +437,16 @@ def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
 def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the complex velocity field to conserve mass on grid-by-grid basis
         """
-        # extract velocities
+
+        # extract velocities for redefinition
         ux = np.zeros((nz, nx))
         uz = u[:,:,0]
 
-        # define upstream as the sum of two adjacent grid point vel.s
+        # the upstream has to be define on the staggered grid and thus have shape [nz, nx]
         p_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) - 1)
         n_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) + 1)
+        p_upx = np.sign(ux[:-1]+ux[1:])*0.5*( np.sign(ux[:-1]+ux[1:]) - 1)               # upx terms not currently being used, but further vectorization is possible
+        n_upx = np.sign(ux[:-1]+ux[1:])*0.5*( np.sign(ux[:-1]+ux[1:]) + 1)
 
         # spatial step
         dx = (xmax - xmin) / (nx - 1)
@@ -747,7 +750,7 @@ def divtest(u, xmax, xmin, zmax, zmin, nx, nz):
         return divplot
 
 
-def divtest2(u, xmax, xmin, zmax, zmin, nx, nz):
+def divtest2(u, xmax, xmin, zmax, zmin, nx, nz, n_upz, p_upz, n_upx, p_upx):
 
         ux = u[:,:,1]
         uz = u[:,:,0]
@@ -755,12 +758,6 @@ def divtest2(u, xmax, xmin, zmax, zmin, nx, nz):
         # set up vectorized correction \n",
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1) 
-
-        # define upstream as the sum of two adjacent grid point vel.s
-        p_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) - 1)
-        n_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) + 1)
-        p_upx = np.sign(ux[:-1]+ux[1:])*0.5*( np.sign(ux[:-1]+ux[1:]) - 1)
-        n_upx = np.sign(ux[:-1]+ux[1:])*0.5*( np.sign(ux[:-1]+ux[1:]) + 1)
 
         # QUAD 1
         i = np.arange(1, nz - 1, 1, dtype = int)
