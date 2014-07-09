@@ -194,7 +194,7 @@ def flux(g, h, t, T, u, k_ad, k_de, Q, S, dt):
                                 ( n_upx[i, j]*(g.a[i, j - 1]*ux[i, j - 1] - g.a[i, j]*ux[i, j]) + 
                                   p_upx[i, j]*(g.a[i, j]*ux[i, j] - g.a[i, j + 1]*ux[i, j + 1]) ) * g.dx_i + 
                                 ( n_upz[i, j]*(g.a[i - 1, j]*uz[i - 1, j] - g.a[i, j]*uz[i, j]) + 
-                                  p_upz[i, j]*(g.a[i, j]*ux[i, j] - g.a[i + 1, j]*uz[i + 1, j]) ) * g.dz_i ) * dt
+                                  p_upz[i, j]*(g.a[i, j]*uz[i, j] - g.a[i + 1, j]*uz[i + 1, j]) ) * g.dz_i ) * dt
 
                 # particulate:
                 bnew[i, j] = h.a[i, j] + ( S *( n_upz[i, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz[i, j]*(h.a[i, j] - h.a[i + 1, j]) )* h.dz_i + k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] +      
