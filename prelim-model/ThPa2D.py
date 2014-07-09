@@ -11,7 +11,7 @@ The upwind discretization is: a_new = a_old + C *(aold_{i+1} - aold_{i-1})
 """
 from __future__ import division
 import numpy as np
-import pylab
+import pylab as plb
 import math
 import ThPa2D
 import matplotlib.pyplot as plt
@@ -290,7 +290,7 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
         :arg nz: number of points in z dimension	
 
         """
-        # define velocity on square grid, then scale simulate rectangular grid. 
+        # define velocity on square grid, then scale onto rectangular grid. 
         a = zmax
         b = zmax
         x = np.linspace(-a/2, a/2, nx)
@@ -489,36 +489,36 @@ def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
         xmax_plt = (nx - 2)*dx
         zmax_plt = (nz - 2)*dz
 
-        init = pylab.subplots(1, 2, figsize = (25, 5))
+        init = plb.subplots(1, 2, figsize = (25, 5))
 
-        pylab.subplot(121) 
-        mesh1 = pylab.pcolormesh(1e-3 * xx_plt, zz_plt, g.a)
+        plb.subplot(121) 
+        mesh1 = plb.pcolormesh(1e-3 * xx_plt, zz_plt, g.a)
         if string == 'Th': 
-	        pylab.title('Initial Dissolved [Th]')
+	        plb.title('Initial Dissolved [Th]')
         if string == 'Pa':
-	        pylab.title('Initial Dissolved [Pa]')
-        pylab.gca().invert_yaxis()
-        pylab.ylabel('depth [m]')
-        pylab.xlabel('x [km]')
-        pylab.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
-        pylab.ylim([zmax_plt, zmin])
+	        plb.title('Initial Dissolved [Pa]')
+        plb.gca().invert_yaxis()
+        plb.ylabel('depth [m]')
+        plb.xlabel('x [km]')
+        plb.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
+        plb.ylim([zmax_plt, zmin])
 
-        pylab.subplot(122) 
-        mesh2 = pylab.pcolormesh(1e-3 * xx_plt, zz_plt, h.a)
+        plb.subplot(122) 
+        mesh2 = plb.pcolormesh(1e-3 * xx_plt, zz_plt, h.a)
         if string == 'Th':
-	        pylab.title('Initial Particulate [Th]')
+	        plb.title('Initial Particulate [Th]')
         if string == 'Pa':
-	        pylab.title('Initial Particulate [Pa]')
-        pylab.gca().invert_yaxis()
-        pylab.ylabel('depth [m]')
-        pylab.xlabel('x [km]')
-        pylab.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
-        pylab.ylim([zmax_plt, zmin])
+	        plb.title('Initial Particulate [Pa]')
+        plb.gca().invert_yaxis()
+        plb.ylabel('depth [m]')
+        plb.xlabel('x [km]')
+        plb.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
+        plb.ylim([zmax_plt, zmin])
 
 	# plot the velocity field        
-	flowfig = pylab.figure(figsize = (25, 5))	
-	pylab.quiver(1e-3*x_plt, z_plt, u[:,:,1], -100*u[:,:,0], pivot = 'mid')
-	pylab.gca().invert_yaxis()
+	flowfig = plb.figure(figsize = (25, 5))	
+	plb.quiver(1e-3*x_plt, z_plt, u[:,:,1], -100*u[:,:,0], pivot = 'mid')
+	plb.gca().invert_yaxis()
 	plt.title('Velocity Field')
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
@@ -617,24 +617,24 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	clean_Pratio[~idx] = Pratio[~idx]
 
 	# plot 
-	TPratio = pylab.subplots(1, 2, figsize = (16, 5))
+	TPratio = plb.subplots(1, 2, figsize = (16, 5))
 	
-	pylab.subplot(121)
-	D = pylab.pcolormesh(xx_plt*1e-3, zz_plt, clean_Dratio)
-	pylab.gca().invert_yaxis()
+	plb.subplot(121)
+	D = plb.pcolormesh(xx_plt*1e-3, zz_plt, clean_Dratio)
+	plb.gca().invert_yaxis()
 	plt.title('Dissolved [Th]/[Pa], tmax = ' + str(10*T) + 'yrs')
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
-	pylab.colorbar(D)
+	plb.colorbar(D)
 
 
-	pylab.subplot(122)
-	P = pylab.pcolormesh(xx_plt*1e-3, zz_plt, clean_Pratio)
-	pylab.gca().invert_yaxis()
+	plb.subplot(122)
+	P = plb.pcolormesh(xx_plt*1e-3, zz_plt, clean_Pratio)
+	plb.gca().invert_yaxis()
 	plt.title('Particulate [Th]/[Pa], tmax = ' + str(10*T) + 'yrs')
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
-	pylab.colorbar(P)
+	plb.colorbar(P)
 
 
 	return TPratio
@@ -670,32 +670,32 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         tmax = 10*T
 
 
-        meshTh = pylab.subplots(1, 2, figsize = (25, 5)) 
-        pylab.subplot(121) 
-        mesh3 = pylab.pcolormesh(xx_plt/1e3, zz_plt, g.a)
+        meshTh = plb.subplots(1, 2, figsize = (25, 5)) 
+        plb.subplot(121) 
+        mesh3 = plb.pcolormesh(xx_plt/1e3, zz_plt, g.a)
         if string == 'Th':
-	        pylab.title('Final Dissolved [Th], tmax = ' + str(tmax) + 'yrs')
+	        plb.title('Final Dissolved [Th], tmax = ' + str(tmax) + 'yrs')
         if string == 'Pa':
-	        pylab.title('Final Dissolved [Pa], tmax = ' + str(tmax) + 'yrs')
-        pylab.gca().invert_yaxis()
-        pylab.ylabel('depth [m]')
-        pylab.xlabel('x [km]')
-        pylab.colorbar(mesh3)
-        pylab.xlim([xmin/1e3, xmax_plt/1e3])
-        pylab.ylim([zmax_plt, zmin])
+	        plb.title('Final Dissolved [Pa], tmax = ' + str(tmax) + 'yrs')
+        plb.gca().invert_yaxis()
+        plb.ylabel('depth [m]')
+        plb.xlabel('x [km]')
+        plb.colorbar(mesh3)
+        plb.xlim([xmin/1e3, xmax_plt/1e3])
+        plb.ylim([zmax_plt, zmin])
 
-        pylab.subplot(122) 
-        mesh4 = pylab.pcolormesh(xx_plt/1e3, zz_plt, h.a)
+        plb.subplot(122) 
+        mesh4 = plb.pcolormesh(xx_plt/1e3, zz_plt, h.a)
         if string == 'Th':
-	        pylab.title('Final Particulate [Th], tmax = ' + str(tmax) + 'yrs')
+	        plb.title('Final Particulate [Th], tmax = ' + str(tmax) + 'yrs')
         if string == 'Pa':
-	        pylab.title('Final Particulate [Pa], tmax = ' + str(tmax) + 'yrs')
-        pylab.gca().invert_yaxis()
-        pylab.ylabel('depth [m]')
-        pylab.xlabel('x [km]')
-        pylab.colorbar(mesh4)
-        pylab.xlim([xmin/1e3, xmax_plt/1e3])
-        pylab.ylim([zmax_plt, zmin])
+	        plb.title('Final Particulate [Pa], tmax = ' + str(tmax) + 'yrs')
+        plb.gca().invert_yaxis()
+        plb.ylabel('depth [m]')
+        plb.xlabel('x [km]')
+        plb.colorbar(mesh4)
+        plb.xlim([xmin/1e3, xmax_plt/1e3])
+        plb.ylim([zmax_plt, zmin])
 
 	return meshTh
 
@@ -739,9 +739,43 @@ def divtest(u, xmax, xmin, zmax, zmin, nx, nz):
             j -= 1    
                 
         # plot the results
-        pylab.figure(figsize = (25, 5))
-        divplot = pylab.pcolormesh(div)
-        pylab.colorbar(divplot)
-        pylab.gca().invert_yaxis()
+        plb.figure(figsize = (25, 5))
+        divplot = plb.pcolormesh(div)
+        plb.colorbar(divplot)
+        plb.gca().invert_yaxis()
+
+        return divplot
+
+
+def divtest2(u, xmax, xmin, zmax, zmin, nx, nz):
+
+        ux = u[:,:,1]
+        uz = u[:,:,0]
+
+        # set up vectorized correction \n",
+        dx = (xmax - xmin) / (nx - 1)
+        dz = (zmax - zmin) / (nz - 1) 
+
+        # define upstream as the sum of two adjacent grid point vel.s
+        p_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) - 1)
+        n_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) + 1)
+        p_upx = np.sign(ux[:-1]+ux[1:])*0.5*( np.sign(ux[:-1]+ux[1:]) - 1)
+        n_upx = np.sign(ux[:-1]+ux[1:])*0.5*( np.sign(ux[:-1]+ux[1:]) + 1)
+
+        # QUAD 1
+        i = np.arange(1, nz - 1, 1, dtype = int)
+        j = 1
+        div = np.zeros((nz, nx))
+        while j <= nx - 2:
+
+            div[i,j] = dz * ( (ux[i, j] - ux[i, j + 1])*p_upx[i, j] + (ux[i, j - 1] - ux[i, j])*n_upx[i, j] ) + dx * ( (uz[i, j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i, j])*n_upz[i, j] )
+            j += 1    
+
+
+        # plot the results
+        plb.figure(figsize = (25, 5))
+        divplot = plb.pcolormesh(div)
+        plb.colorbar(divplot)
+        plb.gca().invert_yaxis()
 
         return divplot
