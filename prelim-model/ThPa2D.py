@@ -392,8 +392,8 @@ def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
 	x = np.zeros(nx)
 
         #nx should always be odd
-        x[0:(nx+1)/2] = np.linspace(-a/2, a/2, (nx+1)/2)
-        x[(nx-1)/2:] = np.linspace(a/2, -a/2, (nx+1)/2)
+        x[0:nx/2] = np.linspace(-a/2, a/2, nx/2)
+        x[nx/2:] = np.linspace(a/2, -a/2, nx/2)
         hdz = 0.5*b/nz
         z = np.linspace(-b/2-hdz, b/2+hdz, nz+1)
 	[xx, zz] = np.meshgrid(x, z)
@@ -484,9 +484,8 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
 def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
 
         # plot initial dist.
-	x_plt = np.linspace(xmin, xmax, nx)
-	z_plt = np.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = np.meshgrid(x_plt, z_plt)
+	x = np.linspace(xmin, xmax, nx)
+	z = np.linspace(zmin, zmax, nz)
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
         xmax_plt = (nx - 2)*dx
@@ -495,7 +494,7 @@ def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
         init = plb.subplots(1, 2, figsize = (25, 5))
 
         plb.subplot(121) 
-        mesh1 = plb.pcolormesh(1e-3 * xx_plt, zz_plt, g.a)
+        mesh1 = plb.pcolormesh(1e-3 * x, z, g.a)
         if string == 'Th': 
 	        plb.title('Initial Dissolved [Th]')
         if string == 'Pa':
@@ -507,7 +506,7 @@ def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
         plb.ylim([zmax_plt, zmin])
 
         plb.subplot(122) 
-        mesh2 = plb.pcolormesh(1e-3 * xx_plt, zz_plt, h.a)
+        mesh2 = plb.pcolormesh(1e-3 * x, z, h.a)
         if string == 'Th':
 	        plb.title('Initial Particulate [Th]')
         if string == 'Pa':
@@ -520,7 +519,7 @@ def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
 
 	# plot the velocity field        
 	flowfig = plb.figure(figsize = (25, 5))	
-	plb.quiver(1e-3*x_plt, z_plt, u[:,:,1], -100*u[:,:,0], pivot = 'mid')
+	plb.quiver(1e-3*x, z, u[:,:,1], -100*u[:,:,0], pivot = 'mid')
 	plb.gca().invert_yaxis()
 	plt.title('Velocity Field')
 	plt.xlabel('x [km]')
