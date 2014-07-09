@@ -443,10 +443,10 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         uz = u[:,:,0]
 
         # the upstream has to be define on the staggered grid and thus have shape [nz, nx]
-        p_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) - 1)
-        n_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) + 1)
-        p_upx = np.sign(ux[:-1]+ux[1:])*0.5*( np.sign(ux[:-1]+ux[1:]) - 1)               # upx terms not currently being used, but further vectorization is possible
-        n_upx = np.sign(ux[:-1]+ux[1:])*0.5*( np.sign(ux[:-1]+ux[1:]) + 1)
+        p_upz = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) - 1)
+        n_upz = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) + 1)
+        p_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) - 1)
+        n_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) + 1)
 
         # spatial step
         dx = (xmax - xmin) / (nx - 1)
@@ -456,24 +456,24 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         i = np.arange(1, nz/2, 1, dtype = int)
         j = 1
         while j <= nx/2:
-            ux[i, j] = ux[i, j - 1] + dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i-1, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
+            ux[i, j] = ux[i, j - 1] + dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i - 1, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
             j += 1
 
         j = nx - 2
         while j >= nx/2:
-            ux[i, j] = ux[i, j + 1] - dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i-1, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
+            ux[i, j] = ux[i, j + 1] - dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i - 1, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
             j -= 1
 
         # vectorize region z < 0
         i = np.arange(nz/2, nz - 1, 1, dtype = int)
-        j = nx/2 - 1
+        j = nx/2 - 2
         while j >= 1:
-            ux[i, j] = ux[i, j + 1] - dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i-1, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
+            ux[i, j] = ux[i, j + 1] - dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i - 1, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
             j -= 1
 
         j = nx/2 + 1
         while j <= nx - 2:
-            ux[i, j] = ux[i, j - 1] + dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i-1, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
+            ux[i, j] = ux[i, j - 1] + dx/dz * ((uz[i - 1, j] - uz[i, j])*n_upz[i - 1, j] + (uz[i, j] - uz[i + 1, j])*p_upz[i, j])
             j += 1
             
         # store solution
@@ -771,7 +771,7 @@ def divtest2(u, xmax, xmin, zmax, zmin, nx, nz, n_upz, p_upz, n_upx, p_upx):
         # plot the results
         plb.figure(figsize = (25, 5))
         divplot = plb.pcolormesh(div)
-        #plb.colorbar(divplot)
+        plb.colorbar(divplot)
         plb.gca().invert_yaxis()
 
         return divplot
