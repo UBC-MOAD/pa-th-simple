@@ -142,7 +142,7 @@ def upstream(g, h, t, T, u, k_ad, k_de, Q, S, dt):
                     uz[i, j] * ( n_upz_d[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz_d[i, j]*g.a[i + 1, j] ) * g.dz_i ) * dt
 
                 # particulate:
-                bnew[i, j] = h.a[i, j] + ( S * ( n_upz[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz[i, j]*h.a[i + 1, j]) * h.dz_i + k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
+                bnew[i, j] = h.a[i, j] + ( S * ( n_upz_p[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz_p[i, j]*h.a[i + 1, j]) * h.dz_i + k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
                     ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) * h.dx_i +
                     uz[i, j] * ( n_upz_p[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz_p[i, j]*h.a[i + 1, j] ) * h.dz_i ) * dt
 
@@ -164,11 +164,15 @@ def flux(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 	anew = g.a
 	bnew = h.a
 
-	# define upwind for x, z OUTSIDE loop ONLY while du/dt = 0
-	p_upx = np.sign(ux)*0.5*( np.sign(ux) - 1)
-	n_upx = np.sign(ux)*0.5*( np.sign(ux) + 1)
-	p_upz = np.sign(uz + S)*0.5*( np.sign(uz + S) - 1)
-	n_upz = np.sign(uz + S)*0.5*( np.sign(uz + S) + 1)
+        # define upstream for particulate phase (contains sinking vel.)
+        p_upz_p = np.sign(uz[:-1, :]+uz[1:, :] + S)*0.5*( np.sign(uz[:-1, :]+uz[1:, :] + S) - 1)
+        n_upz_p = np.sign(uz[:-1, :]+uz[1:, :] + S)*0.5*( np.sign(uz[:-1, :]+uz[1:, :] + S) + 1)
+        # define upstream for dissolved phase
+        p_upz_d = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) - 1)
+        n_upz_d = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) + 1)
+        # define upstream in x
+        p_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) - 1)
+        n_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) + 1)
 
         # save inverses for speed
         g.dx_i = 1/g.dx
@@ -197,15 +201,15 @@ def flux(g, h, t, T, u, k_ad, k_de, Q, S, dt):
                 anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +                 
                                 ( n_upx[i, j]*(g.a[i, j - 1]*ux[i, j - 1] - g.a[i, j]*ux[i, j]) + 
                                   p_upx[i, j]*(g.a[i, j]*ux[i, j] - g.a[i, j + 1]*ux[i, j + 1]) ) * g.dx_i + 
-                                ( n_upz[i, j]*(g.a[i - 1, j]*uz[i - 1, j] - g.a[i, j]*uz[i, j]) + 
-                                  p_upz[i, j]*(g.a[i, j]*uz[i, j] - g.a[i + 1, j]*uz[i + 1, j]) ) * g.dz_i ) * dt
+                                ( n_upz_d[i, j]*(g.a[i - 1, j]*uz[i - 1, j] - g.a[i, j]*uz[i, j]) + 
+                                  p_upz_d[i, j]*(g.a[i, j]*uz[i, j] - g.a[i + 1, j]*uz[i + 1, j]) ) * g.dz_i ) * dt
 
                 # particulate:
-                bnew[i, j] = h.a[i, j] + ( S *( n_upz[i, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz[i, j]*(h.a[i, j] - h.a[i + 1, j]) )* h.dz_i + k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] +      
+                bnew[i, j] = h.a[i, j] + ( S *( n_upz_p[i, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz_p[i, j]*(h.a[i, j] - h.a[i + 1, j]) )* h.dz_i + k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] +      
                                 ( n_upx[i, j]*(h.a[i, j - 1]*ux[i, j - 1] - h.a[i, j]*ux[i, j]) + 
                                   p_upx[i, j]*(h.a[i, j]*ux[i, j] - h.a[i, j + 1]*ux[i, j + 1]) ) * h.dx_i +
-                                ( n_upz[i, j]*(h.a[i - 1, j]*uz[i - 1, j] - h.a[i, j]*uz[i, j]) + 
-                                  p_upz[i, j]*(h.a[i, j]*uz[i, j] - h.a[i + 1, j]*uz[i + 1, j]) ) * h.dz_i ) * dt
+                                ( n_upz_p[i, j]*(h.a[i - 1, j]*uz[i - 1, j] - h.a[i, j]*uz[i, j]) + 
+                                  p_upz_p[i, j]*(h.a[i, j]*uz[i, j] - h.a[i + 1, j]*uz[i + 1, j]) ) * h.dz_i ) * dt
 
                 # store the (time) updated solution
                 g.a[:] = anew[:]
