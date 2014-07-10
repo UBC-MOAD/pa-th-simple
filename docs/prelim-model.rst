@@ -4,7 +4,7 @@ Preliminary Model
 
 The preliminary model solves a system of coupled, linear equations. It was initially set up on a 1D domain with a zero background velocity field imposed, and was compared with an analytical solution for consistency.
 
-Next, on a 2D domain. Three different divergenceless background velocity fields were imposed: the zero field, a single cell overturning field, and a two-cell overturning field with upwelling at the domain edges and convergent downwelling in the centre. Two different advection schemes were implemented: an upstream scheme, and a flux based scheme. The flux based scheme has so far demonstrated more robust stability.   
+Next, on a 2D domain. Three different divergenceless background velocity fields were imposed: the zero field, a single cell overturning field, and a two-cell overturning field with upwelling at the domain edges and convergent downwelling in the centre. The single-cell and two-cell velocity field calculations are initialized on the zero-field steady state. Two different advection schemes were implemented: an upstream scheme, and a flux based scheme. The flux based scheme has so far demonstrated more robust stability.   
 
 Points of interest are the time elapsed to reach steady state, the grid resolution required for 90% similarity, and of course the distribution of [Th]/[Pa]. 
 
@@ -34,25 +34,44 @@ Coupled 1D Model
 Coupled 2D Model: Underlying Physics
 ====================================
 
-- The steady state for Th is reached after 100 years, while the steady state for Pa is reached after 1000 years. The order of magnitude difference between the two is caused by the order of magnitude difference in the production, adsorption, and desorption constants that govern the two elements.  
+- The steady state for Th is reached after 100 years, while the steady state for Pa is reached after 1000 years. The order of magnitude difference between the two is caused by the order of magnitude difference in the production, adsorption, and desorption constants that govern the two elements. 
+
+- Initializing the single-cell and two-cell calculations on the zero-field steady state does not change the time to reach steady state.  
 
 - Both solutions propogate from surface to seafloor.
 
 - Upwelling currents are reflected in the concentration profile as regions of high concentration. This is caused by the upward force that suspends particulate matter in the water column. 
 
 .. figure:: ../images/2D0vel.png
-.. figure:: ../images/2D100yr[Th]0vel.png
-.. figure:: ../images/2D100yr[Pa]0vel.png
-.. figure:: ../images/2D100yr[Th]:[Pa]0vel.png
-.. figure:: ../images/2D1vel.png
-.. figure:: ../images/2D100yr[Th]1vel.png
-.. figure:: ../images/2D100yr[Pa]1vel.png
-.. figure:: ../images/2D50yr[Th]:[Pa]1vel.png
-.. figure:: ../images/2D2vel.png
-.. figure:: ../images/2D100yr[Th]2vel.png
-.. figure:: ../images/2D100yr[Pa]2vel.png
-.. figure:: ../images/2D100yr[Th]:[Pa]2vel.png
 
+Results from flux based calculation:
+.. figure:: ../images/2D_200yr_Pa_0vel_flux.png
+.. figure:: ../images/2D_1000yr_Pa_0vel_flux.png
+
+Results from upstream calculation:
+.. figure:: ../images/2D_200yr_Pa_0vel_upstream.png
+.. figure:: ../images/2D_1000yr_Pa_0vel_upstream.png
+
+
+.. figure:: ../images/2D1vel.png
+
+Results from flux based calculation:
+.. figure:: ../images/2D_200yr_Pa_1vel_flux.png
+.. figure:: ../images/2D_1000yr_Pa_1vel_flux.png
+
+Results from upstream calculation:
+.. figure:: ../images/2D_100yr_Pa_1vel_upstream.png
+.. figure:: ../images/2D_600yr_Pa_1vel_upstream.png
+
+.. figure:: ../images/2D2vel.png
+
+Results from flux based calculation:
+.. figure:: ../images/2D_100yr_Pa_2vel_flux.png
+.. figure:: ../images/2D_1000yr_Pa_2vel_flux.png
+
+Results from upstream calculation:
+.. figure:: ../images/2D_100yr_Pa_2vel_upstream.png
+.. figure:: ../images/2D_1000yr_Pa_2vel_upstream.png
 
 ==============================
 Coupled 2D Model: Steady State
@@ -65,7 +84,7 @@ Coupled 2D Model: Steady State
 
 		- two cell velocity:    100 years
 
-**[Th]** 	
+**[Pa]** 	
 		- zero velocity:        1000 years
 
 		- single cell velocity: 1000 years
