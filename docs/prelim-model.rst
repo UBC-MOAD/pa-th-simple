@@ -25,13 +25,9 @@ Coupled 1D Model
 .. figure:: ../images/1Dfinal[Th].png
   
 
-The curve corresponding to 10 years shows how the steady state solution, a linear positive slope, is reached first at the surface, where the initial distribution falls out and is not replaced by anything falling from above. The initial distribution has fallen to the 2000m depth level after 10 years, 4000m after 30 years, and completely after 50 years. 
+        The curve corresponding to 10 years shows how the steady state solution, a linear positive slope, is reached first at the surface, where the initial distribution falls out and is not replaced by anything falling from above. The initial distribution has fallen to the 2000m depth level after 10 years, 4000m after 30 years, and completely after 50 years. 
 
-The time for a particle to sink from the surface to the seafloor is given by 
-
-                                                                                t = zmax / S,
-
-however, the time to reach steady state is greater than this, because sinking particles can desorb into the dissolved phase, which do not sink.
+        The time for a particle to sink from the surface to the seafloor is given by t = zmax / S, however, the time to reach steady state is greater than this, because sinking particles can desorb into the dissolved phase, which do not sink.
 ====================================
 Coupled 2D Model: Underlying Physics
 ====================================
