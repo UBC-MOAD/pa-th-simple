@@ -439,7 +439,7 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """
 
         # extract velocities for redefinition
-        ux = np.zeros((nz, nx))
+        ux = u[:,:,1]
         uz = u[:,:,0]
 
         # the upstream has to be define on the staggered grid and thus have shape [nz, nx]
@@ -447,6 +447,9 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         n_upz = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) + 1)
         p_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) - 1)
         n_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) + 1)
+
+        #define ux = 0 everywhere, define it using uz 
+        ux = np.zeros((nz, nx))
 
         # spatial step
         dx = (xmax - xmin) / (nx - 1)
@@ -750,7 +753,8 @@ def divtest(u, xmax, xmin, zmax, zmin, nx, nz):
 
 
 def divtest2(u, xmax, xmin, zmax, zmin, nx, nz, n_upz, p_upz, n_upx, p_upx):
-
+        """compute the divergence of any field on any grid in an upstream scheme
+        """
         ux = u[:,:,1]
         uz = u[:,:,0]
 
@@ -764,7 +768,7 @@ def divtest2(u, xmax, xmin, zmax, zmin, nx, nz, n_upz, p_upz, n_upx, p_upx):
         div = np.zeros((nz, nx))
         while j <= nx - 2:
 
-            div[i,j] = dz * ( (ux[i, j] - ux[i, j + 1])*p_upx[i, j] + (ux[i, j - 1] - ux[i, j])*n_upx[i-1, j] ) + dx * ( (uz[i, j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i, j])*n_upz[i-1, j] )
+            div[i,j] = dz * ( (ux[i, j] - ux[i, j + 1])*p_upx[i, j] + (ux[i, j - 1] - ux[i, j])*n_upx[i, j - 1] ) + dx * ( (uz[i, j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i, j])*n_upz[i-1, j] )
             j += 1    
 
 
