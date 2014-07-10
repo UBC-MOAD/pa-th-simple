@@ -510,6 +510,8 @@ def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
 	        plb.title('Initial Dissolved [Th]')
         if string == 'Pa':
 	        plb.title('Initial Dissolved [Pa]')
+        if string = 'ThPa'
+                plb.title('Initial Dissolved [Th]/[Pa]')
         plb.gca().invert_yaxis()
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
@@ -522,6 +524,8 @@ def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
 	        plb.title('Initial Particulate [Th]')
         if string == 'Pa':
 	        plb.title('Initial Particulate [Pa]')
+        if string = 'ThPa'
+                plb.title('Initial Particulate [Th]/[Pa]')
         plb.gca().invert_yaxis()
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
