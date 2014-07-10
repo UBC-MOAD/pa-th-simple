@@ -44,11 +44,8 @@ Coupled 2D Model: Underlying Physics
 
 .. figure:: ../images/2D0vel.png
 
-Results from flux based calculation:
-.. figure:: ../images/2D_200yr_Pa_0vel_flux.png
-.. figure:: ../images/2D_1000yr_Pa_0vel_flux.png
-
 Results from upstream calculation:
+
 .. figure:: ../images/2D_200yr_Pa_0vel_upstream.png
 .. figure:: ../images/2D_1000yr_Pa_0vel_upstream.png
 
@@ -56,20 +53,24 @@ Results from upstream calculation:
 .. figure:: ../images/2D1vel.png
 
 Results from flux based calculation:
+
 .. figure:: ../images/2D_200yr_Pa_1vel_flux.png
 .. figure:: ../images/2D_1000yr_Pa_1vel_flux.png
 
 Results from upstream calculation:
+
 .. figure:: ../images/2D_100yr_Pa_1vel_upstream.png
 .. figure:: ../images/2D_600yr_Pa_1vel_upstream.png
 
 .. figure:: ../images/2D2vel.png
 
 Results from flux based calculation:
+
 .. figure:: ../images/2D_100yr_Pa_2vel_flux.png
 .. figure:: ../images/2D_1000yr_Pa_2vel_flux.png
 
 Results from upstream calculation:
+
 .. figure:: ../images/2D_100yr_Pa_2vel_upstream.png
 .. figure:: ../images/2D_1000yr_Pa_2vel_upstream.png
 
