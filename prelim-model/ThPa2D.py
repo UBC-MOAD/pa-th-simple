@@ -510,7 +510,7 @@ def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
 	        plb.title('Initial Dissolved [Th]')
         if string == 'Pa':
 	        plb.title('Initial Dissolved [Pa]')
-        if string = 'ThPa'
+        if string == 'ThPa':
                 plb.title('Initial Dissolved [Th]/[Pa]')
         plb.gca().invert_yaxis()
         plb.ylabel('depth [m]')
@@ -524,7 +524,7 @@ def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
 	        plb.title('Initial Particulate [Th]')
         if string == 'Pa':
 	        plb.title('Initial Particulate [Pa]')
-        if string = 'ThPa'
+        if string == 'ThPa':
                 plb.title('Initial Particulate [Th]/[Pa]')
         plb.gca().invert_yaxis()
         plb.ylabel('depth [m]')
@@ -618,9 +618,8 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	"""
 
 	# define grid
-	x_plt = np.linspace(xmin, xmax, nx)
-	z_plt = np.linspace(zmin, zmax, nz)
-	[xx_plt, zz_plt] = np.meshgrid(x_plt, z_plt)
+	x = np.linspace(xmin, xmax, nx)
+	z = np.linspace(zmin, zmax, nz)
 
 	# remove NaNs
 	Dratio = DTh/DPa
@@ -634,10 +633,10 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	clean_Pratio[~idx] = Pratio[~idx]
 
 	# plot 
-	TPratio = plb.subplots(1, 2, figsize = (16, 5))
+	TPratio = plb.subplots(1, 2, figsize = (25, 5))
 	
 	plb.subplot(121)
-	D = plb.pcolormesh(xx_plt*1e-3, zz_plt, clean_Dratio)
+	D = plb.pcolormesh(x*1e-3, z, clean_Dratio)
 	plb.gca().invert_yaxis()
 	plt.title('Dissolved [Th]/[Pa], tmax = ' + str(10*T) + 'yrs')
 	plt.xlabel('x [km]')
@@ -646,7 +645,7 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 
 
 	plb.subplot(122)
-	P = plb.pcolormesh(xx_plt*1e-3, zz_plt, clean_Pratio)
+	P = plb.pcolormesh(x*1e-3, z, clean_Pratio)
 	plb.gca().invert_yaxis()
 	plt.title('Particulate [Th]/[Pa], tmax = ' + str(10*T) + 'yrs')
 	plt.xlabel('x [km]')
