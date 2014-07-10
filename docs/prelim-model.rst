@@ -29,7 +29,7 @@ The curve corresponding to 10 years shows how the steady state solution, a linea
 
 The time for a particle to sink from the surface to the seafloor is given by 
 
-                                                t = zmax / S,
+                                                                                t = zmax / S,
 
 however, the time to reach steady state is greater than this, because sinking particles can desorb into the dissolved phase, which do not sink.
 ====================================
