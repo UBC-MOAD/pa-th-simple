@@ -17,19 +17,21 @@ Coupled 1D Model
 
 - The steady state is reached after 50 years.
 
-- The grid is 100 x 1.
+- The grid is 100 x 1, but 20 would be sufficient.
 
-- The solution propogates from surface to seafloor, and increases in magnitude linearly with depth. 
-
-- The [Th] distribution is constant in depth *before* the steady state is reached because the production, adsorption, and desorption rates are constant.
-
-- It takes a time interval t = [0:tmax] for a particle to sink from an initial depth z = [0:zmax], which means after a time interval tmax = zmax/S, where S is the sinking velocity, the initial distribution has fallen out. 
-
-- Unintuitively, it takes longer than this to reach a steady state. Since only the particulate phase of Th is subject to sinking, there could be a series of "stalls" in the sinking trajectory of an atom when is desorbs into the dissolved phase.
+- The solution propogates from surface to seafloor, and linearly increases in magnitude with depth. 
 
 .. figure:: ../images/1Dinit[Th].png
 .. figure:: ../images/1Dfinal[Th].png
   
+
+The curve corresponding to 10 years shows how the steady state solution, a linear positive slope, is reached first at the surface, where the initial distribution falls out and is not replaced by anything falling from above. The initial distribution has fallen to the 2000m depth level after 10 years, 4000m after 30 years, and completely after 50 years. 
+
+The time for a particle to sink from the surface to the seafloor is given by 
+
+                                                t = zmax / S,
+
+however, the time to reach steady state is greater than this, because sinking particles can desorb into the dissolved phase, which do not sink.
 ====================================
 Coupled 2D Model: Underlying Physics
 ====================================
@@ -41,6 +43,8 @@ Coupled 2D Model: Underlying Physics
 - Both solutions propogate from surface to seafloor.
 
 - Upwelling currents are reflected in the concentration profile as regions of high concentration. This is caused by the upward force that suspends particulate matter in the water column. 
+
+- The domain is 5000m by 1000 km, and is discretized into a 20 x 30 grid, which is quite course, but sufficient to resolve 90% of the solution.
 
 .. figure:: ../images/2D0vel.png
 
