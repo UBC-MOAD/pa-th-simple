@@ -62,6 +62,7 @@ Results from upstream calculation:
 .. figure:: ../images/2D_100yr_Pa_1vel_upstream.png
 
 Note the unstability that develops after 600 years in the upstream calculation:
+
 .. figure:: ../images/2D_600yr_Pa_1vel_upstream.png
 
 .. figure:: ../images/2D2vel.png
