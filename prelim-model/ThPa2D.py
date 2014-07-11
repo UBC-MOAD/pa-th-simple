@@ -242,11 +242,9 @@ def flux(g, h, t, T, u, k_ad, k_de, Q, S, dt):
                 g.a[:] = anew[:]
                 h.a[:] = bnew[:]
                 t += dt
-        return g, h
-
 
 def u_zero(nz, nx):
-	""" Produce a matrix of zeros on the input grid to simulate a zero velocity feild
+	""" Produce a matrix of zeros on the input grid
 
 	:arg nx: number of points in x dimension
 
@@ -611,7 +609,7 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	plb.subplot(121)
 	D = plb.pcolormesh(x*1e-3, z, clean_Dratio)
 	plb.gca().invert_yaxis()
-	plt.title('Dissolved [Th]/[Pa], tmax = ' + str(10*T) + 'yrs')
+	plt.title('Dissolved [Th]/[Pa], str(tmax) + 'yrs elapsed')
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 	plb.colorbar(D)
@@ -620,7 +618,7 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	plb.subplot(122)
 	P = plb.pcolormesh(x*1e-3, z, clean_Pratio)
 	plb.gca().invert_yaxis()
-	plt.title('Particulate [Th]/[Pa], tmax = ' + str(10*T) + 'yrs')
+	plt.title('Particulate [Th]/[Pa], str(tmax) + 'yrs elapsed')
 	plt.xlabel('x [km]')
 	plt.ylabel('depth [m]')
 	plb.colorbar(P)
@@ -663,9 +661,9 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         plb.subplot(121) 
         mesh3 = plb.pcolormesh(xx_plt/1e3, zz_plt, g.a)
         if string == 'Th':
-	        plb.title('Final Dissolved [Th], tmax = ' + str(tmax) + 'yrs')
+	        plb.title('Final Dissolved [Th], str(tmax) + 'years elapsed')
         if string == 'Pa':
-	        plb.title('Final Dissolved [Pa], tmax = ' + str(tmax) + 'yrs')
+	        plb.title('Final Dissolved [Pa], str(tmax) + 'years elapsed')
         plb.gca().invert_yaxis()
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
@@ -676,9 +674,9 @@ def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         plb.subplot(122) 
         mesh4 = plb.pcolormesh(xx_plt/1e3, zz_plt, h.a)
         if string == 'Th':
-	        plb.title('Final Particulate [Th], tmax = ' + str(tmax) + 'yrs')
+	        plb.title('Final Particulate [Th], str(tmax) + 'years elapsed')
         if string == 'Pa':
-	        plb.title('Final Particulate [Pa], tmax = ' + str(tmax) + 'yrs')
+	        plb.title('Final Particulate [Pa], str(tmax) + 'years elapsed')
         plb.gca().invert_yaxis()
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
