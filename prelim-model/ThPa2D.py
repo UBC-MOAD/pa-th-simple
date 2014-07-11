@@ -51,6 +51,46 @@ class FDgrid:
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
 	def fillBCs(self):             
+		self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]
+		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
+		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
+		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
+
+class FPgrid:
+
+	def __init__(self, nx, nz, ng, xmin = 1, xmax = 1e6, zmin = 0, 
+		 zmax = 5e3):
+
+		self.xmin = xmin
+		self.xmax = xmax
+		self.zmin = zmin
+		self.zmax = zmax
+		self.ng = ng
+		self.nx = nx
+		self.nz = nz
+
+		# python is zero-based
+		self.ilo = 0
+		self.ihi = nz - 1
+		self.jlo = 0
+		self.jhi = nx - 1
+
+		# physical coords
+		self.dx = (xmax - xmin) / (nx - 1)
+		self.x = xmin + (np.arange(nx) - ng) * self.dx
+		self.dz = (zmax - zmin) / (nz - 1)
+		self.z = zmin + (np.arange(nz) - ng) * self.dz
+		[self.xx, self.zz] = np.meshgrid(self.x, self.z)
+
+		# storage for the solution 
+		self.a = np.zeros((nz, nx), dtype=np.float64)
+
+	def scratchArray(self):
+		""" return a scratch array dimensioned for our grid """
+		return np.zeros((self.nz, self.nx), dtype=np.float64)
+
+
+	def fillBCs(self):             
 		self.a[self.ilo, :] = 0
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
