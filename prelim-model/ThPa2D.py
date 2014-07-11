@@ -160,30 +160,24 @@ def upstream(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
 	while (t < T):
 
-		# fill the boundary conditions ( gwill will be defined by FDgrid, h by FPgrid)
+		# fill the boundary conditions (g will be defined by FDgrid, h by FPgrid)
 		g.fillBCs()
 		h.fillBCs()
 
-		# loop over zones: note since we are periodic and both endpoints
-		# are on the computational domain boundary, we don't have to
-		# update both g.ilo and g.ihi -- we could set them equal instead.
-		# But this is more general
-
-
+		# vectorize spatial indices 
                 i = np.arange(g.ilo + 1, g.ihi, 1, dtype = int)
                 j = np.arange(g.jlo + 1, g.jhi, 1, dtype = int)
                 [i , j] = np.meshgrid(i,j)
-                # upwind numerical solution
 
                 # dissolved:
                 anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +
-                    ux[i, j] * ( n_upx[i, j]*g.a[i, j - 1] - g.a[i, j] + p_upx[i, j]*g.a[i, j + 1] ) * g.dx_i + 
-                    uz[i, j] * ( n_upz_d[i, j]*g.a[i - 1, j] - g.a[i, j] + p_upz_d[i, j]*g.a[i + 1, j] ) * g.dz_i ) * dt
+                    ux[i, j] * ( n_upx[i, j - 1]*(g.a[i, j - 1] - g.a[i, j]) + p_upx[i, j]*(g.a[i, j] - g.a[i, j + 1]) ) * g.dx_i + 
+                    uz[i, j] * ( n_upz_d[i - 1, j]*(g.a[i - 1, j] - g.a[i, j]) + p_upz_d[i, j]*(g.a[i, j] - g.a[i + 1, j]) ) * g.dz_i ) * dt
 
                 # particulate:
-                bnew[i, j] = h.a[i, j] + ( S * ( n_upz_p[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz_p[i, j]*h.a[i + 1, j]) * h.dz_i + k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
-                    ux[i, j] * ( n_upx[i, j]*h.a[i, j - 1] - h.a[i, j] + p_upx[i, j]*h.a[i, j + 1] ) * h.dx_i +
-                    uz[i, j] * ( n_upz_p[i, j]*h.a[i - 1, j] - h.a[i, j] + p_upz_p[i, j]*h.a[i + 1, j] ) * h.dz_i ) * dt
+                bnew[i, j] = h.a[i, j] + ( S * ( (n_upz_p[i, j]*h.a[i - 1, j] - h.a[i, j]) + p_upz_p[i, j]*(h.a[i, j] - h.a[i + 1, j]) ) * h.dz_i + k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] + 
+                    ux[i, j] * ( n_upx[i, j - 1]*(h.a[i, j - 1] - h.a[i, j]) + p_upx[i, j]*(h.a[i, j] - h.a[i, j + 1]) ) * h.dx_i +
+                    uz[i, j] * ( n_upz_p[i - 1, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz_p[i, j]*(h.a[i, j] - h.a[i + 1, j]) ) * h.dz_i ) * dt
 
                 # store the (time) updated solution
                 g.a[:] = anew[:]
@@ -225,16 +219,10 @@ def flux(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 		g.fillBCs()
 		h.fillBCs()
 
-		# loop over zones: note since we are periodic and both endpoints
-		# are on the computational domain boundary, we don't have to
-		# update both g.ilo and g.ihi -- we could set them equal instead.
-		# But this is more general
-
-
+		# vectorize spatial indices
                 i = np.arange(g.ilo + 1, g.ihi, 1, dtype = int)
                 j = np.arange(g.jlo + 1, g.jhi, 1, dtype = int)
                 [i , j] = np.meshgrid(i,j)
-                # upwind numerical solution
 
                 # dissolved:
                 anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +                 
