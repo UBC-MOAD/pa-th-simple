@@ -243,6 +243,8 @@ def flux(g, h, t, T, u, k_ad, k_de, Q, S, dt):
                 h.a[:] = bnew[:]
                 t += dt
 
+        return g, h
+
 def u_zero(nz, nx):
 	""" Produce a matrix of zeros on the input grid
 
@@ -591,6 +593,7 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	# define grid
 	x = np.linspace(xmin, xmax, nx)
 	z = np.linspace(zmin, zmax, nz)
+        tmax = 10*T
 
 	# remove NaNs
 	Dratio = DTh/DPa
