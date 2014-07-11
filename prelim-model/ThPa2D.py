@@ -226,17 +226,17 @@ def flux(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
                 # dissolved:
                 anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] +                 
-                                ( n_upx[i, j]*(g.a[i, j - 1]*ux[i, j - 1] - g.a[i, j]*ux[i, j]) + 
+                                ( n_upx[i, j - 1]*(g.a[i, j - 1]*ux[i, j - 1] - g.a[i, j]*ux[i, j]) + 
                                   p_upx[i, j]*(g.a[i, j]*ux[i, j] - g.a[i, j + 1]*ux[i, j + 1]) ) * g.dx_i + 
-                                ( n_upz_d[i, j]*(g.a[i - 1, j]*uz[i - 1, j] - g.a[i, j]*uz[i, j]) + 
+                                ( n_upz_d[i - 1, j]*(g.a[i - 1, j]*uz[i - 1, j] - g.a[i, j]*uz[i, j]) + 
                                   p_upz_d[i, j]*(g.a[i, j]*uz[i, j] - g.a[i + 1, j]*uz[i + 1, j]) ) * g.dz_i ) * dt
 
                 # particulate:
                 bnew[i, j] = h.a[i, j] + ( S *( n_upz_p[i, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz_p[i, j]*(h.a[i, j] - h.a[i + 1, j]) )* h.dz_i + k_ad[i, j] * g.a[i, j] - k_de[i, j] * h.a[i, j] +      
-                                ( n_upx[i, j]*(h.a[i, j - 1]*ux[i, j - 1] - h.a[i, j]*ux[i, j]) + 
-                                  p_upx[i, j]*(h.a[i, j]*ux[i, j] - h.a[i, j + 1]*ux[i, j + 1]) ) * h.dx_i +
-                                ( n_upz_p[i, j]*(h.a[i - 1, j]*uz[i - 1, j] - h.a[i, j]*uz[i, j]) + 
-                                  p_upz_p[i, j]*(h.a[i, j]*uz[i, j] - h.a[i + 1, j]*uz[i + 1, j]) ) * h.dz_i ) * dt
+                                ( n_upx[i, j - 1]*( h.a[i, j - 1]*ux[i, j - 1] - h.a[i, j]*ux[i, j] ) + 
+                                  p_upx[i, j]*( h.a[i, j]*ux[i, j] - h.a[i, j + 1]*ux[i, j + 1]) ) * h.dx_i +
+                                ( n_upz_p[i - 1, j]*( h.a[i - 1, j]*uz[i - 1, j] - h.a[i, j]*uz[i, j] ) + 
+                                  p_upz_p[i, j]*( h.a[i, j]*uz[i, j] - h.a[i + 1, j]*uz[i + 1, j] ) ) * h.dz_i ) * dt
 
                 # store the (time) updated solution
                 g.a[:] = anew[:]
