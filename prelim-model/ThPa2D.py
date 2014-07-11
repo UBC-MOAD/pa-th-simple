@@ -89,7 +89,6 @@ class FPgrid:
 		""" return a scratch array dimensioned for our grid """
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
-
 	def fillBCs(self):             
 		self.a[self.ilo, :] = 0
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
@@ -161,7 +160,7 @@ def upstream(g, h, t, T, u, k_ad, k_de, Q, S, dt):
 
 	while (t < T):
 
-		# fill the boundary conditions
+		# fill the boundary conditions ( gwill will be defined by FDgrid, h by FPgrid)
 		g.fillBCs()
 		h.fillBCs()
 
