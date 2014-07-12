@@ -1,4 +1,12 @@
-def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
+"""plotting module
+"""
+from __future__ import division
+import numpy as np
+import pylab as plb
+import matplotlib.pyplot as plt
+from math import pi
+
+def init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
 
         # plot initial dist.
 	x = np.linspace(xmin, xmax, nx)
@@ -48,7 +56,7 @@ def plot_init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
 
         return init
 
-def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
+def ratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	""" Plots the ratio T/P and outputs to notebook
 
 	:arg DTh: 2D profile of dissolved Th
@@ -112,7 +120,7 @@ def plotratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 
 	return TPratio
 	
-def plotprof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
+def prof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         """Plot the dissolved and particulate profile of either [Th] or [Pa]
 
         :arg slowfig: figure with 3 subplots. 1 - vel. field; 2 - dissolved initial distribution; 3 - particulate initial distribution
