@@ -1,7 +1,7 @@
 """Module containing velocity fields to test the preliminary model
 """
 
-def u_zero(nz, nx):
+def zero(nz, nx):
 	""" Produce a matrix of zeros on the input grid
 
 	:arg nx: number of points in x dimension
@@ -16,7 +16,7 @@ def u_zero(nz, nx):
 	return u
 
 
-def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
+def 1cell(xmin, xmax, zmin, zmax, nx, nz, V):
         """ u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
         :arg xmin: minimum x on the grid
@@ -66,7 +66,7 @@ def u_simple(xmin, xmax, zmin, zmax, nx, nz, V):
 
 	return u
 
-def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
+def 1cell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         
         """Correct the analytical solution to conserve mass discretely
         """
@@ -106,7 +106,7 @@ def u_simple_c(u, xmin, xmax, zmin, zmax, nx, nz):
         return u
 
 
-def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
+def 2cell(xmin, xmax, zmin, zmax, nx, nz, V):
 	""" u_complex complex computes a rotational, downwelling velocity field
 
 	:arg xmin: minimum x on the grid
@@ -171,7 +171,7 @@ def u_complex(xmin, xmax, zmin, zmax, nx, nz, V):
 
 	return u
 
-def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
+def 2cell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the complex velocity field to conserve mass on grid-by-grid basis
         """
 
@@ -221,55 +221,7 @@ def u_complex_c(u, xmin, xmax, zmin, zmax, nx, nz):
         
         return u
 
-def divtest(u, xmax, xmin, zmax, zmin, nx, nz):
-
-        ux = u[:,:,1]
-        uz = u[:,:,0]
-
-        # set up vectorized correction \n",
-        dx = (xmax - xmin) / (nx - 1)
-        dz = (zmax - zmin) / (nz - 1) 
-
-        # QUAD 1
-        i = np.arange(0, nz/2, 1, dtype = int)
-        j = 1
-        div = np.zeros((nz, nx))
-        while j <= (nx - 1)/2:
-
-            div[i,j] = dz * (ux[i, j - 1] - ux[i, j]) + dx * (uz[i,j] - uz[i + 1, j])
-            j += 1    
-
-        # QUAD 2
-        i = np.arange(1, nz/2, 1, dtype = int)
-        while j < nx - 2:
-
-            div[i, j] = dz * (ux[i, j - 1] - ux[i, j]) + dx * (uz[i - 1, j] - uz[i,j])
-            j += 1    
-
-        # QUAD 3
-        i = np.arange(nz/2, nz, 1, dtype = int)
-        while j >= (nx - 1)/2:
-
-            div[i, j] = dz * (ux[i, j] - ux[i, j + 1]) + dx * (uz[i - 1, j] - uz[i,j])
-            j -= 1    
-
-        # QUAD 4
-        i = np.arange(nz/2, nz - 1, 1, dtype = int)
-        while j >= 0:
-
-            div[i, j] = dz * (ux[i, j] - ux[i, j + 1]) + dx * (uz[i,j] - uz[i + 1, j])
-            j -= 1    
-                
-        # plot the results
-        plb.figure(figsize = (25, 5))
-        divplot = plb.pcolormesh(div)
-        plb.colorbar(divplot)
-        plb.gca().invert_yaxis()
-
-        return divplot
-
-
-def divtest2(u, xmax, xmin, zmax, zmin, nx, nz, n_upz, p_upz, n_upx, p_upx):
+def divtest(u, xmax, xmin, zmax, zmin, nx, nz, n_upz, p_upz, n_upx, p_upx):
         """compute the divergence of any field on any grid in an upstream scheme
         """
         ux = u[:,:,1]
