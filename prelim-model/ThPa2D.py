@@ -12,9 +12,6 @@ The upwind discretization is: a_new = a_old + C *(aold_{i+1} - aold_{i-1})
 from __future__ import division
 import numpy as np
 import pylab as plb
-import math
-import ThPa2D
-import matplotlib.pyplot as plt
 from math import pi
 
 class FDTgrid:

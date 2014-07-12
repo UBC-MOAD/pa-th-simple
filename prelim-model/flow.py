@@ -1,6 +1,12 @@
 """Module containing velocity fields to test the preliminary model
 """
 
+from __future__ import division
+import numpy as np
+import pylab as plb
+import matplotlib.pyplot as plt
+from math import pi
+
 def zero(nz, nx):
 	""" Produce a matrix of zeros on the input grid
 
@@ -16,7 +22,7 @@ def zero(nz, nx):
 	return u
 
 
-def 1cell(xmin, xmax, zmin, zmax, nx, nz, V):
+def onecell(xmin, xmax, zmin, zmax, nx, nz, V):
         """ u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
         :arg xmin: minimum x on the grid
@@ -66,7 +72,7 @@ def 1cell(xmin, xmax, zmin, zmax, nx, nz, V):
 
 	return u
 
-def 1cell_c(u, xmin, xmax, zmin, zmax, nx, nz):
+def onecell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         
         """Correct the analytical solution to conserve mass discretely
         """
@@ -106,7 +112,7 @@ def 1cell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         return u
 
 
-def 2cell(xmin, xmax, zmin, zmax, nx, nz, V):
+def twocell(xmin, xmax, zmin, zmax, nx, nz, V):
 	""" u_complex complex computes a rotational, downwelling velocity field
 
 	:arg xmin: minimum x on the grid
@@ -171,7 +177,7 @@ def 2cell(xmin, xmax, zmin, zmax, nx, nz, V):
 
 	return u
 
-def 2cell_c(u, xmin, xmax, zmin, zmax, nx, nz):
+def twocell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the complex velocity field to conserve mass on grid-by-grid basis
         """
 
