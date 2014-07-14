@@ -48,7 +48,8 @@ class FDTgrid:
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
 	def fillBCs(self):             
-		self.a[self.ilo, :] = self.a[self.ilo, :] + (0.0267 - self.a[self.ilo, :] ) * 0.001
+		#self.a[self.ilo, :] = self.a[self.ilo, :] + (0.0267 - self.a[self.ilo, :] ) * 0.001
+		self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
@@ -125,7 +126,8 @@ class FDPgrid:
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
 	def fillBCs(self):             
-		self.a[self.ilo, :] = self.a[self.ilo, :] + ( 0.00246  - 0.08*self.a[self.ilo, :] ) * 0.001
+		#self.a[self.ilo, :] = self.a[self.ilo, :] + ( 0.00246  - 0.08*self.a[self.ilo, :] ) * 0.001
+		self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
