@@ -320,30 +320,51 @@ def k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
 	
 	"""
 	# physical coords
-	dx = (xmax - xmin) / (nx - 1)
-	x = xmin + (np.arange(nx) - 1) * dx
-	dz = (zmax - zmin) / (nz - 1)
-	z = zmin + (np.arange(nz) - 1) * dz
-	[xx, zz] = np.meshgrid(x, z)
-
-	if string == 'Pa':
-
-		k_ad = np.ones(np.shape(zz))
-		k_ad[:, :] = 0.08
-		k_ad[251 <= z, :] = 0.06
-		k_ad[500 <= z, :] = 0.04
-
-		k_de = np.zeros((np.shape(zz)))
-		k_de[:] = 1.6
-		
-		Q = 0.00246
+        dx = (xmax - xmin) / (nx - 1)
+        x = xmin + (np.arange(nx) - 1) * dx
+        dz = (zmax - zmin) / (nz - 1)
+        z = zmin + (np.arange(nz) - 1) * dz
+        [xx, zz] = np.meshgrid(x, z)
+        if string == 'Pa':
+                # define indices based on latitudinal variation
+                idx = nx*(np.round((70 - 47.5)/140), np.round((47.5 - 45)/140), np.round((45 - 42.5)/140), np.round((42.5 + 70)/140))
+                k_ad = np.ones((nz, nx))
+                # 70S to 47.5S
+                k_ad[:, :idx[0]] = 0.44
+                k_ad[251 <= z, :idx[0]] = 0.33 
+                k_ad[500 <= z, :idx[0]] = 0.22
+                # 47.5S to 45S
+                k_ad[:, idx[0]:idx[1]] = 0.3
+                k_ad[251 <= z, idx[0]:idx[1]] = 0.225 
+                k_ad[500 <= z, idx[0]:idx[1]] = 0.15
+                # 45S to 42.5S
+                k_ad[:, idx[1]:idx[2]] = 0.2
+                k_ad[251 <= z, idx[1]:idx[2]] = 0.15
+                k_ad[500 <= z, idx[1]:idx[2]] = 0.1
+                #42.5S to 70N
+                k_ad[:, idx[2]:idx[3]] = 0.08
+                k_ad[251 <= z, idx[2]:idx[3]] = 0.06
+                k_ad[500 <= z, idx[2]:idx[3]] = 0.04
+                # desorption: constant in latitude and depth
+                k_de = np.zeros((nz, nx))
+                k_de[:] = 1.6
+                # production: constant in latitude and depth
+                Q = 0.00246
 
 	if string == 'Th':
-		k_ad = np.ones(np.shape(zz))
-		k_ad[251 <= z, :] = 0.75
-		k_ad[500 <= z, :] = 0.5
+                # define indices based on latitudinal variation
+                idx = nx*(np.round((70 - 50)/140), np.round((50 + 70)/140))
+                k_ad = np.ones((nz, nx))
+                # 70S to 50S
+                k_ad[:, :idx[0]] = 0.6
+                k_ad[251 <= z, :idx[0]] = 0.45 
+                k_ad[500 <= z, :idx[0]] = 0.3
+                # 50S to 70N
+                k_ad[:, idx[0]:idx[1]] = 1.
+                k_ad[251 <= z, idx[0]:idx[1]] = 0.75 
+                k_ad[500 <= z, idx[0]:idx[1]] = 0.5
 
-		k_de = np.ones(np.shape(zz))
+		k_de = np.ones((nz, nx))
 
 		Q = 0.0267
 	

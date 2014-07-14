@@ -91,7 +91,7 @@ def ratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
 	z = np.linspace(zmin, zmax, nz)
         tmax = 10*T
 
-	# remove NaNs
+	# replace NaNs with 0
 	Dratio = DTh/DPa
 	idx = np.isnan(Dratio)
 	clean_Dratio = np.zeros([nz, nx])
