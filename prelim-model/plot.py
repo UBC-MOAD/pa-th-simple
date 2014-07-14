@@ -38,8 +38,6 @@ def init(D, P, u, xmin, xmax, zmin, zmax, nx, nz, string):
         plb.gca().invert_yaxis()
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
-        #plb.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
-        #plb.ylim([zmax_plt, zmin])
 
         plb.subplot(122) 
         mesh2 = plb.pcolormesh(1e-3 * x, z, clean_P)
@@ -52,8 +50,6 @@ def init(D, P, u, xmin, xmax, zmin, zmax, nx, nz, string):
         plb.gca().invert_yaxis()
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
-        #plb.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
-        #plb.ylim([zmax_plt, zmin])
 
 	# plot the velocity field        
 	flowfig = plb.figure(figsize = (25, 5))	
@@ -171,8 +167,8 @@ def prof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
         plb.colorbar(mesh3)
-        plb.xlim([xmin/1e3, xmax_plt/1e3])
-        plb.ylim([zmax_plt, zmin])
+        #plb.xlim([xmin/1e3, xmax_plt/1e3])
+        #plb.ylim([zmax_plt, zmin])
 
         plb.subplot(122) 
         mesh4 = plb.pcolormesh(xx_plt/1e3, zz_plt, h.a)
@@ -184,7 +180,7 @@ def prof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
         plb.colorbar(mesh4)
-        plb.xlim([xmin/1e3, xmax_plt/1e3])
-        plb.ylim([zmax_plt, zmin])
+        #plb.xlim([xmin/1e3, xmax_plt/1e3])
+        #plb.ylim([zmax_plt, zmin])
 
 	return meshTh
