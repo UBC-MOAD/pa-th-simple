@@ -170,7 +170,7 @@ class FPPgrid:
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
 		
 
-def adflow(g, h, t, T, u, k_ad, k_de, Q, S, dt, adscheme_d, adscheme_p):
+def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme_d, adscheme_p):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 

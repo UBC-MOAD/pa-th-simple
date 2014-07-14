@@ -6,7 +6,7 @@ import pylab as plb
 import matplotlib.pyplot as plt
 from math import pi
 
-def init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
+def init(D, P, u, xmin, xmax, zmin, zmax, nx, nz, string):
 
         # plot initial dist.
 	x = np.linspace(xmin, xmax, nx)
@@ -16,10 +16,19 @@ def init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
         xmax_plt = (nx - 2)*dx
         zmax_plt = (nz - 2)*dz
 
+	# remove NaNs
+	idx = np.isnan(D)
+	clean_D = np.zeros([nz, nx])
+	clean_D[~idx] = D[~idx]
+
+	idx = np.isnan(P)
+	clean_P = np.zeros([nz, nx])
+	clean_P[~idx] = P[~idx]
+
         init = plb.subplots(1, 2, figsize = (25, 5))
 
         plb.subplot(121) 
-        mesh1 = plb.pcolormesh(1e-3 * x, z, g.a)
+        mesh1 = plb.pcolormesh(1e-3 * x, z, clean_D)
         if string == 'Th': 
 	        plb.title('Initial Dissolved [Th]')
         if string == 'Pa':
@@ -29,11 +38,11 @@ def init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
         plb.gca().invert_yaxis()
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
-        plb.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
-        plb.ylim([zmax_plt, zmin])
+        #plb.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
+        #plb.ylim([zmax_plt, zmin])
 
         plb.subplot(122) 
-        mesh2 = plb.pcolormesh(1e-3 * x, z, h.a)
+        mesh2 = plb.pcolormesh(1e-3 * x, z, clean_P)
         if string == 'Th':
 	        plb.title('Initial Particulate [Th]')
         if string == 'Pa':
@@ -43,8 +52,8 @@ def init(g, h, u, xmin, xmax, zmin, zmax, nx, nz, string):
         plb.gca().invert_yaxis()
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
-        plb.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
-        plb.ylim([zmax_plt, zmin])
+        #plb.xlim([1e-3 * xmin, 1e-3 * xmax_plt])
+        #plb.ylim([zmax_plt, zmin])
 
 	# plot the velocity field        
 	flowfig = plb.figure(figsize = (25, 5))	
