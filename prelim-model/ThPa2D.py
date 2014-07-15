@@ -48,9 +48,15 @@ class FDTgrid:
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
 	def fillBCs(self): 
-                            
-		#self.a[self.ilo, :] = self.a[self.ilo, :] + (Q - k_ad*self.a[self.ilo, :] ) * 0.001
-		self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]
+                idx = (np.round((70 - 50)*nx/140), np.round((50 + 70)*nx/140))
+                idx = (idx[0], idx[0] + idx[1])
+                k_ad = np.zeros((nz, nx))
+                k_ad[0, :idx[0]] = 0.6
+                k_ad[0, idx[0]:] = 1.
+                Q = 0.0267
+                dt = 0.001          
+		self.a[self.ilo, :] = self.a[self.ilo, :] + (Q - k_ad*self.a[self.ilo, :] + ) * dt                        # PDE
+		#self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
@@ -127,15 +133,15 @@ class FDPgrid:
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
 	def fillBCs(self): 
-        idx = (np.round((70 - 47.5)*nx/140), np.round((47.5 - 45)*nx/140), np.round((45 - 42.5)*nx/140), np.round((42.5 + 70)*nx/140))
-        idx = (idx[0], idx[0] + idx[1], idx[0] + idx[1] + idx[2], idx[0] + idx[1] + idx[2] + idx[3])
-        k_ad = np.zeros((1, nx))
-        k_ad[0, :idx[0]] = 0.44
-        k_ad[0, idx[0]:idx[1]] = 0.3
-        k_ad[0, idx[1]:idx[2]] = 0.2
-        k_ad[0, idx[2]:] = 0.08
-        Q = 0.00246     
-        dt = 0.001       
+                idx = (np.round((70 - 47.5)*nx/140), np.round((47.5 - 45)*nx/140), np.round((45 - 42.5)*nx/140), np.round((42.5 + 70)*nx/140))
+                idx = (idx[0], idx[0] + idx[1], idx[0] + idx[1] + idx[2], idx[0] + idx[1] + idx[2] + idx[3])
+                k_ad = np.zeros((1, nx))
+                k_ad[0, :idx[0]] = 0.44
+                k_ad[0, idx[0]:idx[1]] = 0.3
+                k_ad[0, idx[1]:idx[2]] = 0.2
+                k_ad[0, idx[2]:] = 0.08
+                Q = 0.00246     
+                dt = 0.001       
 		self.a[self.ilo, :] = self.a[self.ilo, :] + ( Q  - k_ad*self.a[self.ilo, :] ) * dt                      # PDE 
 		#self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
