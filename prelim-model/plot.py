@@ -3,6 +3,7 @@
 from __future__ import division
 import numpy as np
 import pylab as plb
+import copy
 import matplotlib.pyplot as plt
 from math import pi
 
@@ -61,7 +62,7 @@ def init(D, P, u, xmin, xmax, zmin, zmax, nx, nz, string):
 
         return init
 
-def ratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
+def ratio(DT, DP, PT, PP, xmin, xmax, zmin, zmax, nx, nz, T):
 	""" Plots the ratio T/P and outputs to notebook
 
 	:arg DTh: 2D profile of dissolved Th
@@ -92,12 +93,12 @@ def ratio(DTh, DPa, PTh, PPa, xmin, xmax, zmin, zmax, nx, nz, T):
         tmax = 10*T
 
 	# replace NaNs with 0
-	Dratio = DTh/DPa
+	Dratio = copy.copy(DT/DP)                               # use copy fnctn to avoid changing DTh.a outside plot module
 	idx = np.isnan(Dratio)
 	clean_Dratio = np.zeros([nz, nx])
 	clean_Dratio[~idx] = Dratio[~idx]
 
-	Pratio = PTh/PPa
+	Pratio = copy.copy(PT/PP)
 	idx = np.isnan(Pratio)
 	clean_Pratio = np.zeros([nz, nx])
 	clean_Pratio[~idx] = Pratio[~idx]
@@ -155,7 +156,6 @@ def prof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         zmax_plt = (nz - 1)*dz
         tmax = 10*T
 
-
         meshTh = plb.subplots(1, 2, figsize = (25, 5)) 
         plb.subplot(121) 
         mesh3 = plb.pcolormesh(xx_plt/1e3, zz_plt, g.a)
@@ -167,8 +167,6 @@ def prof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
         plb.colorbar(mesh3)
-        #plb.xlim([xmin/1e3, xmax_plt/1e3])
-        #plb.ylim([zmax_plt, zmin])
 
         plb.subplot(122) 
         mesh4 = plb.pcolormesh(xx_plt/1e3, zz_plt, h.a)
@@ -180,7 +178,5 @@ def prof(g, h, xmin, xmax, zmin, zmax, nx, nz, T, string):
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
         plb.colorbar(mesh4)
-        #plb.xlim([xmin/1e3, xmax_plt/1e3])
-        #plb.ylim([zmax_plt, zmin])
 
 	return meshTh
