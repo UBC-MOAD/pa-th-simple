@@ -47,8 +47,9 @@ class FDTgrid:
 		""" return a scratch array dimensioned for our grid """
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
-	def fillBCs(self):             
-		#self.a[self.ilo, :] = self.a[self.ilo, :] + (0.0267 - self.a[self.ilo, :] ) * 0.001
+	def fillBCs(self): 
+                            
+		#self.a[self.ilo, :] = self.a[self.ilo, :] + (Q - k_ad*self.a[self.ilo, :] ) * 0.001
 		self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
@@ -125,9 +126,18 @@ class FDPgrid:
 		""" return a scratch array dimensioned for our grid """
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
-	def fillBCs(self):             
-		#self.a[self.ilo, :] = self.a[self.ilo, :] + ( 0.00246  - 0.08*self.a[self.ilo, :] ) * 0.001
-		self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]
+	def fillBCs(self): 
+        idx = (np.round((70 - 47.5)*nx/140), np.round((47.5 - 45)*nx/140), np.round((45 - 42.5)*nx/140), np.round((42.5 + 70)*nx/140))
+        idx = (idx[0], idx[0] + idx[1], idx[0] + idx[1] + idx[2], idx[0] + idx[1] + idx[2] + idx[3])
+        k_ad = np.zeros((1, nx))
+        k_ad[0, :idx[0]] = 0.44
+        k_ad[0, idx[0]:idx[1]] = 0.3
+        k_ad[0, idx[1]:idx[2]] = 0.2
+        k_ad[0, idx[2]:] = 0.08
+        Q = 0.00246     
+        dt = 0.001       
+		self.a[self.ilo, :] = self.a[self.ilo, :] + ( Q  - k_ad*self.a[self.ilo, :] ) * dt                      # PDE 
+		#self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
@@ -235,11 +245,6 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme_d, adscheme_p):
         [i , j] = np.meshgrid(i,j)
 
         while (t < T):
-
-                # fill the boundary conditions (g will be defined by FDgrid, h by FPgrid)
-                g.fillBCs()
-                h.fillBCs()
-
                 # dissolved:
                 anew[i, j] = g.a[i, j] + ( Q - k_ad[i, j] * g.a[i, j] + k_de[i, j] * h.a[i, j] + adscheme_d(g, u, p_upz_d, n_upz_d, p_upx, n_upx, gdx_i, gdz_i, i, j) ) * dt
 
@@ -249,6 +254,11 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme_d, adscheme_p):
                 # store the (time) updated solution
                 g.a[:] = anew[:]
                 h.a[:] = bnew[:]
+
+                # fill the boundary conditions (g will be defined by FDgrid, h by FPgrid)
+                g.fillBCs()
+                h.fillBCs()
+
                 t += dt
 
         return g, h
@@ -303,7 +313,7 @@ def flux_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
 
         return p_adv
 
-def k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
+def k_sorp(string, zmin, zmax, nx, nz):
 	""" Computes adsorption,desorption, & production constants for either Th or Pa
 
 	:arg string: a string, either 'Th' or 'Pa'
@@ -321,12 +331,10 @@ def k_sorp(string, xmin, xmax, zmin, zmax, nx, nz):
 	:arg nz: number of points in z dimension
 	
 	"""
-	# physical coords
-        dx = (xmax - xmin) / (nx - 1)
-        x = xmin + (np.arange(nx) - 1) * dx
+        # spatial coordinates
         dz = (zmax - zmin) / (nz - 1)
         z = zmin + (np.arange(nz) - 1) * dz
-        [xx, zz] = np.meshgrid(x, z)
+
         if string == 'Pa':
                 # define number of points per region
                 idx = (np.round((70 - 47.5)*nx/140), np.round((47.5 - 45)*nx/140), np.round((45 - 42.5)*nx/140), np.round((42.5 + 70)*nx/140))
