@@ -55,7 +55,7 @@ class FDTgrid:
                 k_ad[0, idx[0]:] = 1.
                 Q = 0.0267
                 dt = 0.001          
-		self.a[self.ilo, :] = self.a[self.ilo, :] + (Q - k_ad*self.a[self.ilo, :] + ) * dt                        # PDE
+		self.a[self.ilo, :] = self.a[self.ilo, :] + Q * dt                        # PDE
 		#self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
@@ -142,7 +142,7 @@ class FDPgrid:
                 k_ad[0, idx[2]:] = 0.08
                 Q = 0.00246     
                 dt = 0.001       
-		self.a[self.ilo, :] = self.a[self.ilo, :] + ( Q  - k_ad*self.a[self.ilo, :] ) * dt                      # PDE 
+		self.a[self.ilo, :] = self.a[self.ilo, :] + Q * dt                      # PDE 
 		#self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
