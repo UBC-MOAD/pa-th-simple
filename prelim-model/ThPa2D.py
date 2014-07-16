@@ -188,146 +188,155 @@ class FPPgrid:
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
 		
 
-def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme_d, adscheme_p, nx, nz):
-     """
-     Compute and store the dissolved and particulate [Th] profiles, 
-write them to a file, plot the results.
+def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme_d, adscheme_p):
+        """
+        Compute and store the dissolved and particulate [Th] profiles, 
+        write them to a file, plot the results.
 
-         :arg t: scale for time at which code is initiated
-         :type t: int
+        :arg t: scale for time at which code is initiated
+        :type t: int
 
-     :arg T: scale for time at which code is terminated
-     :typeT: int
+        :arg T: scale for time at which code is terminated
+        :typeT: int
 
-     :arg V: scale for ux, uz, which are originally order 1.
-     :type V: int
+        :arg V: scale for ux, uz, which are originally order 1.
+        :type V: int
 
-     :arg u: 3D tensor of shape (nz, nx, 2), z component of velocity in 
-(:, :, 1), x component of velocity in (:, :, 2)
-     :type u: float
+        :arg u: 3D tensor of shape (nz, nx, 2), z component of velocity in (:, :, 0), x component of velocity in (:, :, 1)
+        :type u: float
 
-     :arg k_ad: nz x nx adsorption rate matrix
-     :type k_ad: float
+        :arg k_ad: nz x nx adsorption rate matrix
+        :type k_ad: float
 
-     :arg k_de: nz x nx adsorption rate matrix
-     :type k_de: float
+        :arg k_de: nz x nx adsorption rate matrix
+        :type k_de: float
 
-     :arg nx, nz: size of the arrays
-     :type nx, nz: int
+        :arg nx, nz: size of the arrays
+        :type nx, nz: int
 
-     """
+        """
 
-     # define the CFL, sink velocity, and reaction constant
-         S = 500
-     S_i = 1/S
+        # define the CFL, sink velocity, and reaction constant
+        S = 500
+        S_i = 1/S
 
          # time info (yr)
-     dt = 0.001
-         t = t * (g.zmax - g.zmin)*S_i
-     T = T * (g.zmax - g.zmin)*S_i
+        dt = 0.001
+        t = t * (g.zmax - g.zmin)*S_i
+        T = T * (g.zmax - g.zmin)*S_i
 
-     # evolution loop
-     anew = g.a
-     bnew = h.a
+        # evolution loop
+        anew = g.a
+        bnew = h.a
 
-     # extract the velocities
-     uz = u[:, :, 0]
-     ux = u[:, :, 1]
+        # extract the velocities
+        uz = u[:, :, 0]
+        ux = u[:, :, 1]
 
-         # define upstream for particulate phase (contains sinking vel.)
-         p_upz_p = np.sign(uz[:-1, :]+uz[1:, :] + S)*0.5*( np.sign(uz[:-1, :]+uz[1:, :] + S) - 1)
-         n_upz_p = np.sign(uz[:-1, :]+uz[1:, :] + S)*0.5*( np.sign(uz[:-1, :]+uz[1:, :] + S) + 1)
-         # define upstream for dissolved phase
-         p_upz_d = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) - 1)
-         n_upz_d = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) + 1)
-         # define upstream in x
-         p_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) - 1)
-         n_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) + 1)
+        # define upstream for particulate phase (contains sinking vel.)
+        p_upz_p = np.sign(uz[:-1, :]+uz[1:, :] + S)*0.5*( np.sign(uz[:-1, :]+uz[1:, :] + S) - 1)
+        n_upz_p = np.sign(uz[:-1, :]+uz[1:, :] + S)*0.5*( np.sign(uz[:-1, :]+uz[1:, :] + S) + 1)
+        # define upstream for dissolved phase
+        p_upz_d = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) - 1)
+        n_upz_d = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) + 1)
+        # define upstream in x
+        p_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) - 1)
+        n_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) + 1)
 
-         # save inverses for speed
-         gdx_i = 1/g.dx
-         gdz_i = 1/g.dz
-         hdx_i = 1/h.dx
-         hdz_i = 1/h.dz
+        # save inverses for speed
+        gdx_i = 1/g.dx
+        gdz_i = 1/g.dz
+        hdx_i = 1/h.dx
+        hdz_i = 1/h.dz
 
-         while (t < T):
+        while (t < T):
 
-                 # dissolved:
-                 anew = g.a + ( Q - k_ad * g.a + k_de * h.a
-                              + adscheme_d(g, u, p_upz_d, n_upz_d, p_upx, n_upx, gdx_i, gdz_i, nx, nz) ) * dt
+                # dissolved:
+                anew = g.a + ( Q - k_ad * g.a + k_de * h.a
+                              + adscheme_d(g, u, p_upz_d, n_upz_d, p_upx, n_upx, gdx_i, gdz_i) ) * dt
 
-                 # particulate:
-                 bnew = h.a + ( k_ad * g.a - k_de * h.a
-                              + adscheme_p(h, u, p_upz_p, n_upz_p, p_upx, n_upx, hdx_i, hdz_i, S, nx ,nz) ) * dt
+                # particulate:
+                bnew = h.a + ( k_ad * g.a - k_de * h.a
+                              + adscheme_p(h, u, p_upz_p, n_upz_p, p_upx, n_upx, hdx_i, hdz_i, S) ) * dt
 
-                 # store the (time) updated solution
-                 g.a[:] = anew[:]
-                 h.a[:] = bnew[:]
+                # store the (time) updated solution
+                g.a[:] = anew[:]
+                h.a[:] = bnew[:]
 
-                 # fill the boundary conditions (g will be defined by FDgrid, h by FPgrid)
-                 g.fillBCs()
-                 h.fillBCs()
+                # fill the boundary conditions (g will be defined by FDgrid, h by FPgrid)
+                g.fillBCs()
+                h.fillBCs()
 
-                 t += dt
+                t += dt
 
-         return g, h
-
-def flux_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i, nx ,nz):
-         """Flux based advection scheme
-         """
-
-     # extract the velocities
-     uz = u[:, :, 0]
-     ux = u[:, :, 1]
-
-     fluxx = np.zeros(shape((g.a)); fluxz = np.zeros(shape(g.a)); d_adv = np.zeros(np.shape(g.a))
-     fluxx = g.a * ux
-     fluxz = g.a * uz
-
-         # dissolved advective term:
-         d_adv[1:nz-1,1:nx-1] = ( (n_upx[1:nz-1, 0:nx-2]*(fluxx[1:nz-1, 0:nx-2] - fluxx[1:nz-1, 1:nx-1]) + p_upx[1:nz-1, 1:nx-1]*(fluxx[1:nz-1, 1:nx-1] - fluxx[1:nz-1, 2:nx]) ) * gdx_i + (n_upz[0:nz-2, 1:nx-1]*(fluxz[0:nz-2, 1:nx-1] - fluxz[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(fluxz[1:nz-1, 1:nx-1] - fluxz[2:nz, 1:nx-1]) ) * gdz_i )
-
-         return d_adv
+        return g, h
 
 
-def flux_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, S, nx, nz):
-         """Flux based advection scheme
-         """
-     # extract the velocities
-     uz = u[:, :, 0] + S
-     ux = u[:, :, 1]
+def flux_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i):
+        """Flux based advection scheme
+        """
+        # extract indices
+        nz = g.nz
+        nx = g.nx
 
-     fluxx = np.zeros(shape(h.a)); fluxz = np.zeros(shape(h.a)); p_adv = np.zeros(shape(h.a))
-     fluxx = h.a * ux
-     fluxz = h.a * uz
+        # extract the velocities
+        uz = u[:, :, 0]
+        ux = u[:, :, 1]
 
-         # particulate:
-         p_adv[1:nz-1, 1:nx-1] = (  ( n_upx[1:nz-1, 0:nx-2]*( fluxx[1:nz-1, 0:nx-2] - fluxx[1:nz-1, 1:nx-1] ) + p_upx[1:nz-1, 1:nx-1]*( fluxx[1:nz-1, 1:nx-1] - fluxx[1:nz-1, 2:nx]) ) * hdx_i + ( n_upz[0:nz-2, 1:nx-1]*( fluxz[0:nz-2, 1:nx-1] - fluxz[1:nz-1, 1:nx-1] ) +  p_upz[1:nz-1, 1:nx-1]*( fluxz[1:nz-1, 1:nx-1] - fluxz[2:nz, 1:nx-1] ) ) * hdz_i )
+        # define fluxes
+        d_adv = np.zeros(np.shape(g.a))
+        fluxx = g.a * ux
+        fluxz = g.a * uz
 
-         return p_adv
+        # dissolved advective term:
+        d_adv[1:nz-1,1:nx-1] = ( (n_upx[1:nz-1, 0:nx-2]*(fluxx[1:nz-1, 0:nx-2] - fluxx[1:nz-1, 1:nx-1]) + p_upx[1:nz-1, 1:nx-1]*(fluxx[1:nz-1, 1:nx-1] - fluxx[1:nz-1, 2:nx]) ) * gdx_i + (n_upz[0:nz-2, 1:nx-1]*(fluxz[0:nz-2, 1:nx-1] - fluxz[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(fluxz[1:nz-1, 1:nx-1] - fluxz[2:nz, 1:nx-1]) ) * gdz_i )
+
+        return d_adv
+
+def flux_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, S):
+        """Flux based advection scheme
+        """
+        # extract indices
+        nz = h.nz
+        nx = h.nx
+
+        # extract the velocities
+        uz = u[:, :, 0] + S
+        ux = u[:, :, 1]
+
+        # define fluxes
+        p_adv = np.zeros(np.shape(h.a))
+        fluxx = h.a * ux
+        fluxz = h.a * uz
+
+        # particulate:
+        p_adv[1:nz-1, 1:nx-1] = (  ( n_upx[1:nz-1, 0:nx-2]*( fluxx[1:nz-1, 0:nx-2] - fluxx[1:nz-1, 1:nx-1] ) + p_upx[1:nz-1, 1:nx-1]*( fluxx[1:nz-1, 1:nx-1] - fluxx[1:nz-1, 2:nx]) ) * hdx_i + ( n_upz[0:nz-2, 1:nx-1]*( fluxz[0:nz-2, 1:nx-1] - fluxz[1:nz-1, 1:nx-1] ) +  p_upz[1:nz-1, 1:nx-1]*( fluxz[1:nz-1, 1:nx-1] - fluxz[2:nz, 1:nx-1] ) ) * hdz_i )
+
+        return p_adv
+
 
 def upstream_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i, i, j):
 
-	# extract the velocities
-	uz = u[:, :, 0]
-	ux = u[:, :, 1]
+        # extract the velocities
+        uz = u[:, :, 0]
+        ux = u[:, :, 1]
 
         # dissolved advective term:
         d_adv = ux[i, j] * ( n_upx[i, j - 1]*(g.a[i, j - 1] - g.a[i, j]) + p_upx[i, j]*(g.a[i, j] - g.a[i, j + 1]) ) * gdx_i + uz[i, j] * ( n_upz[i - 1, j]*(g.a[i - 1, j] - g.a[i, j]) + p_upz[i, j]*(g.a[i, j] - g.a[i + 1, j]) ) * gdz_i 
 
         return d_adv
 
-
 def upstream_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
 
-	# extract the velocities
-	uz = u[:, :, 0]
-	ux = u[:, :, 1]
+        # extract the velocities
+        uz = u[:, :, 0]
+        ux = u[:, :, 1]
 
         # particulate advective term:
         p_adv = S * ( n_upz[i, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz[i, j]*(h.a[i, j] - h.a[i + 1, j]) ) * hdz_i + ux[i, j] * ( n_upx[i, j - 1]*(h.a[i, j - 1] - h.a[i, j]) + p_upx[i, j]*(h.a[i, j] - h.a[i, j + 1]) ) * hdx_i + uz[i, j] * ( n_upz[i - 1, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz[i, j]*(h.a[i, j] - h.a[i + 1, j]) ) * hdz_i 
 
         return p_adv
+
 
 def TVD_d(g, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
         """total variance diminishing advection scheme
@@ -361,7 +370,8 @@ def TVD_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
         adfz = fluxz_cen - fluxz_up  
 
         # calculate max and min concentrations in region of each grid point
-        cup = np.zeros(np.shape(h.a)); cdo = np.zeros(np.shape(h.a))
+        cup = np.zeros(np.shape(h.a)) 
+        cdo = np.zeros(np.shape(h.a))
         cup[i, j] = max( np.max(h.a[i-1:i+1, j-1:j+1]), np.max(tau_up[i-1:i+1, j-1:j+1]) )    # C
         cdo[i, j] = min( np.min(h.a[i-1:i+1, j-1:j+1]), np.min(tau_up[i-1:i+1, j-1:j+1]) )    # C
 
@@ -369,6 +379,7 @@ def TVD_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
 
 
         return p_adv
+
 
 def k_sorp(string, zmin, zmax, nx, nz):
 	""" Computes adsorption,desorption, & production constants for either Th or Pa
@@ -438,7 +449,6 @@ def k_sorp(string, zmin, zmax, nx, nz):
                 k_de = np.ones((nz, nx))
 
                 Q = 0.0267
-
 	return k_ad, k_de, Q	
 
 
