@@ -48,7 +48,15 @@ class FDTgrid:
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
 	def fillBCs(self): 
-		self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated
+                idx = (np.round((70 - 50)*self.nx/140), np.round((50 + 70)*self.nx/140))
+                idx = (idx[0], idx[0] + idx[1])
+                k_ad = np.zeros((1, self.nx))
+                k_ad[0, :idx[0]] = 0.6
+                k_ad[0, idx[0]:] = 1.
+                Q = 0.0267
+                dt = 0.001          
+		self.a[self.ilo, :] = self.a[self.ilo, :] + (Q - k_ad*self.a[self.ilo, :] ) * dt                        # PDE		
+                #self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
@@ -125,7 +133,17 @@ class FDPgrid:
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
 	def fillBCs(self):      
-		self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated		
+                idx = (np.round((70 - 47.5)*self.nx/140), np.round((47.5 - 45)*self.nx/140), np.round((45 - 42.5)*self.nx/140), np.round((42.5 + 70)*self.nx/140))
+                idx = (idx[0], idx[0] + idx[1], idx[0] + idx[1] + idx[2], idx[0] + idx[1] + idx[2] + idx[3])
+                k_ad = np.zeros((1, self.nx))
+                k_ad[0, :idx[0]] = 0.44
+                k_ad[0, idx[0]:idx[1]] = 0.3
+                k_ad[0, idx[1]:idx[2]] = 0.2
+                k_ad[0, idx[2]:] = 0.08
+                Q = 0.00246     
+                dt = 0.001       
+		self.a[self.ilo, :] = self.a[self.ilo, :] + ( Q  - k_ad*self.a[self.ilo, :] ) * dt                      # PDE 		
+                #self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated		
                 self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
@@ -279,24 +297,45 @@ def flux_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i, i, j):
         """Flux based advection scheme
         """
 
-	# extract the velocities
-	uz = u[:, :, 0]
-	ux = u[:, :, 1]
+        # extract the velocities
+        uz = u[:, :, 0]
+        ux = u[:, :, 1]
+
+        fluxx = np.empty_like(g.a); fluxz = np.empty_like(g.a)
+        fluxx[i,j] = g.a[i,j] * ux[i,j]
+        fluxz[i,j] = g.a[i,j] * uz[i,j]
 
         # dissolved advective term:
-        d_adv = (n_upx[i, j - 1]*(g.a[i, j - 1]*ux[i, j - 1] - g.a[i, j]*ux[i, j]) + p_upx[i, j]*(g.a[i, j]*ux[i, j] - g.a[i, j + 1]*ux[i, j + 1]) ) * gdx_i + (n_upz[i - 1, j]*(g.a[i - 1, j]*uz[i - 1, j] - g.a[i, j]*uz[i, j]) + p_upz[i, j]*(g.a[i, j]*uz[i, j] - g.a[i + 1, j]*uz[i + 1, j]) ) * gdz_i 
+        d_adv = (n_upx[i, j - 1]*(fluxx[i, j - 1] - fluxx[i, j]) + p_upx[i, j]*(fluxx[i, j] - fluxx[i, j + 1]) ) * gdx_i + (n_upz[i - 1, j]*(fluxz[i - 1, j] - fluxz[i, j]) + p_upz[i, j]*(fluxz[i, j] -fluxz[i + 1, j]) ) * gdz_i
 
         return d_adv
 
 def flux_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
         """Flux based advection scheme
         """
-	# extract the velocities
-	uz = u[:, :, 0]
-	ux = u[:, :, 1]
+        # extract the velocities
+        uz = u[:, :, 0] + S
+        ux = u[:, :, 1]
+
+        fluxx = np.empty_like(h.a); fluxz = np.empty_like(h.a)
+        fluxx[i,j] = h.a[i,j] * ux[i,j]
+        fluxz[i,j] = h.a[i,j] * uz[i,j]
 
         # particulate:
-        p_adv =  S * ( n_upz[i, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz[i, j]*(h.a[i, j] - h.a[i + 1, j]) ) * hdz_i + ( n_upx[i, j - 1]*( h.a[i, j - 1]*ux[i, j - 1] - h.a[i, j]*ux[i, j] ) + p_upx[i, j]*( h.a[i, j]*ux[i, j] - h.a[i, j + 1]*ux[i, j + 1]) ) * hdx_i + ( n_upz[i - 1, j]*( h.a[i - 1, j]*uz[i - 1, j] - h.a[i, j]*uz[i, j] ) +  p_upz[i, j]*( h.a[i, j]*uz[i, j] - h.a[i + 1, j]*uz[i + 1, j] ) ) * hdz_i 
+        p_adv =   ( n_upx[i, j - 1]*( fluxx[i, j - 1] - fluxx[i, j] ) + p_upx[i, j]*( fluxx[i, j] - fluxx[i, j + 1]) ) * hdx_i + ( n_upz[i - 1, j]*( fluxz[i - 1, j] - fluxz[i, j] ) +  p_upz[i, j]*( fluxz[i, j] - fluxz[i + 1, j] ) ) * hdz_i
+
+
+        return p_adv
+
+def TVD_d(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
+
+
+
+
+        return d_adv
+def TVD_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
+
+
 
 
         return p_adv
