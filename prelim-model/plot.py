@@ -62,7 +62,7 @@ def init(D, P, u, xmin, xmax, zmin, zmax, nx, nz, string):
 
         return init
 
-def ratio(DT, DP, PT, PP, xmin, xmax, zmin, zmax, nx, nz, T):
+def ratio(DT, DP, PT, PP, xmin, xmax, zmin, zmax, T):
 	""" Plots the ratio T/P and outputs to notebook
 
 	:arg DTh: 2D profile of dissolved Th
@@ -87,18 +87,22 @@ def ratio(DT, DP, PT, PP, xmin, xmax, zmin, zmax, nx, nz, T):
 
 	"""
 
+        # extract grid points
+        nz = DT.nz
+        nx = DT.nx
+
 	# define grid
 	x = np.linspace(xmin, xmax, nx)
 	z = np.linspace(zmin, zmax, nz)
         tmax = 10*T
 
 	# replace NaNs with 0
-	Dratio = copy.copy(DT/DP)                               # use copy fnctn to avoid changing DTh.a outside plot module
+	Dratio = copy.copy(DT.a/DP.a)                               # use copy fnctn to avoid changing DTh.a outside plot module
 	idx = np.isnan(Dratio)
 	clean_Dratio = np.zeros([nz, nx])
 	clean_Dratio[~idx] = Dratio[~idx]
 
-	Pratio = copy.copy(PT/PP)
+	Pratio = copy.copy(PT.a/PP.a)
 	idx = np.isnan(Pratio)
 	clean_Pratio = np.zeros([nz, nx])
 	clean_Pratio[~idx] = Pratio[~idx]
