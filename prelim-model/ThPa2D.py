@@ -301,7 +301,7 @@ def flux_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i, i, j):
         uz = u[:, :, 0]
         ux = u[:, :, 1]
 
-        fluxx = np.empty_like(g.a); fluxz = np.empty_like(g.a)
+        fluxx = np.zeros(np.shape(g.a)); fluxz = np.zeros(np.shape(g.a))
         fluxx[i,j] = g.a[i,j] * ux[i,j]
         fluxz[i,j] = g.a[i,j] * uz[i,j]
 
@@ -317,7 +317,7 @@ def flux_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
         uz = u[:, :, 0] + S
         ux = u[:, :, 1]
 
-        fluxx = np.empty_like(h.a); fluxz = np.empty_like(h.a)
+        fluxx = np.zeros(np.shape(h.a)); fluxz = np.zeros(np.shape(h.a))
         fluxx[i,j] = h.a[i,j] * ux[i,j]
         fluxz[i,j] = h.a[i,j] * uz[i,j]
 
@@ -327,15 +327,38 @@ def flux_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
 
         return p_adv
 
-def TVD_d(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
-
-
+def TVD_d(g, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
+        """total variance diminishing advection scheme
+        """
 
 
         return d_adv
 def TVD_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
+        """total variance diminishing advection scheme
+        """
+        # extract velocity
+        uz = u[:,:,0]
+        ux = u[:,:,1]
 
+        # define upstream flux
+        fluxx_up[i, j] = ux[i,j - 1]*h.a[i, j - 1] * n_upx[i, j] + ux[i, j + 1]*h.a[i, j + 1] * p_upx[i, j]
+        fluxz_up[i, j] = uz[i - 1,j]*h.a[i - 1, j] * n_upz[i, j] + uz[i + 1, j]*h.a[i + 1, j] * p_upz[i, j]
 
+        # new concentration based on upstream-flux method
+        tau_up = np.zeros((nz, nx))
+        tau_up[i, j] = h.a[i, j] + ((fluxx_up[i, j - 1] - fluxx_up[i, j]) * n_upx[i, j] + (fluxx_up[i, j] - fluxx_up[i, j + 1]) * p_upx[i, j]) * hdx_i + ((fluxz_up[i - 1, j] - fluxz_up[i, j]) * n_upz[i, j] + (fluxz_up[i, j] - fluxz_up[i + 1, j]) * p_upz[i, j]) * hdz_i 
+
+        # tau_up[-1] = 2*tau_up[-2]-tau_up[-3]   ?
+        
+        # define centred flux
+        flux_cen = np.zeros((nz, nx))
+        fluxx_cen[i, j] = 0.5 * ( h.a[i, j - 1]*ux[i, j - 1] - h.a[i, j + 1]*ux[i, j + 1] ) 
+        fluxz_cen[i, j] = 0.5 * ( h.a[i - 1, j]*uz[i - 1, j] - h.a[i + 1, j]*uz[i + 1, j] )
+
+        adfx = fluxx_cen - fluxx_up
+        adfz = fluxz_cen - fluxz_up  
+
+        # calculate zau, zbu and zcu
 
 
         return p_adv
