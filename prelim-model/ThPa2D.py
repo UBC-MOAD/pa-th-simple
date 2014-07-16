@@ -47,15 +47,8 @@ class FDTgrid:
 		""" return a scratch array dimensioned for our grid """
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
-	def fillBCs(self): 
-                idx = (np.round((70 - 50)*self.nx/140), np.round((50 + 70)*self.nx/140))
-                idx = (idx[0], idx[0] + idx[1])
-                k_ad = np.zeros((1, self.nx))
-                k_ad[0, :idx[0]] = 0.6
-                k_ad[0, idx[0]:] = 1.
-                Q = 0.0267
-                dt = 0.001          
-		self.a[self.ilo, :] = self.a[self.ilo, :] + (Q - k_ad*self.a[self.ilo, :] ) * dt                        # PDE		
+	def fillBCs(self, k_ad, Q, dt):          
+		self.a[self.ilo, :] = self.a[self.ilo, :] + (Q - k_ad[0, :]*self.a[self.ilo, :] ) * dt                        # PDE		
                 #self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
@@ -132,17 +125,9 @@ class FDPgrid:
 		""" return a scratch array dimensioned for our grid """
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
-	def fillBCs(self):      
-                idx = (np.round((70 - 47.5)*self.nx/140), np.round((47.5 - 45)*self.nx/140), np.round((45 - 42.5)*self.nx/140), np.round((42.5 + 70)*self.nx/140))
-                idx = (idx[0], idx[0] + idx[1], idx[0] + idx[1] + idx[2], idx[0] + idx[1] + idx[2] + idx[3])
-                k_ad = np.zeros((1, self.nx))
-                k_ad[0, :idx[0]] = 0.44
-                k_ad[0, idx[0]:idx[1]] = 0.3
-                k_ad[0, idx[1]:idx[2]] = 0.2
-                k_ad[0, idx[2]:] = 0.08
-                Q = 0.00246     
-                dt = 0.001       
-		self.a[self.ilo, :] = self.a[self.ilo, :] + ( Q  - k_ad*self.a[self.ilo, :] ) * dt                      # PDE 		
+	def fillBCs(self, k_ad, Q, dt):      
+      
+		self.a[self.ilo, :] = self.a[self.ilo, :] + ( Q  - k_ad[0, :]*self.a[self.ilo, :] ) * dt                      # PDE 		
                 #self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated		
                 self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
@@ -264,7 +249,7 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme_d, adscheme_p):
                 h.a[:] = bnew[:]
 
                 # fill the boundary conditions (g will be defined by FDgrid, h by FPgrid)
-                g.fillBCs()
+                g.fillBCs(k_ad, Q, dt)
                 h.fillBCs()
 
                 t += dt
