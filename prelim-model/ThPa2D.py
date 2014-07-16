@@ -233,6 +233,10 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme_d, adscheme_p):
         hdx_i = 1/h.dx
         hdz_i = 1/h.dz
 
+	# vectorize spatial indices 
+        i = np.arange(g.ilo + 1, g.ihi, 1, dtype = int)
+        j = np.arange(g.jlo + 1, g.jhi, 1, dtype = int)
+
         while (t < T):
 
                 # dissolved:
@@ -252,6 +256,8 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme_d, adscheme_p):
                 t += dt
 
         return g, h
+
+
 
 
 def flux_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i):
@@ -297,27 +303,47 @@ def flux_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, S):
         return p_adv
 
 
-def upstream_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i, i, j):
+def upstream_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i):
+
+        # extract indices
+        nz = g.nz
+        nx = g.nx
 
         # extract the velocities
         uz = u[:, :, 0]
         ux = u[:, :, 1]
 
+        # define fluxes
+        d_adv = np.zeros(np.shape(g.a))
+
         # dissolved advective term:
-        d_adv = ux[i, j] * ( n_upx[i, j - 1]*(g.a[i, j - 1] - g.a[i, j]) + p_upx[i, j]*(g.a[i, j] - g.a[i, j + 1]) ) * gdx_i + uz[i, j] * ( n_upz[i - 1, j]*(g.a[i - 1, j] - g.a[i, j]) + p_upz[i, j]*(g.a[i, j] - g.a[i + 1, j]) ) * gdz_i 
+        d_adv[1:nz-1, 1:nx-1] = ux[1:nz-1, 1:nx-1] * ( n_upx[1:nz-1, 0:nx-2]*(g.a[1:nz-1, 0:nx-2] - g.a[1:nz-1, 1:nx-1]) + p_upx[1:nz-1, 1:nx-1]*(g.a[1:nz-1, 1:nx-1] - g.a[1:nz-1, 2:nx]) ) * gdx_i + uz[1:nz-1, 1:nx-1] * ( n_upz[0:nz-2, 1:nx-1]*(g.a[0:nz-2, 1:nx-1] - g.a[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(g.a[1:nz-1, 1:nx-1] - g.a[2:nz, 1:nx-1]) ) * gdz_i 
 
         return d_adv
 
-def upstream_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
+
+
+
+def upstream_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, S):
+
+        # extract indices
+        nz = h.nz
+        nx = h.nx
 
         # extract the velocities
-        uz = u[:, :, 0]
+        uz = u[:, :, 0] + S
         ux = u[:, :, 1]
 
+        # define fluxes
+        p_adv = np.zeros(np.shape(h.a))
+
         # particulate advective term:
-        p_adv = S * ( n_upz[i, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz[i, j]*(h.a[i, j] - h.a[i + 1, j]) ) * hdz_i + ux[i, j] * ( n_upx[i, j - 1]*(h.a[i, j - 1] - h.a[i, j]) + p_upx[i, j]*(h.a[i, j] - h.a[i, j + 1]) ) * hdx_i + uz[i, j] * ( n_upz[i - 1, j]*(h.a[i - 1, j] - h.a[i, j]) + p_upz[i, j]*(h.a[i, j] - h.a[i + 1, j]) ) * hdz_i 
+        p_adv[1:nz-1, 1:nx-1] = S * ( n_upz[1:nz-1, 1:nx-1]*(h.a[0:nz-2, 1:nx-1] - h.a[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(h.a[1:nz-1, 1:nx-1] - h.a[2:nz, 1:nx-1]) ) * hdz_i + ux[1:nz-1, 1:nx-1] * ( n_upx[1:nz-1, 0:nx-2]*(h.a[1:nz-1, 0:nx-2] - h.a[1:nz-1, 1:nx-1]) + p_upx[1:nz-1, 1:nx-1]*(h.a[1:nz-1, 1:nx-1] - h.a[1:nz-1, 2:nx]) ) * hdx_i + uz[1:nz-1, 1:nx-1] * ( n_upz[0:nz-2, 1:nx-1]*(h.a[0:nz-2, 1:nx-1] - h.a[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(h.a[1:nz-1, 1:nx-1] - h.a[2:nz, 1:nx-1]) ) * hdz_i 
 
         return p_adv
+
+
+
 
 
 def TVD_d(g, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
