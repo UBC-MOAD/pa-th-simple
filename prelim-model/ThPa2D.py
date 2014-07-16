@@ -125,8 +125,7 @@ class FDPgrid:
 		""" return a scratch array dimensioned for our grid """
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
-	def fillBCs(self, k_ad, Q, dt):      
-      
+	def fillBCs(self, k_ad, Q, dt):  
 		self.a[self.ilo, :] = self.a[self.ilo, :] + ( Q  - k_ad[0, :]*self.a[self.ilo, :] ) * dt                      # PDE 		
                 #self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated		
                 self.a[self.ihi, :] = self.a[self.ihi - 1, :]
@@ -237,18 +236,16 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme_d, adscheme_p):
         while (t < T):
 
                 # dissolved:
-                anew = g.a + ( Q - k_ad * g.a + k_de * h.a
-                              + adscheme_d(g, u, p_upz_d, n_upz_d, p_upx, n_upx, gdx_i, gdz_i) ) * dt
+                anew = g.a + ( Q - k_ad * g.a + k_de * h.a + adscheme_d(g, u, p_upz_d, n_upz_d, p_upx, n_upx, gdx_i, gdz_i) ) * dt
 
                 # particulate:
-                bnew = h.a + ( k_ad * g.a - k_de * h.a
-                              + adscheme_p(h, u, p_upz_p, n_upz_p, p_upx, n_upx, hdx_i, hdz_i, S) ) * dt
+                bnew = h.a + ( k_ad * g.a - k_de * h.a + adscheme_p(h, u, p_upz_p, n_upz_p, p_upx, n_upx, hdx_i, hdz_i, S) ) * dt
 
                 # store the (time) updated solution
                 g.a[:] = anew[:]
                 h.a[:] = bnew[:]
 
-                # fill the boundary conditions (g will be defined by FDgrid, h by FPgrid)
+                # fill boundary conditions
                 g.fillBCs(k_ad, Q, dt)
                 h.fillBCs()
 
