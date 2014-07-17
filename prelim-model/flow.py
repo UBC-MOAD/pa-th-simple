@@ -64,11 +64,11 @@ def onecell(xmin, xmax, zmin, zmax, nx, nz, V):
 
 
         # scale & store the solution in a matrix, shifting up and down
-        u = np.zeros([nz, nx, 2])
-        u[:, :nx/2, 0] = uz[0:nz, :nx/2] / np.max(uz) * V * zmax/xmax
-        u[:, nx/2:, 0] = uz[1:, nx/2:] / np.max(uz) * V * zmax/xmax
-        u[:, :nx/2, 1] = ux[0:nz, :nx/2] / np.max(ux) * V 
-        u[:, nx/2:, 1] = ux[1:, nx/2:] / np.max(ux) * V
+        u = np.zeros([2, nz, nx])
+        u[0, :, :nx/2] = uz[0:nz, :nx/2] / np.max(uz) * V * zmax/xmax
+        u[0, :, nx/2:] = uz[1:, nx/2:] / np.max(uz) * V * zmax/xmax
+        u[1, :, :nx/2] = ux[0:nz, :nx/2] / np.max(ux) * V 
+        u[1, :, nx/2:] = ux[1:, nx/2:] / np.max(ux) * V
 
 	return u
 
@@ -77,7 +77,7 @@ def onecell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the analytical solution to conserve mass discretely
         """
         # extract velocity components
-        uz = u[:, :, 0]
+        uz = u[0, :, :]
         ux = np.zeros((nz,nx))
         
         # define upstream as the sum of two adjacent grid point vel.s
@@ -107,7 +107,7 @@ def onecell_c(u, xmin, xmax, zmin, zmax, nx, nz):
             j -= 1
 
         # store result
-        u[:, :, 1] = ux
+        u[1, :, :] = ux
 
         return u
 
@@ -164,16 +164,16 @@ def twocell(xmin, xmax, zmin, zmax, nx, nz, V):
         uz[nz-1:nz+1,:] = 0.
 
         # scale & store the solution in a matrix, shifting up and down
-        u = np.zeros([nz, nx, 2])
-        u[:, :nx/4, 0] = uz[0:nz, :nx/4] / np.max(uz) * V * zmax/xmax
-        u[:, nx/4:, 0] = uz[1:, nx/4:] / np.max(uz) * V * zmax/xmax
-        u[:, nx/2:, 0] = uz[1:, nx/2:] / np.max(uz) * V * zmax/xmax
-        u[:, 3*nx/4:, 0] = uz[0:nz, 3*nx/4:] / np.max(uz) * V * zmax/xmax
+        u = np.zeros([2, nz, nx])
+        u[0, :, :nx/4] = uz[0:nz, :nx/4] / np.max(uz) * V * zmax/xmax
+        u[0, :, nx/4:] = uz[1:, nx/4:] / np.max(uz) * V * zmax/xmax
+        u[0, :, nx/2:] = uz[1:, nx/2:] / np.max(uz) * V * zmax/xmax
+        u[0, :, 3*nx/4:] = uz[0:nz, 3*nx/4:] / np.max(uz) * V * zmax/xmax
 
-        u[:, :nx/4, 1] = ux[0:nz, :nx/4] / np.max(ux) * V 
-        u[:, nx/4:, 1] = ux[1:, nx/4:] / np.max(ux) * V
-        u[:, nx/2:, 1] = ux[1:, nx/2:] / np.max(ux) * V 
-        u[:, 3*nx/4:, 1] = ux[0:nz, 3*nx/4:] / np.max(ux) * V
+        u[1, :, :nx/4] = ux[0:nz, :nx/4] / np.max(ux) * V 
+        u[1, :, nx/4:] = ux[1:, nx/4:] / np.max(ux) * V
+        u[1, :, nx/2:] = ux[1:, nx/2:] / np.max(ux) * V 
+        u[1, :, 3*nx/4:] = ux[0:nz, 3*nx/4:] / np.max(ux) * V
 
 	return u
 
@@ -182,8 +182,8 @@ def twocell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """
 
         # extract velocities for redefinition
-        ux = u[:,:,1]
-        uz = u[:,:,0]
+        ux = u[1, :,:]
+        uz = u[0, :,:]
 
         # define upstream
         p_upz = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) - 1)
@@ -223,15 +223,15 @@ def twocell_c(u, xmin, xmax, zmin, zmax, nx, nz):
             j += 1
             
         # store solution
-        u[:,:,1] = ux
+        u[1, :,:] = ux
         
         return u
 
 def divtest(u, xmax, xmin, zmax, zmin, nx, nz, n_upz, p_upz, n_upx, p_upx):
         """compute the divergence of any field on any grid in an upstream scheme
         """
-        ux = u[:,:,1]
-        uz = u[:,:,0]
+        ux = u[1, :,:]
+        uz = u[0, :,:]
 
         # set up vectorized correction \n",
         dx = (xmax - xmin) / (nx - 1)
