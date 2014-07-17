@@ -346,45 +346,104 @@ def upstream_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, S):
 
 
 
-def TVD_d(g, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
+def TVD_d(g, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, S):
         """total variance diminishing advection scheme
         """
 
 
         return d_adv
 
-def TVD_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, i, j, S):
+def TVD_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, S):
         """total variance diminishing advection scheme
         """
+
+        # define grid
+        nz = h.nz
+        nx = h.nx
+
         # extract velocity
         uz = u[:,:,0]
         ux = u[:,:,1]
 
         # define upstream flux
-        fluxx_up[i, j] = ux[i,j - 1]*h.a[i, j - 1] * n_upx[i, j] + ux[i, j + 1]*h.a[i, j + 1] * p_upx[i, j]
-        fluxz_up[i, j] = uz[i - 1,j]*h.a[i - 1, j] * n_upz[i, j] + uz[i + 1, j]*h.a[i + 1, j] * p_upz[i, j]
+        fluxx_up = np.zeros(np.shape(h.a))
+        fluxz_up = np.zeros(np.shape(h.a))
+        fluxx_up[1:nz-1, 1:nx-1] = ux[1:nz-1, 0:nx-2]*h.a[1:nz-1, 0:nx-2] * n_upx[1:nz-1, 1:nx-1] + ux[1:nz-1, 2:nx]*h.a[1:nz-1, 2:nx] * p_upx[1:nz-1, 1:nx-1]
+        fluxz_up[1:nz-1, 1:nx-1] = uz[0:nz-2, 1:nx-1]*h.a[0:nz-2, 1:nx-1] * n_upz[1:nz-1, 1:nx-1] + uz[2:nz, 1:nx-1]*h.a[2:nz, 1:nx-1] * p_upz[1:nz-1, 1:nx-1]
 
         # new concentration based on upstream-flux method
         tau_up = np.zeros(np.shape(h.a))
-        tau_up[i, j] = h.a[i, j] + ((fluxx_up[i, j - 1] - fluxx_up[i, j]) * n_upx[i, j] + (fluxx_up[i, j] - fluxx_up[i, j + 1]) * p_upx[i, j]) * hdx_i + ((fluxz_up[i - 1, j] - fluxz_up[i, j]) * n_upz[i, j] + (fluxz_up[i, j] - fluxz_up[i + 1, j]) * p_upz[i, j]) * hdz_i 
+        tau_up[1:nz-1, 1:nx-1] = h.a[1:nz-1, 1:nx-1] + ((fluxx_up[1:nz-1, 0:nx-2] - fluxx_up[1:nz-1, 1:nx-1]) * n_upx[1:nz-1, 1:nx-1] + (fluxx_up[1:nz-1, 1:nx-1] - fluxx_up[1:nz-1, 2:nx]) * p_upx[1:nz-1, 1:nx-1]) * hdx_i + ((fluxz_up[0:nz-2, 1:nx-1] - fluxz_up[1:nz-1, 1:nx-1]) * n_upz[1:nz-1, 1:nx-1] + (fluxz_up[1:nz-1, 1:nx-1] - fluxz_up[2:nz, 1:nx-1]) * p_upz[1:nz-1, 1:nx-1]) * hdz_i 
         
         # define centred flux
-        flux_cen = np.zeros(np.shape(h.a))
-        fluxx_cen[i, j] = 0.5 * ( h.a[i, j - 1]*ux[i, j - 1] - h.a[i, j + 1]*ux[i, j + 1] ) 
-        fluxz_cen[i, j] = 0.5 * ( h.a[i - 1, j]*uz[i - 1, j] - h.a[i + 1, j]*uz[i + 1, j] )
+        fluxx_cen = np.zeros((nz, nx))
+        fluxz_cen = np.zeros((nz, nx))
+        fluxx_cen[1:nz-1, 1:nx-1] = 0.5 * ( h.a[1:nz-1, 0:nx-2]*ux[1:nz-1, 0:nx-2] - h.a[1:nz-1, 2:nx]*ux[1:nz-1, 2:nx] ) 
+        fluxz_cen[1:nz-1, 1:nx-1] = 0.5 * ( h.a[0:nz-2, 1:nx-1]*uz[0:nz-2, 1:nx-1] - h.a[2:nz, 1:nx-1]*uz[2:nz, 1:nx-1] )
 
         # define anti-diffusive flux
         adfx = fluxx_cen - fluxx_up
         adfz = fluxz_cen - fluxz_up  
 
-        # calculate max and min concentrations in region of each grid point
-        cup = np.zeros(np.shape(h.a)) 
-        cdo = np.zeros(np.shape(h.a))
-        cup[i, j] = max( np.max(h.a[i-1:i+1, j-1:j+1]), np.max(tau_up[i-1:i+1, j-1:j+1]) )    # C
-        cdo[i, j] = min( np.min(h.a[i-1:i+1, j-1:j+1]), np.min(tau_up[i-1:i+1, j-1:j+1]) )    # C
+
+
+        # max and min concentrations in region
+        for j in range(1, nx - 1):
+                xup = np.zeros((nz, nx)); xdo = np.zeros((nz, nx))
+                xup[1:nz-1, j] = max( np.max(h.a[1:nz-1, j-1:j+1]), np.max(tau_up[1:nz-1, j-1:j+1]) )    # C
+                xdo[1:nz-1, j] = min( np.min(h.a[1:nz-1, j-1:j+1]), np.min(tau_up[1:nz-1, j-1:j+1]) )    # C
+        for i in range(1, nz - 1):
+                zup = np.zeros((nz, nx)); zdo = np.zeros((nz, nx))
+                zup[i, 1:nx-1] = max( np.max(h.a[i-1:i+1, 1:nx-1]), np.max(tau_up[i-1:i+1, 1:nx-1]) )    # C
+                zdo[i, 1:nx-1] = min( np.min(h.a[i-1:i+1, 1:nx-1]), np.min(tau_up[i-1:i+1, 1:nx-1]) )    # C
+
+
+
+        # calculate positive and negative adf fluxes in z and x direction
+        xpos = np.zeros((nz, nx)); xneg = np.zeros((nz, nx))
+        zpos = np.zeros((nz, nx)); zneg = np.zeros((nz, nx))
+        for j in range(1, nx - 1):
+                for i in range(1, nz - 1):
+                        xpos[i, j] = max(adfx[i, j - 1], 0) - min(adfx[i, j], 0)                      # C m/s
+                        xneg[i, j] = max(adfx[i, j], 0) - min(adfx[i, j - 1], 0) 
+                        zpos[i, j] = max(adfz[i - 1, j], 0) - min(adfz[i, j], 0)                      # C m/s
+                        zneg[i, j] = max(adfz[i, j], 0) - min(adfz[i - 1, j], 0)                      # C m/s
+
+        # calculate the 
+        zbetup = (zup - tau_up) / zpos #* dx/dt                                                 # C / (C m/s) * m/s = non dimensional
+        zbetdo = (tau_up - zdo) / zneg #* dx/dt
+
+        xbetup = (xup - tau_up) / xpos #* dz/dt                                                 # C / (C m/s) * m/s = non dimensional
+        xbetdo = (tau_up - xdo) / xneg #* dz/dt
+
+        # remove nans
+        zeros = np.zeros(np.shape(zbetup))
+        idx = np.isnan(zbetup)
+        zbetup[idx] = zeros[idx]
+        idx = np.isnan(zbetdo)
+        zbetdo[idx] = zeros[idx]
+        idx = np.isnan(xbetup)
+        xbetup[idx] = zeros[idx]
+        idx = np.isnan(xbetdo)
+        xbetdo[idx] = zeros[idx]
 
         # calculate zau, zbu and zcu
+        zau = np.zeros((nz, nx)); zbu = np.zeros((nz, nx)); zcu = np.zeros((nz, nx))
+        xau = np.zeros((nz, nx)); xbu = np.zeros((nz, nx)); xcu = np.zeros((nz, nx))
 
+        for i in range(1, nz - 1):
+                for j in range(1, nx - 1):
+                        zau[i, 1:nx - 1] = min((1, zbetdo[i, j], zbetup[i + 1, j]))  # non dim and on the flux points
+                        zbu[i, 1:nx - 1] = min(1, zbetup[i, j], zbetdo[i + 1, j])    # non dim and on the flux points
+                        zcu[i, 1:nx - 1] = (0.5 + 0.5*np.sign(adfz[i, j]))  
+
+                        xau[i, 1:nx - 1] = min(1, xbetdo[i, j], xbetup[i, j + 1])    # non dim and on the flux points
+                        xbu[i, 1:nx - 1] = min(1, xbetup[i, j], xbetdo[i, j + 1])    # non dim and on the flux points
+                        xcu[i, 1:nx - 1] = (0.5 + 0.5*np.sign(adfx[i, j]))  
+
+        # calculate final flux
+        paaz = adfz * (zcu * zau + (1-zcu)*zbu)                                                   # C m/s on flux points
+        paax = adfx * (xcu * xau + (1-xcu)*xbu)                                                   # C m/s on flux points
 
         return p_adv
 
