@@ -141,8 +141,8 @@ def flux(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate=0):
         """
 	nz, nx = conc.nz, conc.nx
 	
-	vert_flux = conc.a * u[0]
-	horz_flux = conc.a * (u[1] + sinkrate)
+	vert_flux = conc.a * (u[0] + sinkrate)
+	horz_flux = conc.a * u[1]
 	
 	left_flux =  n_upx[1:nz-1, 0:nx-2] * ( horz_flux[1:nz-1, 0:nx-2] - horz_flux[1:nz-1, 1:nx-1] )
 	right_flux = p_upx[1:nz-1, 1:nx-1] * ( horz_flux[1:nz-1, 1:nx-1] - horz_flux[1:nz-1, 2:nx] )
