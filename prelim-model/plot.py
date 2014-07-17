@@ -54,7 +54,7 @@ def init(D, P, u, xmin, xmax, zmin, zmax, nx, nz, string):
 
 	# plot the velocity field        
 	flowfig = plb.figure(figsize = (25, 5))	
-	plb.quiver(1e-3*x, z, u[:,:,1], -100*u[:,:,0], pivot = 'mid')
+	plb.quiver(1e-3*x, z, u[1,:,:], -100*u[0,:,:], pivot = 'mid')
 	plb.gca().invert_yaxis()
 	plt.title('Velocity Field')
 	plt.xlabel('x [km]')
