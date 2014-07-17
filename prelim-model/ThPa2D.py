@@ -14,7 +14,7 @@ import numpy as np
 import pylab as plb
 from math import pi
 
-class FDTgrid:
+class Fgrid:
 
 	def __init__(self, nx, nz, ng, xmin = 0, xmax = 1e6, zmin = 0, 
 		 zmax = 5e3):
@@ -35,8 +35,10 @@ class FDTgrid:
 
 		# physical coords
 		self.dx = (xmax - xmin) / (nx - 1)
+		self.dx_i = 1/self.dx
 		self.x = xmin + (np.arange(nx) - ng) * self.dx
 		self.dz = (zmax - zmin) / (nz - 1)
+		self.dz_i = 1/self.dz
 		self.z = zmin + (np.arange(nz) - ng) * self.dz
 		[self.xx, self.zz] = np.meshgrid(self.x, self.z)
 
@@ -47,256 +49,111 @@ class FDTgrid:
 		""" return a scratch array dimensioned for our grid """
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
-	def fillBCs(self, k_ad, Q, dt):          
-		self.a[self.ilo, :] = self.a[self.ilo, :] + (Q - k_ad[0, :]*self.a[self.ilo, :] ) * dt                        # PDE		
-                #self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated
+	def fillBCs_d(self, k_ad, Q, dt):    
+		self.a[self.ilo, :] = self.a[self.ilo, :] + (Q - k_ad[0, :]*self.a[self.ilo, :] ) * dt     
+		#self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
 
-class FPTgrid:
-
-	def __init__(self, nx, nz, ng, xmin = 1, xmax = 1e6, zmin = 0, 
-		 zmax = 5e3):
-
-		self.xmin = xmin
-		self.xmax = xmax
-		self.zmin = zmin
-		self.zmax = zmax
-		self.ng = ng
-		self.nx = nx
-		self.nz = nz
-
-		# python is zero-based
-		self.ilo = 0
-		self.ihi = nz - 1
-		self.jlo = 0
-		self.jhi = nx - 1
-
-		# physical coords
-		self.dx = (xmax - xmin) / (nx - 1)
-		self.x = xmin + (np.arange(nx) - ng) * self.dx
-		self.dz = (zmax - zmin) / (nz - 1)
-		self.z = zmin + (np.arange(nz) - ng) * self.dz
-		[self.xx, self.zz] = np.meshgrid(self.x, self.z)
-
-		# storage for the solution 
-		self.a = np.zeros((nz, nx), dtype=np.float64)
-
-	def scratchArray(self):
-		""" return a scratch array dimensioned for our grid """
-		return np.zeros((self.nz, self.nx), dtype=np.float64)
-
-	def fillBCs(self):             
+	def fillBCs_p(self):             
 		self.a[self.ilo, :] = 0
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
-class FDPgrid:
+	
 
-	def __init__(self, nx, nz, ng, xmin = 0, xmax = 1e6, zmin = 0, 
-		 zmax = 5e3):
-
-		self.xmin = xmin
-		self.xmax = xmax
-		self.zmin = zmin
-		self.zmax = zmax
-		self.ng = ng
-		self.nx = nx
-		self.nz = nz
-
-		# python is zero-based
-		self.ilo = 0
-		self.ihi = nz - 1
-		self.jlo = 0
-		self.jhi = nx - 1
-
-		# physical coords
-		self.dx = (xmax - xmin) / (nx - 1)
-		self.x = xmin + (np.arange(nx) - ng) * self.dx
-		self.dz = (zmax - zmin) / (nz - 1)
-		self.z = zmin + (np.arange(nz) - ng) * self.dz
-		[self.xx, self.zz] = np.meshgrid(self.x, self.z)
-
-		# storage for the solution 
-		self.a = np.zeros((nz, nx), dtype=np.float64)
-
-	def scratchArray(self):
-		""" return a scratch array dimensioned for our grid """
-		return np.zeros((self.nz, self.nx), dtype=np.float64)
-
-	def fillBCs(self, k_ad, Q, dt):  
-		self.a[self.ilo, :] = self.a[self.ilo, :] + ( Q  - k_ad[0, :]*self.a[self.ilo, :] ) * dt                      # PDE 		
-                #self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]                              # interpolated		
-                self.a[self.ihi, :] = self.a[self.ihi - 1, :]
-		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
-		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
-
-class FPPgrid:
-
-	def __init__(self, nx, nz, ng, xmin = 1, xmax = 1e6, zmin = 0, 
-		 zmax = 5e3):
-
-		self.xmin = xmin
-		self.xmax = xmax
-		self.zmin = zmin
-		self.zmax = zmax
-		self.ng = ng
-		self.nx = nx
-		self.nz = nz
-
-		# python is zero-based
-		self.ilo = 0
-		self.ihi = nz - 1
-		self.jlo = 0
-		self.jhi = nx - 1
-
-		# physical coords
-		self.dx = (xmax - xmin) / (nx - 1)
-		self.x = xmin + (np.arange(nx) - ng) * self.dx
-		self.dz = (zmax - zmin) / (nz - 1)
-		self.z = zmin + (np.arange(nz) - ng) * self.dz
-		[self.xx, self.zz] = np.meshgrid(self.x, self.z)
-
-		# storage for the solution 
-		self.a = np.zeros((nz, nx), dtype=np.float64)
-
-	def scratchArray(self):
-		""" return a scratch array dimensioned for our grid """
-		return np.zeros((self.nz, self.nx), dtype=np.float64)
-
-	def fillBCs(self):             
-		self.a[self.ilo, :] = 0
-		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
-		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
-		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
-		
-
-def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme_d, adscheme_p):
-        """
-        Compute and store the dissolved and particulate [Th] profiles, 
-        write them to a file, plot the results.
+def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
+	"""
+	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
 
         :arg t: scale for time at which code is initiated
         :type t: int
 
-        :arg T: scale for time at which code is terminated
-        :typeT: int
+	:arg T: scale for time at which code is terminated
+	:typeT: int
 
-        :arg V: scale for ux, uz, which are originally order 1.
-        :type V: int
+	:arg V: scale for ux, uz, which are originally order 1.
+	:type V: int
 
-        :arg u: 3D tensor of shape (nz, nx, 2), z component of velocity in (:, :, 0), x component of velocity in (:, :, 1)
-        :type u: float
+	:arg u: 3D tensor of shape (nz, nx, 2), z component of velocity in (:, :, 1), x component of velocity in (:, :, 2) 
+	:type u: float
 
-        :arg k_ad: nz x nx adsorption rate matrix
-        :type k_ad: float
+	:arg k_ad: nz x nx adsorption rate matrix
+	:type k_ad: float
 
-        :arg k_de: nz x nx adsorption rate matrix
-        :type k_de: float
+	:arg k_de: nz x nx adsorption rate matrix
+	:type k_de: float
 
-        :arg nx, nz: size of the arrays
-        :type nx, nz: int
+	:arg nx, nz: size of the arrays
+	:type nx, nz: int
 
-        """
+	"""
 
-        # define the CFL, sink velocity, and reaction constant
-        S = 500
-        S_i = 1/S
+	# define the CFL, sink velocity, and reaction constant
+        S = 500 
 
-         # time info (yr)
-        dt = 0.001
-        t = t * (g.zmax - g.zmin)*S_i
-        T = T * (g.zmax - g.zmin)*S_i
+        # time info (yr)
+	dt = 0.001   
+        gS = (g.zmax - g.zmin)/S
+	t *= gS
+	T *= gS    
 
-        # evolution loop
-        anew = g.a
-        bnew = h.a
+	# extract the velocities
+	uz = u[0, :, :]
+	ux = u[1, :, :]
 
-        # extract the velocities
-        uz = u[:, :, 0]
-        ux = u[:, :, 1]
-
+	# upstream factors
+	sign_uz_S = np.sign(uz[:-1, :] + uz[1:, :] + S)
+	sign_uz = np.sign(uz[:-1, :] + uz[1:, :])
+	sign_ux = np.sign(ux[:, :-1] + ux[:, 1:])
         # define upstream for particulate phase (contains sinking vel.)
-        p_upz_p = np.sign(uz[:-1, :]+uz[1:, :] + S)*0.5*( np.sign(uz[:-1, :]+uz[1:, :] + S) - 1)
-        n_upz_p = np.sign(uz[:-1, :]+uz[1:, :] + S)*0.5*( np.sign(uz[:-1, :]+uz[1:, :] + S) + 1)
+	p_upz_p = sign_uz_S * (sign_uz_S - 1)/2
+	n_upz_p = sign_uz_S * (sign_uz_S + 1)/2
         # define upstream for dissolved phase
-        p_upz_d = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) - 1)
-        n_upz_d = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) + 1)
-        # define upstream in x
-        p_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) - 1)
-        n_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) + 1)
+	p_upz_d = sign_uz * (sign_uz - 1)/2
+	n_upz_d = sign_uz * (sign_uz + 1)/2
+	# define upstream in x
+	p_upx = sign_ux * (sign_ux - 1)/2
+	n_upx = sign_ux * (sign_ux + 1)/2
 
-        # save inverses for speed
-        gdx_i = 1/g.dx
-        gdz_i = 1/g.dz
-        hdx_i = 1/h.dx
-        hdz_i = 1/h.dz
 
         while (t < T):
 
                 # dissolved:
-                anew = g.a + ( Q - k_ad * g.a + k_de * h.a + adscheme_d(g, u, p_upz_d, n_upz_d, p_upx, n_upx, gdx_i, gdz_i) ) * dt
+                g.a += ( Q - k_ad * g.a + k_de * h.a 
+                             + adscheme(g, u, p_upz_d, n_upz_d, p_upx, n_upx, sinkrate = 0) ) * dt
 
                 # particulate:
-                bnew = h.a + ( k_ad * g.a - k_de * h.a + adscheme_p(h, u, p_upz_p, n_upz_p, p_upx, n_upx, hdx_i, hdz_i, S) ) * dt
+                h.a += ( k_ad * g.a - k_de * h.a 
+                             + adscheme(h, u, p_upz_p, n_upz_p, p_upx, n_upx, sinkrate = S) ) * dt
 
-                # store the (time) updated solution
-                g.a[:] = anew[:]
-                h.a[:] = bnew[:]
 
-                # fill boundary conditions
-                g.fillBCs(k_ad, Q, dt)
-                h.fillBCs()
+                g.fillBCs_d(k_ad, Q, dt)
+                h.fillBCs_p()
 
                 t += dt
 
         return g, h
 
 
-
-
-def flux_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i):
+def flux(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         """Flux based advection scheme
         """
-        # extract indices
-        nz = g.nz
-        nx = g.nx
-
-        # extract the velocities
-        uz = u[:, :, 0]
-        ux = u[:, :, 1]
-
-        # define fluxes
-        d_adv = np.zeros(np.shape(g.a))
-        fluxx = g.a * ux
-        fluxz = g.a * uz
-
-        # dissolved advective term:
-        d_adv[1:nz-1,1:nx-1] = ( (n_upx[1:nz-1, 0:nx-2]*(fluxx[1:nz-1, 0:nx-2] - fluxx[1:nz-1, 1:nx-1]) + p_upx[1:nz-1, 1:nx-1]*(fluxx[1:nz-1, 1:nx-1] - fluxx[1:nz-1, 2:nx]) ) * gdx_i + (n_upz[0:nz-2, 1:nx-1]*(fluxz[0:nz-2, 1:nx-1] - fluxz[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(fluxz[1:nz-1, 1:nx-1] - fluxz[2:nz, 1:nx-1]) ) * gdz_i )
-
-        return d_adv
-
-def flux_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, S):
-        """Flux based advection scheme
-        """
-        # extract indices
-        nz = h.nz
-        nx = h.nx
-
-        # extract the velocities
-        uz = u[:, :, 0] + S
-        ux = u[:, :, 1]
-
-        # define fluxes
-        p_adv = np.zeros(np.shape(h.a))
-        fluxx = h.a * ux
-        fluxz = h.a * uz
-
-        # particulate:
-        p_adv[1:nz-1, 1:nx-1] = (  ( n_upx[1:nz-1, 0:nx-2]*( fluxx[1:nz-1, 0:nx-2] - fluxx[1:nz-1, 1:nx-1] ) + p_upx[1:nz-1, 1:nx-1]*( fluxx[1:nz-1, 1:nx-1] - fluxx[1:nz-1, 2:nx]) ) * hdx_i + ( n_upz[0:nz-2, 1:nx-1]*( fluxz[0:nz-2, 1:nx-1] - fluxz[1:nz-1, 1:nx-1] ) +  p_upz[1:nz-1, 1:nx-1]*( fluxz[1:nz-1, 1:nx-1] - fluxz[2:nz, 1:nx-1] ) ) * hdz_i )
-
-        return p_adv
+	nz, nx = conc.nz, conc.nx
+	
+	vert_flux = conc.a * (u[0, :, :] + sinkrate)
+	horz_flux = conc.a * u[1, :, :]
+	
+	left_flux =  n_upx[1:nz-1, 0:nx-2] * ( horz_flux[1:nz-1, 0:nx-2] - horz_flux[1:nz-1, 1:nx-1] )
+	right_flux = p_upx[1:nz-1, 1:nx-1] * ( horz_flux[1:nz-1, 1:nx-1] - horz_flux[1:nz-1, 2:nx] )
+	up_flux = n_upz[0:nz-2, 1:nx-1] * ( vert_flux[0:nz-2, 1:nx-1] - vert_flux[1:nz-1, 1:nx-1] )
+        down_flux = p_upz[1:nz-1, 1:nx-1] * ( vert_flux[1:nz-1, 1:nx-1] - vert_flux[2:nz, 1:nx-1] )
+		    
+	adv = np.empty_like(conc.a)
+        adv[1:nz-1, 1:nx-1] = (left_flux + right_flux) * conc.dx_i + (up_flux + down_flux) * conc.dz_i
+                 
+        return adv
 
 
 def upstream_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i):
@@ -313,7 +170,7 @@ def upstream_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i):
         d_adv = np.zeros(np.shape(g.a))
 
         # dissolved advective term:
-        d_adv[1:nz-1, 1:nx-1] = ux[1:nz-1, 1:nx-1] * ( n_upx[1:nz-1, 0:nx-2]*(g.a[1:nz-1, 0:nx-2] - g.a[1:nz-1, 1:nx-1]) + p_upx[1:nz-1, 1:nx-1]*(g.a[1:nz-1, 1:nx-1] - g.a[1:nz-1, 2:nx]) ) * gdx_i + uz[1:nz-1, 1:nx-1] * ( n_upz[0:nz-2, 1:nx-1]*(g.a[0:nz-2, 1:nx-1] - g.a[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(g.a[1:nz-1, 1:nx-1] - g.a[2:nz, 1:nx-1]) ) * gdz_i 
+        d_adv[1:nz-1, 1:nx-1] = ux[1:nz-1, 1:nx-1] * ( n_upx[1:nz-1, 0:nx-2]*(g.a[1:nz-1, 0:nx-2] - g.a[1:nz-1, 1:nx-1]) + p_upx[1:nz-1, 1:nx-1]*(g.a[1:nz-1, 1:nx-1] - g.a[1:nz-1, 2:nx]) ) * g.dx_i + uz[1:nz-1, 1:nx-1] * ( n_upz[0:nz-2, 1:nx-1]*(g.a[0:nz-2, 1:nx-1] - g.a[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(g.a[1:nz-1, 1:nx-1] - g.a[2:nz, 1:nx-1]) ) * g.dz_i 
 
         return d_adv
 
@@ -333,7 +190,7 @@ def upstream_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, S):
         # define fluxes
         p_adv = np.zeros(np.shape(h.a))
 
-        p_adv[1:nz-1, 1:nx-1] = S * ( n_upz[1:nz-1, 1:nx-1]*(h.a[0:nz-2, 1:nx-1] - h.a[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(h.a[1:nz-1, 1:nx-1] - h.a[2:nz, 1:nx-1]) ) * hdz_i + ux[1:nz-1, 1:nx-1] * ( n_upx[1:nz-1, 0:nx-2]*(h.a[1:nz-1, 0:nx-2] - h.a[1:nz-1, 1:nx-1]) + p_upx[1:nz-1, 1:nx-1]*(h.a[1:nz-1, 1:nx-1] - h.a[1:nz-1, 2:nx]) ) * hdx_i + uz[1:nz-1, 1:nx-1] * ( n_upz[0:nz-2, 1:nx-1]*(h.a[0:nz-2, 1:nx-1] - h.a[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(h.a[1:nz-1, 1:nx-1] - h.a[2:nz, 1:nx-1]) ) * hdz_i 
+        p_adv[1:nz-1, 1:nx-1] = S * ( n_upz[1:nz-1, 1:nx-1]*(h.a[0:nz-2, 1:nx-1] - h.a[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(h.a[1:nz-1, 1:nx-1] - h.a[2:nz, 1:nx-1]) ) * h.dz_i + ux[1:nz-1, 1:nx-1] * ( n_upx[1:nz-1, 0:nx-2]*(h.a[1:nz-1, 0:nx-2] - h.a[1:nz-1, 1:nx-1]) + p_upx[1:nz-1, 1:nx-1]*(h.a[1:nz-1, 1:nx-1] - h.a[1:nz-1, 2:nx]) ) * h.dx_i + uz[1:nz-1, 1:nx-1] * ( n_upz[0:nz-2, 1:nx-1]*(h.a[0:nz-2, 1:nx-1] - h.a[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(h.a[1:nz-1, 1:nx-1] - h.a[2:nz, 1:nx-1]) ) * h.dz_i 
 
         return p_adv
 
