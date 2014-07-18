@@ -22,7 +22,7 @@ def zero(nz, nx):
 	return u
 
 
-def onecell_up(xmin, xmax, zmin, zmax, nx, nz, V):
+def onecell(xmin, xmax, zmin, zmax, nx, nz, V):
         """ u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
         :arg xmin: minimum x on the grid
@@ -37,23 +37,19 @@ def onecell_up(xmin, xmax, zmin, zmax, nx, nz, V):
         a = zmax
         b = zmax
         x = np.linspace(-a/2, a/2, nx)
-        hdz = 0.5*b/nz
+        #hdz = 0.5*b/nz
+        hdz = 0
         z = np.linspace(-b/2-hdz, b/2+hdz, nz+1)
         [xx, zz] = np.meshgrid(x, z)
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
         rr = np.sqrt(xx**2 + zz**2)
         idx = rr < a/2
-        #ux = np.zeros([nz+1, nx])
         uz = np.zeros([nz+1, nx])
-
-        #ux[idx] = -np.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
         uz[idx] = np.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
 
         # remove nans
         nanfill = np.zeros((nz, nx))
-        #id_nan = np.isnan(ux)
-        #ux[id_nan] = nanfill[id_nan]
         id_nan = np.isnan(uz)
         uz[id_nan] = nanfill[id_nan]
 
@@ -65,10 +61,8 @@ def onecell_up(xmin, xmax, zmin, zmax, nx, nz, V):
         u = np.zeros([2, nz, nx])
         u[0, :, :nx/2] = uz[0:nz, :nx/2] / np.max(uz) * V * zmax/xmax
         u[0, :, nx/2:] = uz[1:, nx/2:] / np.max(uz) * V * zmax/xmax
-        #u[1, :, :nx/2] = ux[0:nz, :nx/2] / np.max(ux) * V 
-        #u[1, :, nx/2:] = ux[1:, nx/2:] / np.max(ux) * V
 
-        # extract velocity components for upstream correction
+        # extract components for upstream correction
         uz = u[0, :, :]
         ux = np.zeros((nz,nx))
         
@@ -81,8 +75,7 @@ def onecell_up(xmin, xmax, zmin, zmax, nx, nz, V):
         j = 1
         while j <= nx-2:
             # note shift in p_upz and n_upz
-            ux[i, j] = ux[i, j - 1] + dx/dz* (( uz[i,j] - uz[i + 1, j])*p_upz[i, j] 
-                                               + (uz[i - 1, j] - uz[i,j])*n_upz[i-1, j])
+            ux[i, j] = ux[i, j - 1] + dx/dz* (( uz[i,j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i-1, j])
             j += 1
 
         # z < 0, ux < 0
@@ -124,7 +117,8 @@ def twocell(xmin, xmax, zmin, zmax, nx, nz, V):
         #nx should always be odd
         x[0:nx/2] = np.linspace(-a/2, a/2, nx/2)
         x[nx/2:] = np.linspace(a/2, -a/2, nx/2)
-        hdz = 0.5*b/nz
+        #hdz = 0.5*b/nz
+        hdz = 0
         z = np.linspace(-b/2-hdz, b/2+hdz, nz+1)
 	[xx, zz] = np.meshgrid(x, z)
 	zz[0:, nx/2:] = - zz[0:, nx/2:]  
