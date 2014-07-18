@@ -22,7 +22,7 @@ def zero(nz, nx):
 	return u
 
 
-def onecell(xmin, xmax, zmin, zmax, nx, nz, V):
+def onecell_up(xmin, xmax, zmin, zmax, nx, nz, V):
         """ u_simple computes a simple rotational, divergenceless flow field on a specified grid
 
         :arg xmin: minimum x on the grid
@@ -39,22 +39,21 @@ def onecell(xmin, xmax, zmin, zmax, nx, nz, V):
         x = np.linspace(-a/2, a/2, nx)
         hdz = 0.5*b/nz
         z = np.linspace(-b/2-hdz, b/2+hdz, nz+1)
-
         [xx, zz] = np.meshgrid(x, z)
+        dx = (xmax - xmin) / (nx - 1)
+        dz = (zmax - zmin) / (nz - 1)
         rr = np.sqrt(xx**2 + zz**2)
-
-        ux = np.zeros([nz+1, nx])
+        idx = rr < a/2
+        #ux = np.zeros([nz+1, nx])
         uz = np.zeros([nz+1, nx])
 
-        idx = rr < a/2
-
-        ux[idx] = -np.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
+        #ux[idx] = -np.sin(2*pi*rr[idx] / a) / rr[idx] * zz[idx]
         uz[idx] = np.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
 
         # remove nans
         nanfill = np.zeros((nz, nx))
-        id_nan = np.isnan(ux)
-        ux[id_nan] = nanfill[id_nan]
+        #id_nan = np.isnan(ux)
+        #ux[id_nan] = nanfill[id_nan]
         id_nan = np.isnan(uz)
         uz[id_nan] = nanfill[id_nan]
 
@@ -62,21 +61,14 @@ def onecell(xmin, xmax, zmin, zmax, nx, nz, V):
         uz[0:2,:] = 0.
         uz[nz-1:nz+1,:] = 0.
 
-
         # scale & store the solution in a matrix, shifting up and down
         u = np.zeros([2, nz, nx])
         u[0, :, :nx/2] = uz[0:nz, :nx/2] / np.max(uz) * V * zmax/xmax
         u[0, :, nx/2:] = uz[1:, nx/2:] / np.max(uz) * V * zmax/xmax
-        u[1, :, :nx/2] = ux[0:nz, :nx/2] / np.max(ux) * V 
-        u[1, :, nx/2:] = ux[1:, nx/2:] / np.max(ux) * V
+        #u[1, :, :nx/2] = ux[0:nz, :nx/2] / np.max(ux) * V 
+        #u[1, :, nx/2:] = ux[1:, nx/2:] / np.max(ux) * V
 
-	return u
-
-def onecell_c(u, xmin, xmax, zmin, zmax, nx, nz):
-        
-        """Correct the analytical solution to conserve mass discretely
-        """
-        # extract velocity components
+        # extract velocity components for upstream correction
         uz = u[0, :, :]
         ux = np.zeros((nz,nx))
         
@@ -84,11 +76,7 @@ def onecell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         p_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) - 1)
         n_upz = np.sign(uz[:-1]+uz[1:])*0.5*( np.sign(uz[:-1]+uz[1:]) + 1)
 
-        # set up vectorized correction 
-        dx = (xmax - xmin) / (nx - 1)
-        dz = (zmax - zmin) / (nz - 1)
-
-        # vectorize region where z > 0, ux > 0
+        # z > 0, ux > 0
         i = np.arange(1, nz/2, 1, dtype = int)
         j = 1
         while j <= nx-2:
@@ -97,13 +85,12 @@ def onecell_c(u, xmin, xmax, zmin, zmax, nx, nz):
                                                + (uz[i - 1, j] - uz[i,j])*n_upz[i-1, j])
             j += 1
 
-        # vectorize region z < 0, ux < 0
+        # z < 0, ux < 0
         i = np.arange(nz/2, nz - 1, 1, dtype = int)
         j = nx - 2
         while j >= 1:
             
-            ux[i, j] = ux[i, j + 1] - dx/dz* ((uz[i,j] - uz[i + 1, j]) *p_upz[i, j] 
-                                              + (uz[i - 1, j] - uz[i,j])*n_upz[i-1, j])
+            ux[i, j] = ux[i, j + 1] - dx/dz* ((uz[i,j] - uz[i + 1, j]) *p_upz[i, j] + (uz[i - 1, j] - uz[i,j])*n_upz[i-1, j])
             j -= 1
 
         # store result
