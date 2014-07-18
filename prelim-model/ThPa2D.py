@@ -121,14 +121,11 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
         while (t < T):
 
                 # dissolved:
-                g.a += ( Q - k_ad * g.a + k_de * h.a 
-                             + adscheme(g, u, p_upz_d, n_upz_d, p_upx, n_upx, sinkrate = 0) ) * dt
+                g.a += ( Q - k_ad * g.a + k_de * h.a + adscheme(g, u, p_upz_d, n_upz_d, p_upx, n_upx, sinkrate = 0) ) * dt
 
                 # particulate:
-                h.a += ( k_ad * g.a - k_de * h.a 
-                             + adscheme(h, u, p_upz_p, n_upz_p, p_upx, n_upx, sinkrate = S) ) * dt
-
-
+                h.a += ( k_ad * g.a - k_de * h.a + adscheme(h, u, p_upz_p, n_upz_p, p_upx, n_upx, sinkrate = S) ) * dt
+                
                 g.fillBCs_d(k_ad, Q, dt)
                 h.fillBCs_p()
 
@@ -156,46 +153,28 @@ def flux(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         return adv
 
 
-def upstream_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i):
+def upstream(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
 
         # extract indices
-        nz = g.nz
-        nx = g.nx
+        nz = conc.nz
+        nx = conc.nx
 
         # extract the velocities
-        uz = u[:, :, 0]
-        ux = u[:, :, 1]
+        uz = u[0, :, :] + sinkrate
+        ux = u[1, :, :]
 
         # define fluxes
-        d_adv = np.zeros(np.shape(g.a))
+        adv = np.empty_like(conc.a)
+
+        left_grad = n_upx[1:nz-1, 0:nx-2]*(conc.a[1:nz-1, 0:nx-2] - conc.a[1:nz-1, 1:nx-1])
+        right_grad = p_upx[1:nz-1, 1:nx-1]*(conc.a[1:nz-1, 1:nx-1] - conc.a[1:nz-1, 2:nx])
+        up_grad = n_upz[0:nz-2, 1:nx-1]*(conc.a[0:nz-2, 1:nx-1] - conc.a[1:nz-1, 1:nx-1])
+        down_grad = p_upz[1:nz-1, 1:nx-1]*(conc.a[1:nz-1, 1:nx-1] - conc.a[2:nz, 1:nx-1])
 
         # dissolved advective term:
-        d_adv[1:nz-1, 1:nx-1] = ux[1:nz-1, 1:nx-1] * ( n_upx[1:nz-1, 0:nx-2]*(g.a[1:nz-1, 0:nx-2] - g.a[1:nz-1, 1:nx-1]) + p_upx[1:nz-1, 1:nx-1]*(g.a[1:nz-1, 1:nx-1] - g.a[1:nz-1, 2:nx]) ) * g.dx_i + uz[1:nz-1, 1:nx-1] * ( n_upz[0:nz-2, 1:nx-1]*(g.a[0:nz-2, 1:nx-1] - g.a[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(g.a[1:nz-1, 1:nx-1] - g.a[2:nz, 1:nx-1]) ) * g.dz_i 
+        adv[1:nz-1, 1:nx-1] = sinkrate * ( up_grad + down_grad ) * conc.dz_i + ux[1:nz-1, 1:nx-1] * ( left_grad + right_grad ) * conc.dx_i + uz[1:nz-1, 1:nx-1] * ( up_grad + down_grad ) * conc.dz_i 
 
-        return d_adv
-
-
-
-
-def upstream_p(h, u, p_upz, n_upz, p_upx, n_upx, hdx_i, hdz_i, S):
-
-        # extract indices
-        nz = h.nz
-        nx = h.nx
-
-        # extract the velocities
-        uz = u[:, :, 0] + S
-        ux = u[:, :, 1]
-
-        # define fluxes
-        p_adv = np.zeros(np.shape(h.a))
-
-        p_adv[1:nz-1, 1:nx-1] = S * ( n_upz[1:nz-1, 1:nx-1]*(h.a[0:nz-2, 1:nx-1] - h.a[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(h.a[1:nz-1, 1:nx-1] - h.a[2:nz, 1:nx-1]) ) * h.dz_i + ux[1:nz-1, 1:nx-1] * ( n_upx[1:nz-1, 0:nx-2]*(h.a[1:nz-1, 0:nx-2] - h.a[1:nz-1, 1:nx-1]) + p_upx[1:nz-1, 1:nx-1]*(h.a[1:nz-1, 1:nx-1] - h.a[1:nz-1, 2:nx]) ) * h.dx_i + uz[1:nz-1, 1:nx-1] * ( n_upz[0:nz-2, 1:nx-1]*(h.a[0:nz-2, 1:nx-1] - h.a[1:nz-1, 1:nx-1]) + p_upz[1:nz-1, 1:nx-1]*(h.a[1:nz-1, 1:nx-1] - h.a[2:nz, 1:nx-1]) ) * h.dz_i 
-
-        return p_adv
-
-
-
+        return adv
 
 
 def TVD_d(g, u, p_upz, n_upz, p_upx, n_upx, gdx_i, gdz_i):
