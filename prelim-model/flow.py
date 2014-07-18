@@ -9,11 +9,8 @@ from math import pi
 
 def zero(nz, nx):
 	""" Produce a matrix of zeros on the input grid
-
 	:arg nx: number of points in x dimension
-
 	:arg nz: number of points in z dimension
-
 	"""
 
 	# store the solution in a matrix
@@ -22,23 +19,20 @@ def zero(nz, nx):
 	return u
 
 
-def onecell(xmin, xmax, zmin, zmax, nx, nz, V):
+def onecell_up(xmin, xmax, zmin, zmax, nx, nz, V):
         """ u_simple computes a simple rotational, divergenceless flow field on a specified grid
-
         :arg xmin: minimum x on the grid
         :arg xmax: maximum x on the grid
         :arg zmin: minimum z on the grid
         :arg zmax: maximum z on the grid
         :arg nx: number of points in x dimension
         :arg nz: number of points in z dimension	
-
         """
         # define velocity on square grid, then scale onto rectangular grid. 
         a = zmax
         b = zmax
         x = np.linspace(-a/2, a/2, nx)
-        #hdz = 0.5*b/nz
-        hdz = 0
+        hdz = 0.5*b/nz
         z = np.linspace(-b/2-hdz, b/2+hdz, nz+1)
         [xx, zz] = np.meshgrid(x, z)
         dx = (xmax - xmin) / (nx - 1)
@@ -91,22 +85,67 @@ def onecell(xmin, xmax, zmin, zmax, nx, nz, V):
 
         return u
 
+def onecell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
+        """compute a single-cell rotational field and correct to conserve mass in centred scheme
+        :arg xmin: minimum x on the grid
+        :arg xmax: maximum x on the grid
+        :arg zmin: minimum z on the grid
+        :arg zmax: maximum z on the grid
+        :arg nx: number of points in x dimension
+        :arg nz: number of points in z dimension	
+        """
+        # define velocity on square grid, then scale onto rectangular grid. 
+        a = zmax
+        b = zmax
+        x = np.linspace(-a/2, a/2, nx)
+        z = np.linspace(-b/2, b/2, nz+1)
+        [xx, zz] = np.meshgrid(x, z)
+        dx = (xmax - xmin) / (nx - 1)
+        dz = (zmax - zmin) / (nz - 1)
+        rr = np.sqrt(xx**2 + zz**2)
+        idx = rr < a/2
+        uz = np.zeros([nz+1, nx])
+        uz[idx] = np.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
+
+        # remove nans
+        nanfill = np.zeros((nz, nx))
+        id_nan = np.isnan(uz)
+        uz[id_nan] = nanfill[id_nan]
+
+        # scale & store the solution in a matrix, shifting up and down
+        u = np.zeros([2, nz, nx])
+        u[0, :, :nx/2] = uz[0:nz, :nx/2] / np.max(uz) * V * zmax/xmax
+        u[0, :, nx/2:] = uz[1:, nx/2:] / np.max(uz) * V * zmax/xmax
+
+        # extract components for centred correction
+        uz = u[0, :, :]
+        ux = np.zeros((nz,nx))
+
+        # z > 0, ux > 0
+        i = np.arange(1, nz - 1, 1, dtype = int)
+        j = 1
+        while j <= nx-2:
+            
+            # note shift in p_upz and n_upz
+            
+            ux[i, j + 1] = ux[i, j - 1] - dx/dz* ( uz[i + 1,j] - uz[i - 1, j])
+            
+            j += 1
+
+        # store result
+        u[1, :, :] = ux
+
+        return u
+
 
 def twocell(xmin, xmax, zmin, zmax, nx, nz, V):
 	""" u_complex complex computes a rotational, downwelling velocity field
-
 	:arg xmin: minimum x on the grid
-
 	:arg xmax: maximum x on the grid
-
 	:arg zmin: minimum z on the grid
-
 	:arg zmax: maximum z on the grid
-
 	:arg nx: number of points in x dimension
-
 	:arg nz: number of points in z dimension
-
 	"""
 
 	# define a grid that will produce downwelling
@@ -161,7 +200,6 @@ def twocell(xmin, xmax, zmin, zmax, nx, nz, V):
 def twocell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         """Correct the complex velocity field to conserve mass on grid-by-grid basis
         """
-
         # extract velocities for redefinition
         ux = u[1, :,:]
         uz = u[0, :,:]
@@ -208,15 +246,11 @@ def twocell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         
         return u
 
-def divtest(u, xmax, xmin, zmax, zmin, nx, nz, n_upz, p_upz, n_upx, p_upx):
+def divtest_up(conc, u, nx, nz, n_upz, p_upz, n_upx, p_upx):
         """compute the divergence of any field on any grid in an upstream scheme
         """
         ux = u[1, :,:]
         uz = u[0, :,:]
-
-        # set up vectorized correction \n",
-        dx = (xmax - xmin) / (nx - 1)
-        dz = (zmax - zmin) / (nz - 1) 
 
         # QUAD 1
         i = np.arange(1, nz - 1, 1, dtype = int)
@@ -224,7 +258,7 @@ def divtest(u, xmax, xmin, zmax, zmin, nx, nz, n_upz, p_upz, n_upx, p_upx):
         div = np.zeros((nz, nx))
         while j <= nx - 2:
 
-            div[i,j] = dz * ( (ux[i, j] - ux[i, j + 1])*p_upx[i, j] + (ux[i, j - 1] - ux[i, j])*n_upx[i, j - 1] ) + dx * ( (uz[i, j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i, j])*n_upz[i-1, j] )
+            div[i,j] = conc.dz * ( (ux[i, j] - ux[i, j + 1])*p_upx[i, j] + (ux[i, j - 1] - ux[i, j])*n_upx[i, j - 1] ) + conc.dx * ( (uz[i, j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i, j])*n_upz[i-1, j] )
             j += 1    
 
 
@@ -233,5 +267,20 @@ def divtest(u, xmax, xmin, zmax, zmin, nx, nz, n_upz, p_upz, n_upx, p_upx):
         divplot = plb.pcolormesh(div)
         plb.colorbar(divplot)
         plb.gca().invert_yaxis()
+
+        return divplot
+
+def divtest_cen(conc, u, nx, nz):
+        """compute divergence using centred scheme
+        """
+        ux = u[1,:,:]
+        uz = u[0,:,:]
+        i = np.arange(1, nz - 1)
+        j = np.arange(1, nx - 1)
+        div = np.zeros((nz, nx))
+        div[1:nz-2, 1:nx-2] = (ux[1:nz-2, 2:nx-1] - ux[1:nz-2, 0:nx-3])/(2*conc.dx) + (uz[2:nz-1, 1:nx-2] - uz[0:nz-3, 1:nx-2])/(2*conc.dz)
+        #plot results
+        divplot = plb.pcolormesh(div)
+        plb.colorbar(divplot)
 
         return divplot

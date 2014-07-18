@@ -66,30 +66,21 @@ class Fgrid:
 def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	"""
 	Compute and store the dissolved and particulate [Th] profiles, write them to a file, plot the results.
-
         :arg t: scale for time at which code is initiated
         :type t: int
-
 	:arg T: scale for time at which code is terminated
 	:typeT: int
-
 	:arg V: scale for ux, uz, which are originally order 1.
 	:type V: int
-
 	:arg u: 3D tensor of shape (nz, nx, 2), z component of velocity in (:, :, 1), x component of velocity in (:, :, 2) 
 	:type u: float
-
 	:arg k_ad: nz x nx adsorption rate matrix
 	:type k_ad: float
-
 	:arg k_de: nz x nx adsorption rate matrix
 	:type k_de: float
-
 	:arg nx, nz: size of the arrays
 	:type nx, nz: int
-
 	"""
-
 	# define the CFL, sink velocity, and reaction constant
         S = 500 
 
@@ -297,21 +288,13 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
 
 def k_sorp(string, zmin, zmax, nx, nz):
 	""" Computes adsorption,desorption, & production constants for either Th or Pa
-
 	:arg string: a string, either 'Th' or 'Pa'
-
 	:arg xmin: minimum x on the grid
-
 	:arg xmax: maximum x on the grid
-
 	:arg zmin: minimum z on the grid
-
 	:arg zmax: maximum z on the grid
-
 	:arg nx: number of points in x dimension
-
 	:arg nz: number of points in z dimension
-	
 	"""
         # spatial coordinates
         dz = (zmax - zmin) / (nz - 1)
