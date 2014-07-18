@@ -17,7 +17,7 @@ def zero(nz, nx):
 	"""
 
 	# store the solution in a matrix
-	u = np.zeros([nz, nx, 2])
+	u = np.zeros([2, nz, nx])
 
 	return u
 
