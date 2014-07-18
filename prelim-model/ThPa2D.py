@@ -239,13 +239,12 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         xbetado = (tau_up - xdo) / xneg #* dz/dt
         # remove nans
         zeros = np.zeros(np.shape(zbetaup))
-        idx = np.isnan(zbetaup)
+        idx = np.isinf(zbetaup)
         zbetaup[idx] = 0
-        idx = np.isnan(zbetado)
+        idx = np.isinf(zbetado)
         zbetado[idx] = 0
-        idx = np.isnan(xbetaup)
+        idx = np.isinf(xbetaup)
         xbetaup[idx] = 0
-        idx = np.isnan(xbetado)
         xbetado[idx] = 0
 
         # calculate zau & xau
@@ -292,7 +291,7 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
 
         # final sol.
         adv = np.zeros((nz, nx))
-        adv[1:nz-1, 1:nx-1] = tau_up[1:nz-1, 1:nx-1] +  (aax[1:nz-1, 0:nx-2] - aax[1:nz-1, 1:nx-1]) * gdx_i + (aaz[0:nz-2, 1:nx-1] - aaz[1:nz-1, 1:nx-1]) * gdz_i 
+        adv[1:nz-1, 1:nx-1] = tau_up[1:nz-1, 1:nx-1] +  (aax[1:nz-1, 0:nx-2] - aax[1:nz-1, 1:nx-1]) * conc.dx_i + (aaz[0:nz-2, 1:nx-1] - aaz[1:nz-1, 1:nx-1]) * conc.dz_i 
                
         return adv
 
