@@ -147,7 +147,7 @@ def flux(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
 	up_flux = n_upz[0:nz-2, 1:nx-1] * ( vert_flux[0:nz-2, 1:nx-1] - vert_flux[1:nz-1, 1:nx-1] )
         down_flux = p_upz[1:nz-1, 1:nx-1] * ( vert_flux[1:nz-1, 1:nx-1] - vert_flux[2:nz, 1:nx-1] )
 		    
-	adv = np.empty_like(conc.a)
+	adv = np.zeros((conc.nz, conc.nx))
         adv[1:nz-1, 1:nx-1] = (left_flux + right_flux) * conc.dx_i + (up_flux + down_flux) * conc.dz_i
                  
         return adv
@@ -185,8 +185,8 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         nx = conc.nx
 
         # extract velocity
-        uz = u[:,:,0]
-        ux = u[:,:,1]
+        uz = u[0,:,:]
+        ux = u[1,:,:]
 
         # define upstream flux (in multi-directional flux field)
         fluxx_up = np.zeros((nz, nx))
