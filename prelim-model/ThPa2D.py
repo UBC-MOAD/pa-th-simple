@@ -183,7 +183,7 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         # define grid
         nz = conc.nz
         nx = conc.nx
-
+        dt = 0.001
         # extract velocity
         uz = u[0,:,:]
         ux = u[1,:,:]
@@ -233,51 +233,49 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         zneg[1:nz - 1, 0:nx - 1] = pfluxz[1:nz - 1, 0:nx - 1] * adfz[1:nz - 1, 0:nx - 1] - nfluxz[0:nz - 2, 0:nx - 1] * adfz[0:nz - 2, 0:nx - 1]
 
         # calculate the Zalesak parameter
-        zbetaup = (zup - tau_up) / zpos #* dx/dt                                                 # C / (C m/s) * m/s = non dimensional
-        zbetado = (tau_up - zdo) / zneg #* dx/dt
-        xbetaup = (xup - tau_up) / xpos #* dz/dt                                                 # C / (C m/s) * m/s = non dimensional
-        xbetado = (tau_up - xdo) / xneg #* dz/dt
-        # remove nans
+        zbetaup = (zup - tau_up) / zpos #* conc.dx/dt                                                 # C / (C m/s) * m/s = non dimensional
+        zbetado = (tau_up - zdo) / zneg #* conc.dx/dt
+        xbetaup = (xup - tau_up) / xpos #* conc.dz/dt
+        xbetado = (tau_up - xdo) / xneg #* conc.dz/dt
+        # remove nans and infs
         zeros = np.zeros(np.shape(zbetaup))
-        idx = np.isinf(zbetaup)
+        idx = np.isnan(zbetaup)
+        idx = idx + np.isinf(zbetaup)
         zbetaup[idx] = 0
-        idx = np.isinf(zbetado)
+        idx = np.isnan(zbetado)
+        idx = idx + np.isinf(zbetado)
         zbetado[idx] = 0
-        idx = np.isinf(xbetaup)
+        idx = np.isnan(xbetaup)
+        idx = idx + np.isinf(xbetaup)
         xbetaup[idx] = 0
+        idx = np.isnan(xbetado)
+        idx = idx + np.isinf(xbetado)
         xbetado[idx] = 0
 
-        # calculate zau & xau
+        # calculate zau, xau, zbu, xbu
         # =one by default
         zau = np.ones((nz, nx))
         xau = np.ones((nz, nx))
+        zbu = np.ones((nz, nx))
+        xbu = np.ones((nz, nx))
         # =zbetado if zbetado < 1
         zau[zbetado < 1] = zbetado[zbetado < 1]                           # non dim and on the flux points
         xau[xbetado < 1] = xbetado[xbetado < 1]                           # non dim and on the flux points
+        zbu[zbetaup < 1] = zbetaup[zbetaup < 1]                           # non dim and on the flux points
+        xbu[xbetaup < 1] = xbetaup[xbetaup < 1]                           # non dim and on the flux points
         # shift zbetaup by one index
         zbetaup[0:nz - 1, 0:nx - 2] = zbetaup[0:nz - 1, 1:nx - 1]
         xbetaup[0:nz - 2, 0:nx - 1] = xbetaup[1:nz - 1, 0:nx - 1]
-        # =zbetaup if zbetaup[:, j + 1] < zbetado[:, j]
-        zau[zbetaup < zbetado] = zbetaup[zbetaup < zbetado]
-        xau[xbetaup < xbetado] = xbetaup[xbetaup < xbetado]
-        # set last column to zero since it's out of range
-        zau[:, nx - 1] = 0
-        xau[nz - 1, :] = 0
-
-        # calculate zbu & xbu
-        # =one by default
-        zbu = np.ones((nz, nx))
-        xbu = np.ones((nz, nx))
-        # =zbetaup if zbetaup < 1
-        zbu[zbetaup < 1] = zbetaup[zbetaup < 1]                           # non dim and on the flux points
-        xbu[xbetaup < 1] = xbetaup[xbetaup < 1]                           # non dim and on the flux points
-        # shift zbetado by one index
         zbetado[0:nz - 1, 0:nx - 2] = zbetado[0:nz - 1, 1:nx - 1]
         xbetado[0:nz - 2, 0:nx - 1] = xbetado[1:nz - 1, 0:nx - 1]
         # =zbetaup if zbetaup[:, j + 1] < zbetado[:, j]
+        zau[zbetaup < zbetado] = zbetaup[zbetaup < zbetado]
+        xau[xbetaup < xbetado] = xbetaup[xbetaup < xbetado]
         zbu[zbetado < zbetaup] = zbetaup[zbetado < zbetaup]
         xbu[xbetado < xbetaup] = xbetaup[xbetado < xbetaup]
         # set last column to zero since it's out of range
+        zau[:, nx - 1] = 0
+        xau[nz - 1, :] = 0
         zbu[:, nx - 1] = 0
         xbu[nz - 1, :] = 0
 
@@ -292,6 +290,7 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         # final sol.
         adv = np.zeros((nz, nx))
         adv[1:nz-1, 1:nx-1] = tau_up[1:nz-1, 1:nx-1] +  (aax[1:nz-1, 0:nx-2] - aax[1:nz-1, 1:nx-1]) * conc.dx_i + (aaz[0:nz-2, 1:nx-1] - aaz[1:nz-1, 1:nx-1]) * conc.dz_i 
+
                
         return adv
 
