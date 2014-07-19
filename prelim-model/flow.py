@@ -95,13 +95,13 @@ def onecell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
         a = zmax
         b = zmax
         x = np.linspace(-a/2, a/2, nx)
-        z = np.linspace(-b/2, b/2, nz+1)
+        z = np.linspace(-b/2, b/2, nz)
         [xx, zz] = np.meshgrid(x, z)
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
         rr = np.sqrt(xx**2 + zz**2)
         idx = rr < a/2
-        uz = np.zeros([nz+1, nx])
+        uz = np.zeros([nz, nx])
         uz[idx] = np.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
 
         # remove nans
@@ -111,8 +111,7 @@ def onecell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
 
         # scale & store the solution in a matrix, shifting up and down
         u = np.zeros([2, nz, nx])
-        u[0, :, :nx/2] = uz[0:nz, :nx/2] / np.max(uz) * V * zmax/xmax
-        u[0, :, nx/2:] = uz[1:, nx/2:] / np.max(uz) * V * zmax/xmax
+        u[0] = uz / np.max(uz) * V * zmax/xmax
 
         # extract components for centred correction
         uz = u[0, :, :]
