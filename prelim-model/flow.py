@@ -12,12 +12,9 @@ def zero(nz, nx):
 	:arg nx: number of points in x dimension
 	:arg nz: number of points in z dimension
 	"""
-
 	# store the solution in a matrix
 	u = np.zeros([2, nz, nx])
-
 	return u
-
 
 def onecell_up(xmin, xmax, zmin, zmax, nx, nz, V):
         """ u_simple computes a simple rotational, divergenceless flow field on a specified grid
@@ -121,16 +118,20 @@ def onecell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
         uz = u[0, :, :]
         ux = np.zeros((nz,nx))
 
-        # z > 0, ux > 0
         i = np.arange(1, nz - 1, 1, dtype = int)
         j = 1
-        while j <= nx-2:
-            
-            # note shift in p_upz and n_upz
-            
+        while j <= nx/2:
+
             ux[i, j + 1] = ux[i, j - 1] - dx/dz* ( uz[i + 1,j] - uz[i - 1, j])
             
             j += 1
+
+        j = nx - 2
+        while j >= nx/2 + 1:
+
+            ux[i, j - 1] = ux[i, j + 1] + dx/dz* ( uz[i + 1,j] - uz[i - 1, j])
+            
+            j -= 1
 
         # store result
         u[1, :, :] = ux
