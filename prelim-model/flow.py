@@ -117,20 +117,14 @@ def onecell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
         uz = u[0, :, :]
         ux = np.zeros((nz,nx))
 
+        # vectorize in z, redefine u[j+1] with u[j-1] 
         i = np.arange(1, nz - 1, 1, dtype = int)
         j = 1
-        while j <= nx/2:
-
+        while j <= nx-2:
+            
             ux[i, j + 1] = ux[i, j - 1] - dx/dz* ( uz[i + 1,j] - uz[i - 1, j])
             
             j += 1
-
-        j = nx - 2
-        while j >= nx/2 + 1:
-
-            ux[i, j - 1] = ux[i, j + 1] + dx/dz* ( uz[i + 1,j] - uz[i - 1, j])
-            
-            j -= 1
 
         # store result
         u[1, :, :] = ux
@@ -246,11 +240,17 @@ def twocell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         
         return u
 
-def divtest_up(conc, u, nx, nz, n_upz, p_upz, n_upx, p_upx):
+def divtest_up(conc, u, nx, nz):
         """compute the divergence of any field on any grid in an upstream scheme
         """
         ux = u[1, :,:]
         uz = u[0, :,:]
+
+        # define upstream
+        p_upz = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) - 1)
+        n_upz = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) + 1)
+        p_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) - 1)
+        n_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) + 1)
 
         # QUAD 1
         i = np.arange(1, nz - 1, 1, dtype = int)
