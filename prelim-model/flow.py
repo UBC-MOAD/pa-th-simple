@@ -265,9 +265,6 @@ def twocell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
         
         return u
 
-
-
-
 def divtest_up(conc, u, nx, nz):
         """compute the divergence of any field on any grid in an upstream scheme
         independent of concentration phase, since it is only input for conc.dx&z, and both are defined on the same grid.
@@ -290,7 +287,6 @@ def divtest_up(conc, u, nx, nz):
             div[i,j] = conc.dz * ( (ux[i, j] - ux[i, j + 1])*p_upx[i, j] + (ux[i, j - 1] - ux[i, j])*n_upx[i, j - 1] ) + conc.dx * ( (uz[i, j] - uz[i + 1, j])*p_upz[i, j] + (uz[i - 1, j] - uz[i, j])*n_upz[i-1, j] )
             j += 1    
 
-
         # plot the results
         plb.figure(figsize = (25, 5))
         divplot = plb.pcolormesh(div)
@@ -308,6 +304,7 @@ def divtest_cen(conc, u, nx, nz):
         j = np.arange(1, nx - 1)
         div = np.zeros((nz, nx))
         div[1:nz-2, 1:nx-2] = (ux[1:nz-2, 2:nx-1] - ux[1:nz-2, 0:nx-3])/(2*conc.dx) + (uz[2:nz-1, 1:nx-2] - uz[0:nz-3, 1:nx-2])/(2*conc.dz)
+
         #plot results
         divplot = plb.pcolormesh(div)
         plb.colorbar(divplot)
