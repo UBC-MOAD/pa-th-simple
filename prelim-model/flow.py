@@ -132,7 +132,7 @@ def onecell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
         return u
 
 
-def twocell(xmin, xmax, zmin, zmax, nx, nz, V):
+def twocell_up(xmin, xmax, zmin, zmax, nx, nz, V):
 	""" u_complex complex computes a rotational, downwelling velocity field
 	:arg xmin: minimum x on the grid
 	:arg xmax: maximum x on the grid
@@ -141,42 +141,29 @@ def twocell(xmin, xmax, zmin, zmax, nx, nz, V):
 	:arg nx: number of points in x dimension
 	:arg nz: number of points in z dimension
 	"""
-
 	# define a grid that will produce downwelling
 	a = zmax
 	b = zmax
 	x = np.zeros(nx)
-
-        #nx should always be odd
         x[0:nx/2] = np.linspace(-a/2, a/2, nx/2)
         x[nx/2:] = np.linspace(a/2, -a/2, nx/2)
-        #hdz = 0.5*b/nz
-        hdz = 0
+        hdz = 0.5*b/nz
         z = np.linspace(-b/2-hdz, b/2+hdz, nz+1)
 	[xx, zz] = np.meshgrid(x, z)
 	zz[0:, nx/2:] = - zz[0:, nx/2:]  
 	rr = np.sqrt(xx**2 + zz**2)
 	ux = np.zeros((nz+1, nx))
 	uz = np.zeros((nz+1, nx))
-
-	# use logical indexing to define points of non-zero velocity
 	idx = rr < a/2
-
-        ux[idx] = np.sin(2*pi*rr[idx] / a) / rr[idx] * -zz[idx]
-
+        # z velocity
         uz[idx] = -np.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
-
         # remove nans
         nanfill = np.zeros((nz, nx))
-        id_nan = np.isnan(ux)
-        ux[id_nan] = nanfill[id_nan]
         id_nan = np.isnan(uz)
         uz[id_nan] = nanfill[id_nan]
-
         # make sure top two and bottom two rows are zero
         uz[0:2,:] = 0.
         uz[nz-1:nz+1,:] = 0.
-
         # scale & store the solution in a matrix, shifting up and down
         u = np.zeros([2, nz, nx])
         u[0, :, :nx/4] = uz[0:nz, :nx/4] / np.max(uz) * V * zmax/xmax
@@ -184,16 +171,6 @@ def twocell(xmin, xmax, zmin, zmax, nx, nz, V):
         u[0, :, nx/2:] = uz[1:, nx/2:] / np.max(uz) * V * zmax/xmax
         u[0, :, 3*nx/4:] = uz[0:nz, 3*nx/4:] / np.max(uz) * V * zmax/xmax
 
-        u[1, :, :nx/4] = ux[0:nz, :nx/4] / np.max(ux) * V 
-        u[1, :, nx/4:] = ux[1:, nx/4:] / np.max(ux) * V
-        u[1, :, nx/2:] = ux[1:, nx/2:] / np.max(ux) * V 
-        u[1, :, 3*nx/4:] = ux[0:nz, 3*nx/4:] / np.max(ux) * V
-
-	return u
-
-def twocell_c(u, xmin, xmax, zmin, zmax, nx, nz):
-        """Correct the complex velocity field to conserve mass on grid-by-grid basis
-        """
         # extract velocities for redefinition
         ux = u[1, :,:]
         uz = u[0, :,:]
@@ -203,9 +180,6 @@ def twocell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         n_upz = np.sign(uz[:-1, :]+uz[1:, :])*0.5*( np.sign(uz[:-1, :]+uz[1:, :]) + 1)
         p_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) - 1)
         n_upx = np.sign(ux[:, :-1]+ux[:, 1:])*0.5*( np.sign(ux[:, :-1]+ux[:, 1:]) + 1)
-
-        #define ux = 0 everywhere, define it using uz 
-        ux = np.zeros((nz, nx))
 
         # spatial step
         dx = (xmax - xmin) / (nx - 1)
@@ -240,8 +214,63 @@ def twocell_c(u, xmin, xmax, zmin, zmax, nx, nz):
         
         return u
 
+
+
+def twocell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
+	""" u_complex complex computes a rotational, downwelling velocity field
+	:arg xmin: minimum x on the grid
+	:arg xmax: maximum x on the grid
+	:arg zmin: minimum z on the grid
+	:arg zmax: maximum z on the grid
+	:arg nx: number of points in x dimension
+	:arg nz: number of points in z dimension
+	"""
+	# define a grid that will produce downwelling
+	a = zmax
+	b = zmax
+	x = np.zeros(nx)
+        x[0:nx/2] = np.linspace(-a/2, a/2, nx/2)
+        x[nx/2:] = np.linspace(a/2, -a/2, nx/2)
+        z = np.linspace(-b/2, b/2, nz)
+	[xx, zz] = np.meshgrid(x, z)
+	zz[0:, nx/2:] = - zz[0:, nx/2:]  
+	rr = np.sqrt(xx**2 + zz**2)
+	uz = np.zeros((nz, nx))
+	idx = rr < a/2
+        # z velocity
+        uz[idx] = -np.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
+        # remove nans
+        nanfill = np.zeros((nz, nx))
+        id_nan = np.isnan(uz)
+        uz[id_nan] = nanfill[id_nan]
+        # store solution in a tensor
+        u = np.zeros([2, nz, nx])
+        ux = u[1,:,:]
+        u[0,:,:] = uz
+        # spatial step
+        dx = (xmax - xmin) / (nx - 1)
+        dz = (zmax - zmin) / (nz - 1)
+
+        # vectorize in z, redefine u[j+1] with u[j-1] 
+        i = np.arange(1, nz - 1, 1, dtype = int)
+        j = 1
+        while j <= nx-2:
+            
+            ux[i, j + 1] = ux[i, j - 1] - dx/dz* ( uz[i + 1,j] - uz[i - 1, j])
+            
+            j += 1
+            
+        # store solution
+        u[1, :,:] = ux
+        
+        return u
+
+
+
+
 def divtest_up(conc, u, nx, nz):
         """compute the divergence of any field on any grid in an upstream scheme
+        independent of concentration phase, since it is only input for conc.dx&z, and both are defined on the same grid.
         """
         ux = u[1, :,:]
         uz = u[0, :,:]
