@@ -180,10 +180,9 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         ux = u[1,:,:]
 
         # define upstream flux (in multi-directional flux field)
-        fluxx_up = np.zeros((nz, nx))
-        fluxx_up[1:nz-2, 1:nx-2] = ux[1:nz-2, 0:nx-3]*conc.a[1:nz-2, 0:nx-3] * n_upx[1:nz-2, 1:nx-2] + ux[1:nz-2, 2:nx-1]*conc.a[1:nz-2, 2:nx-1] * p_upx[1:nz-2, 1:nx-2]
-        fluxz_up = np.zeros((nz, nx))
-        fluxz_up[1:nz-2, 1:nx-2] = uz[0:nz-3, 1:nx-2]*conc.a[0:nz-3, 1:nx-2] * n_upz[1:nz-2, 1:nx-2] + uz[2:nz-1, 1:nx-2]*conc.a[2:nz-1, 1:nx-2] * p_upz[1:nz-2, 1:nx-2]
+        fluxx_up = np.zeros((nz, nx));         fluxz_up = np.zeros((nz, nx))
+        fluxx_up[:, 1:nx-2] = ux[:, 0:nx-3]*conc.a[:, 0:nx-3] * n_upx[:, 0:nx-3] + ux[:, 2:nx-1]*conc.a[:, 2:nx-1] * p_upx[:, 2:nx-1]
+        fluxz_up[1:nz-2, :] = uz[0:nz-3, :]*conc.a[0:nz-3, :] * n_upz[0:nz-3, :] + uz[2:nz-1, :]*conc.a[2:nz-1, :] * p_upz[2:nz-1, :]
 
         # d(conc)/dt based on upstream-flux method
         tau_up = np.zeros((nz, nx))
