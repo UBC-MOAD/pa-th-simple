@@ -193,8 +193,8 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
 
         # define centred flux
         fluxx_cen = np.zeros((nz, nx));         fluxz_cen = np.zeros((nz, nx))
-        fluxx_cen[:, 0:nx-1] = 0.5 * ( conc.a[:, 0:nx-1]*ux[:, 0:nx-1] - conc.a[:, 1:nx]*ux[:, 1:nx] ) 
-        fluxz_cen[0:nz-1, :] = 0.5 * ( conc.a[0:nz-1, :]*uz[0:nz-1, :] - conc.a[1:nz, :]*uz[1:nz, :] )
+        fluxx_cen[:, 0:nx-1] = 0.5 * ( conc.a[:, 0:nx-1]*ux[:, 0:nx-1] + conc.a[:, 1:nx]*ux[:, 1:nx] ) 
+        fluxz_cen[0:nz-1, :] = 0.5 * ( conc.a[0:nz-1, :]*uz[0:nz-1, :] + conc.a[1:nz, :]*uz[1:nz, :] )
 
         # define anti-diffusive flux; shape =  [nz, nx]
         adfx = fluxx_cen - fluxx_up
@@ -244,6 +244,11 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         idx = np.isnan(xbetado)
         idx = idx + np.isinf(xbetado)
         xbetado[idx] = 0
+
+        zbetaup = zbetaup * conc.dx                                                 # C / (C m/s) * m/s = non dimensional
+        zbetado = zbetado * conc.dx
+        xbetaup = xbetaup * conc.dz
+        xbetado = xbetado * conc.dz
 
         # calculate zau, xau, zbu, xbu
         # =one by default
