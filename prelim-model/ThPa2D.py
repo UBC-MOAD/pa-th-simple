@@ -189,10 +189,9 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         tau_up[1:nz-2, 1:nx-2] = ((fluxx_up[1:nz-2, 0:nx-3] - fluxx_up[1:nz-2, 1:nx-2]) * n_upx[1:nz-2, 1:nx-2] + (fluxx_up[1:nz-2, 1:nx-2] - fluxx_up[1:nz-2, 2:nx - 1]) * p_upx[1:nz-2, 1:nx-2]) * conc.dx_i + ((fluxz_up[0:nz-3, 1:nx-2] - fluxz_up[1:nz-2, 1:nx-2]) * n_upz[1:nz-2, 1:nx-2] + (fluxz_up[1:nz-2, 1:nx-2] - fluxz_up[2:nz - 1, 1:nx-2]) * p_upz[1:nz-2, 1:nx-2]) * conc.dz_i 
 
         # define centred flux
-        fluxx_cen = np.zeros((nz, nx))
-        fluxx_cen[1:nz-2, 1:nx-2] = 0.5 * ( conc.a[1:nz-2, 0:nx-3]*ux[1:nz-2, 0:nx-3] - conc.a[1:nz-2, 2:nx-1]*ux[1:nz-2, 2:nx-1] ) 
-        fluxz_cen = np.zeros((nz, nx))
-        fluxz_cen[1:nz-2, 1:nx-2] = 0.5 * ( conc.a[0:nz-3, 1:nx-2]*uz[0:nz-3, 1:nx-2] - conc.a[2:nz-1, 1:nx-2]*uz[2:nz-1, 1:nx-2] )
+        fluxx_cen = np.zeros((nz, nx));         fluxz_cen = np.zeros((nz, nx))
+        fluxx_cen[:, 1:nx-2] = 0.5 * ( conc.a[:, 0:nx-3]*ux[:, 0:nx-3] - conc.a[:, 2:nx-1]*ux[:, 2:nx-1] ) 
+        fluxz_cen[1:nz-2, :] = 0.5 * ( conc.a[0:nz-3, :]*uz[0:nz-3, :] - conc.a[2:nz-1, :]*uz[2:nz-1, :] )
 
         # define anti-diffusive flux; shape =  [nz, nx]
         adfx = fluxx_cen - fluxx_up
