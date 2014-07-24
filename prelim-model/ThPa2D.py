@@ -179,14 +179,19 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         uz = u[0,:,:]
         ux = u[1,:,:]
 
-        # define upstream flux (in multi-directional flux field)
+        # define upstream flux
         fluxx_up = np.zeros((nz, nx));         fluxz_up = np.zeros((nz, nx))
-        fluxx_up[:, 1:nx-2] = ux[:, 0:nx-3]*conc.a[:, 0:nx-3] * n_upx[:, 0:nx-3] + ux[:, 2:nx-1]*conc.a[:, 2:nx-1] * p_upx[:, 1:nx-2]
-        fluxz_up[1:nz-2, :] = uz[0:nz-3, :]*conc.a[0:nz-3, :] * n_upz[0:nz-3, :] + uz[2:nz-1, :]*conc.a[2:nz-1, :] * p_upz[1:nz-2, :]
-        
-        # d(conc)/dt according to upstream scheme
+        fluxx_up[:, 0:nx-1] = ux[:, 0:nx-1]*conc.a[:, 0:nx-1] * n_upx[:, 0:nx-1] + ux[:, 1:nx]*conc.a[:, 1:nx] * p_upx[:, 0:nx-1]
+        fluxz_up[0:nz-1, :] = uz[0:nz-1, :]*conc.a[0:nz-1, :] * n_upz[0:nz-1, :] + uz[1:nz, :]*conc.a[1:nz, :] * p_upz[0:nz-1, :]
+
+        # define downstream flux
+
+        fluxx_do = np.zeros((nz, nx));         fluxz_do = np.zeros((nz, nx))
+        fluxx_do[:, 0:nx-1] = ux[:, 0:nx-1]*conc.a[:, 0:nx-1] * p_upx[:, 0:nx-1] + ux[:, 1:nx]*conc.a[:, 1:nx] * n_upx[:, 0:nx-1]
+        fluxz_do[0:nz-1, :] = uz[0:nz-1, :]*conc.a[0:nz-1, :] * p_upz[0:nz-1, :] + uz[1:nz, :]*conc.a[1:nz, :] * n_upz[0:nz-1, :]
+        # d(conc)/dt according to upstream scheme (on the grid points)
         dtau_up_dt = np.zeros((nz, nx))
-        dtau_up_dt[1:nz-2, 1:nx-2] = ((fluxx_up[1:nz-2, 0:nx-3] - fluxx_up[1:nz-2, 1:nx-2]) * n_upx[1:nz-2, 0:nx-3] + (fluxx_up[1:nz-2, 1:nx-2] - fluxx_up[1:nz-2, 2:nx-1]) * p_upx[1:nz-2, 1:nx-2]) * conc.dx_i + ((fluxz_up[0:nz-3, 1:nx-2] - fluxz_up[1:nz-2, 1:nx-2]) * n_upz[0:nz-3, 1:nx-2] + (fluxz_up[1:nz-2, 1:nx-2] - fluxz_up[2:nz-1, 1:nx-2]) * p_upz[1:nz-2, 1:nx-2]) * conc.dz_i 
+        dtau_up_dt = (fluxx_up - fluxx_do) * conc.dx_i + (fluxz_up - fluxz_up)  * conc.dz_i 
         
         # new concentration based on upstream scheme
         tau_up = conc.a + dtau_up_dt * dt
@@ -244,11 +249,6 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         idx = np.isnan(xbetado)
         idx = idx + np.isinf(xbetado)
         xbetado[idx] = 0
-
-        zbetaup = zbetaup * conc.dx                                                 # C / (C m/s) * m/s = non dimensional
-        zbetado = zbetado * conc.dx
-        xbetaup = xbetaup * conc.dz
-        xbetado = xbetado * conc.dz
 
         # calculate zau, xau, zbu, xbu
         # =one by default
