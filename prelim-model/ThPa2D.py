@@ -171,6 +171,8 @@ def upstream(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
 def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         """total variance diminishing advection scheme
         """
+        """total variance diminishing advection scheme
+        """
         # grid
         nz = conc.nz
         nx = conc.nx
@@ -209,8 +211,8 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
 
         for j in range(1, nx - 1):
                 for i in range(1, nz - 1):
-                        conc_up[i, j] = max( np.max(conc.a[i-1:i+1, j-1:j+1]), np.max(tau_up[i-1:i+1, j-1:j+1]) ) 
-                        conc_do[i, j] = min( np.min(conc.a[i-1:i+1, j-1:j+1]), np.min(tau_up[i-1:i+1, j-1:j+1]) )
+                        conc_up[i, j] = max( np.max(conc.a[i-1:i+2, j-1:j+2]), np.max(tau_up[i-1:i+2, j-1:j+2]) ) 
+                        conc_do[i, j] = min( np.min(conc.a[i-1:i+2, j-1:j+2]), np.min(tau_up[i-1:i+2, j-1:j+2]) )
 
         # define influx and outflux in x
         xpos = np.zeros((nz, nx)); xneg = np.zeros((nz, nx))  
@@ -229,70 +231,50 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         zpos[0, 0:nx] = - nfluxz[0, 0:nx] * adfz[0, 0:nx]
         zneg[1:nz, 0:nx] = pfluxz[1:nz, 0:nx] * adfz[1:nz, 0:nx] - nfluxz[0:nz-1, 0:nx] * adfz[0:nz-1, 0:nx]
         zneg[0, 0:nx] = pfluxz[0, 0:nx] * adfz[0, 0:nx]
-        
+
         # total influx/outflux
         fpos = xpos + zpos
         fneg = xneg + zneg
-        
+
         # non dimensional Zalesak parameter (produces nans when commented part is uncommented)
         # = (max_conc - upstream_conc) / influx
-        zbetaup = (zup - tau_up) / zpos# * conc.dx/dt
-        xbetaup = (xup - tau_up) / xpos# * conc.dz/dt
+        betaup = (conc_up - tau_up) / fpos# * conc.dx/dt
         # = (upstream_conc - min_conc) / outflux
-        zbetado = (tau_up - zdo) / zneg# * conc.dx/dt
-        xbetado = (tau_up - xdo) / xneg# * conc.dz/dt
+        betado = (tau_up - conc_do) / fneg# * conc.dx/dt
 
         # x-z combined Zalesak parameter
-        
+
         # nans and infs
-        zeros = np.zeros(np.shape(zbetaup))
-        idx = np.isnan(zbetaup)
-        idx = idx + np.isinf(zbetaup)
-        zbetaup[idx] = 0
-        idx = np.isnan(zbetado)
-        idx = idx + np.isinf(zbetado)
-        zbetado[idx] = 0
-        idx = np.isnan(xbetaup)
-        idx = idx + np.isinf(xbetaup)
-        xbetaup[idx] = 0
-        idx = np.isnan(xbetado)
-        idx = idx + np.isinf(xbetado)
-        xbetado[idx] = 0
+        zeros = np.zeros(np.shape(betaup))
+        idx = np.isnan(betaup)
+        idx = idx + np.isinf(betaup)
+        betaup[idx] = 0
+        idx = np.isnan(betado)
+        idx = idx + np.isinf(betado)
+        betado[idx] = 0
 
         # zau, xau, zbu, xbu
         # =one by default
-        zau = np.ones((nz, nx))
-        xau = np.ones((nz, nx))
-        zbu = np.ones((nz, nx))
-        xbu = np.ones((nz, nx))
-        # =zbetado if zbetado < 1
-        zau[zbetado < 1] = zbetado[zbetado < 1]                           # non dim and on the flux points
-        xau[xbetado < 1] = xbetado[xbetado < 1]                           # non dim and on the flux points
-        zbu[zbetaup < 1] = zbetaup[zbetaup < 1]                           # non dim and on the flux points
-        xbu[xbetaup < 1] = xbetaup[xbetaup < 1]                           # non dim and on the flux points
-        # shift zbetaup by one index
-        zbetaup[0:nz - 1, 0:nx - 2] = zbetaup[0:nz - 1, 1:nx - 1]
-        xbetaup[0:nz - 2, 0:nx - 1] = xbetaup[1:nz - 1, 0:nx - 1]
-        zbetado[0:nz - 1, 0:nx - 2] = zbetado[0:nz - 1, 1:nx - 1]
-        xbetado[0:nz - 2, 0:nx - 1] = xbetado[1:nz - 1, 0:nx - 1]
-        # =zbetaup if zbetaup[:, j + 1] < zbetado[:, j]
-        zau[zbetaup < zbetado] = zbetaup[zbetaup < zbetado]
-        xau[xbetaup < xbetado] = xbetaup[xbetaup < xbetado]
-        zbu[zbetado < zbetaup] = zbetaup[zbetado < zbetaup]
-        xbu[xbetado < xbetaup] = xbetaup[xbetado < xbetaup]
+        au = np.ones((nz, nx)); bu = np.ones((nz, nx))
+        # =betado if betado < 1
+        au[betado < 1] = betado[betado < 1]                           # non dim and on the flux points
+        bu[betaup < 1] = betaup[betaup < 1]                           # non dim and on the flux points
+        # shift betaup by one index
+        betaup[0:nz - 1, 0:nx - 2] = betaup[0:nz - 1, 1:nx - 1]
+        betado[0:nz - 1, 0:nx - 2] = betado[0:nz - 1, 1:nx - 1]
+        # =betaup if betaup[:, j + 1] < betado[:, j]
+        au[betaup < betado] = betaup[betaup < betado]
+        bu[betado < betaup] = betaup[betado < betaup]
         # set last column to zero since it's out of range
-        zau[:, nx - 1] = 0
-        xau[nz - 1, :] = 0
-        zbu[:, nx - 1] = 0
-        xbu[nz - 1, :] = 0
+        au[:, nx - 1] = 0
+        bu[:, nx - 1] = 0
 
         # calculate zcu & xcu
-        zcu = (0.5 + 0.5*np.sign(adfz))  
-        xcu = (0.5 + 0.5*np.sign(adfx))  
+        cu = (0.5 + 0.5*np.sign(adfz))  
 
         # calculate TVD flux in x and z
-        aaz = adfz * (zcu * zau + (1-zcu)*zbu)                                                   # C m/s on flux points
-        aax = adfx * (xcu * xau + (1-xcu)*xbu)
+        aaz = adfz * (cu * au + (1-cu)*bu)                                                   # C m/s on flux points
+        aax = adfx * (cu * au + (1-cu)*bu)
 
         # final sol.
         adv = np.zeros((nz, nx))
