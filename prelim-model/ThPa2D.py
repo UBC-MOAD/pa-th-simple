@@ -184,15 +184,13 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         fluxx_up[:, 0:nx-1] = ux[:, 0:nx-1]*conc.a[:, 0:nx-1] * n_upx[:, 0:nx-1] + ux[:, 1:nx]*conc.a[:, 1:nx] * p_upx[:, 0:nx-1]
         fluxz_up[0:nz-1, :] = uz[0:nz-1, :]*conc.a[0:nz-1, :] * n_upz[0:nz-1, :] + uz[1:nz, :]*conc.a[1:nz, :] * p_upz[0:nz-1, :]
 
-        # define downstream flux
-        fluxx_do = np.zeros((nz, nx));         fluxz_do = np.zeros((nz, nx))
-        fluxx_do[:, 0:nx-1] = ux[:, 0:nx-1]*conc.a[:, 0:nx-1] * p_upx[:, 0:nx-1] + ux[:, 1:nx]*conc.a[:, 1:nx] * n_upx[:, 0:nx-1]
-        fluxz_do[0:nz-1, :] = uz[0:nz-1, :]*conc.a[0:nz-1, :] * p_upz[0:nz-1, :] + uz[1:nz, :]*conc.a[1:nz, :] * n_upz[0:nz-1, :]
-        
         # d(conc)/dt according to upstream scheme (on the grid points)
         dtau_up_dt = np.zeros((nz, nx))
-        dtau_up_dt = (fluxx_up - fluxx_do) * conc.dx_i + (fluxz_up - fluxz_up)  * conc.dz_i 
-        
+        dtau_up_dt[1:nz, 1:nx] = (fluxx_up[1:nz, 0:nx-1] - fluxx_up[1:nz, 1:nx]) * conc.dx_i + (fluxz_up[0:nz-1, 1:nx] - fluxz_up[1:nz, 1:nx])  * conc.dz_i 
+        dtau_up_dt[0, 1:nx] = (fluxx_up[0, 0:nx-1] - fluxx_up[0, 1:nx]) * conc.dx_i - fluxz_up[0, 1:nx]  * conc.dz_i
+        dtau_up_dt[1:nz, 0] = -fluxx_up[1:nz, 0] * conc.dx_i + (fluxz_up[0:nz-1, 0] - fluxz_up[1:nz, 0])  * conc.dz_i
+        dtau_up_dt[0, 0] = - fluxx_up[0, 0] * conc.dx_i - fluxz_up[0, 0]  * conc.dz_i
+
         # new concentration based on upstream scheme
         tau_up = conc.a + dtau_up_dt * dt
 
@@ -222,7 +220,7 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         pfluxx = np.sign(adfx)*0.5*(np.sign(adfx) + 1)
         xpos[0:nz - 1, 1:nx - 1] = pfluxx[0:nz - 1, 0:nx - 2] * adfx[0:nz - 1, 0:nx - 2] - nfluxx[0:nz - 1, 1:nx - 1] * adfx[0:nz - 1, 1:nx - 1]
         xneg[0:nz - 1, 1:nx - 1] = pfluxx[0:nz - 1, 1:nx - 1] * adfx[0:nz - 1, 1:nx - 1] - nfluxx[0:nz - 1, 0:nx - 2] * adfx[0:nz - 1, 0:nx - 2]
-        
+
         # define influx and outflux in z 
         zpos = np.zeros((nz, nx)); zneg = np.zeros((nz, nx))
         nfluxz = np.sign(adfz)*0.5*(np.sign(adfz) - 1)
@@ -288,6 +286,7 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         # final sol.
         adv = np.zeros((nz, nx))
         adv[1:nz-1, 1:nx-1] = dtau_up_dt[1:nz-1, 1:nx-1] +  (aax[1:nz-1, 0:nx-2] - aax[1:nz-1, 1:nx-1]) * conc.dx_i + (aaz[0:nz-2, 1:nx-1] - aaz[1:nz-1, 1:nx-1]) * conc.dz_i 
+
 
                
         return adv
