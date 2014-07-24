@@ -171,7 +171,7 @@ def upstream(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
 def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         """total variance diminishing advection scheme
         """
-        # define grid
+        # grid
         nz = conc.nz
         nx = conc.nx
         dt = 0.001
@@ -179,7 +179,7 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         uz = u[0,:,:]
         ux = u[1,:,:]
 
-        # define upstream flux
+        # upstream flux
         fluxx_up = np.zeros((nz, nx));         fluxz_up = np.zeros((nz, nx))
         fluxx_up[:, 0:nx-1] = ux[:, 0:nx-1]*conc.a[:, 0:nx-1] * n_upx[:, 0:nx-1] + ux[:, 1:nx]*conc.a[:, 1:nx] * p_upx[:, 0:nx-1]
         fluxz_up[0:nz-1, :] = uz[0:nz-1, :]*conc.a[0:nz-1, :] * n_upz[0:nz-1, :] + uz[1:nz, :]*conc.a[1:nz, :] * p_upz[0:nz-1, :]
@@ -194,12 +194,12 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         # new concentration based on upstream scheme
         tau_up = conc.a + dtau_up_dt * dt
 
-        # define centred flux
+        #centred flux
         fluxx_cen = np.zeros((nz, nx));         fluxz_cen = np.zeros((nz, nx))
         fluxx_cen[:, 0:nx-1] = 0.5 * ( conc.a[:, 0:nx-1]*ux[:, 0:nx-1] + conc.a[:, 1:nx]*ux[:, 1:nx] ) 
         fluxz_cen[0:nz-1, :] = 0.5 * ( conc.a[0:nz-1, :]*uz[0:nz-1, :] + conc.a[1:nz, :]*uz[1:nz, :] )
 
-        # define anti-diffusive flux; shape =  [nz, nx]
+        # anti-diffusive flux
         adfx = fluxx_cen - fluxx_up
         adfz = fluxz_cen - fluxz_up
 
@@ -218,22 +218,29 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         xpos = np.zeros((nz, nx)); xneg = np.zeros((nz, nx))  
         nfluxx = np.sign(adfx)*0.5*(np.sign(adfx) - 1)
         pfluxx = np.sign(adfx)*0.5*(np.sign(adfx) + 1)
-        xpos[0:nz - 1, 1:nx - 1] = pfluxx[0:nz - 1, 0:nx - 2] * adfx[0:nz - 1, 0:nx - 2] - nfluxx[0:nz - 1, 1:nx - 1] * adfx[0:nz - 1, 1:nx - 1]
-        xneg[0:nz - 1, 1:nx - 1] = pfluxx[0:nz - 1, 1:nx - 1] * adfx[0:nz - 1, 1:nx - 1] - nfluxx[0:nz - 1, 0:nx - 2] * adfx[0:nz - 1, 0:nx - 2]
+        xpos[0:nz, 1:nx] = pfluxx[0:nz, 0:nx-1] * adfx[0:nz, 0:nx-1] - nfluxx[0:nz, 1:nx] * adfx[0:nz, 1:nx]
+        xpos[0:nz, 0] = - nfluxx[0:nz, 0] * adfx[0:nz, 0]
+        xneg[0:nz, 1:nx] = pfluxx[0:nz, 1:nx] * adfx[0:nz, 1:nx] - nfluxx[0:nz, 0:nx-1] * adfx[0:nz, 0:nx-1]
+        xneg[0:nz, 0] = pfluxx[0:nz, 0] * adfx[0:nz, 0] 
 
-        # define influx and outflux in z 
+        # influx and outflux in z 
         zpos = np.zeros((nz, nx)); zneg = np.zeros((nz, nx))
         nfluxz = np.sign(adfz)*0.5*(np.sign(adfz) - 1)
         pfluxz = np.sign(adfz)*0.5*(np.sign(adfz) + 1)
-        zpos[1:nz - 1, 0:nx - 1] = pfluxz[0:nz - 2, 0:nx - 1] * adfz[0:nz - 2, 0:nx - 1] - nfluxz[1:nz - 1, 0:nx - 1] * adfz[1:nz - 1, 0:nx - 1]
-        zneg[1:nz - 1, 0:nx - 1] = pfluxz[1:nz - 1, 0:nx - 1] * adfz[1:nz - 1, 0:nx - 1] - nfluxz[0:nz - 2, 0:nx - 1] * adfz[0:nz - 2, 0:nx - 1]
-
-        # calculate the Zalesak parameter (produces nans when commented part is uncommented)
+        zpos[1:nz, 0:nx] = pfluxz[0:nz-1, 0:nx] * adfz[0:nz-1, 0:nx] - nfluxz[1:nz, 0:nx] * adfz[1:nz, 0:nx]
+        zpos[0, 0:nx] = - nfluxz[0, 0:nx] * adfz[0, 0:nx]
+        zneg[1:nz, 0:nx] = pfluxz[1:nz, 0:nx] * adfz[1:nz, 0:nx] - nfluxz[0:nz-1, 0:nx] * adfz[0:nz-1, 0:nx]
+        zneg[0, 0:nx] = pfluxz[0, 0:nx] * adfz[0, 0:nx]
+        
+        # total influx/outflux
+        fpos = xpos + zpos
+        fneg = xneg + zneg
+        # Zalesak parameter (produces nans when commented part is uncommented)
         zbetaup = (zup - tau_up) / zpos# * conc.dx/dt                                                 # C / (C m/s) * m/s = non dimensional
         zbetado = (tau_up - zdo) / zneg# * conc.dx/dt
         xbetaup = (xup - tau_up) / xpos# * conc.dz/dt
         xbetado = (tau_up - xdo) / xneg# * conc.dz/dt
-        # remove nans and infs
+        # nans and infs
         zeros = np.zeros(np.shape(zbetaup))
         idx = np.isnan(zbetaup)
         idx = idx + np.isinf(zbetaup)
@@ -248,7 +255,7 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         idx = idx + np.isinf(xbetado)
         xbetado[idx] = 0
 
-        # calculate zau, xau, zbu, xbu
+        # zau, xau, zbu, xbu
         # =one by default
         zau = np.ones((nz, nx))
         xau = np.ones((nz, nx))
@@ -286,8 +293,6 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         # final sol.
         adv = np.zeros((nz, nx))
         adv[1:nz-1, 1:nx-1] = dtau_up_dt[1:nz-1, 1:nx-1] +  (aax[1:nz-1, 0:nx-2] - aax[1:nz-1, 1:nx-1]) * conc.dx_i + (aaz[0:nz-2, 1:nx-1] - aaz[1:nz-1, 1:nx-1]) * conc.dz_i 
-
-
                
         return adv
 
