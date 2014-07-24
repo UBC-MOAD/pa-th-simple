@@ -185,10 +185,10 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         fluxz_up[0:nz-1, :] = uz[0:nz-1, :]*conc.a[0:nz-1, :] * n_upz[0:nz-1, :] + uz[1:nz, :]*conc.a[1:nz, :] * p_upz[0:nz-1, :]
 
         # define downstream flux
-
         fluxx_do = np.zeros((nz, nx));         fluxz_do = np.zeros((nz, nx))
         fluxx_do[:, 0:nx-1] = ux[:, 0:nx-1]*conc.a[:, 0:nx-1] * p_upx[:, 0:nx-1] + ux[:, 1:nx]*conc.a[:, 1:nx] * n_upx[:, 0:nx-1]
         fluxz_do[0:nz-1, :] = uz[0:nz-1, :]*conc.a[0:nz-1, :] * p_upz[0:nz-1, :] + uz[1:nz, :]*conc.a[1:nz, :] * n_upz[0:nz-1, :]
+        
         # d(conc)/dt according to upstream scheme (on the grid points)
         dtau_up_dt = np.zeros((nz, nx))
         dtau_up_dt = (fluxx_up - fluxx_do) * conc.dx_i + (fluxz_up - fluxz_up)  * conc.dz_i 
@@ -230,7 +230,7 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         zpos[1:nz - 1, 0:nx - 1] = pfluxz[0:nz - 2, 0:nx - 1] * adfz[0:nz - 2, 0:nx - 1] - nfluxz[1:nz - 1, 0:nx - 1] * adfz[1:nz - 1, 0:nx - 1]
         zneg[1:nz - 1, 0:nx - 1] = pfluxz[1:nz - 1, 0:nx - 1] * adfz[1:nz - 1, 0:nx - 1] - nfluxz[0:nz - 2, 0:nx - 1] * adfz[0:nz - 2, 0:nx - 1]
 
-        # calculate the Zalesak parameter
+        # calculate the Zalesak parameter (produces nans when commented part is uncommented)
         zbetaup = (zup - tau_up) / zpos# * conc.dx/dt                                                 # C / (C m/s) * m/s = non dimensional
         zbetado = (tau_up - zdo) / zneg# * conc.dx/dt
         xbetaup = (xup - tau_up) / xpos# * conc.dz/dt
