@@ -204,15 +204,13 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         adfz = fluxz_cen - fluxz_up
 
         # max and min concentrations in region
-        xup = np.zeros((nz, nx)); xdo = np.zeros((nz, nx))
-        zup = np.zeros((nz, nx)); zdo = np.zeros((nz, nx))
+        conc_up = np.zeros((nz, nx)); xdo = np.zeros((nz, nx))
+        conc_do = np.zeros((nz, nx)); zdo = np.zeros((nz, nx))
 
         for j in range(1, nx - 1):
-            xup[1:nz-1, j] = max( np.max(conc.a[1:nz-1, j-1:j+1]), np.max(tau_up[1:nz-1, j-1:j+1]) )    # C
-            xdo[1:nz-1, j] = min( np.min(conc.a[1:nz-1, j-1:j+1]), np.min(tau_up[1:nz-1, j-1:j+1]) )    # C
-        for i in range(1, nz - 1):
-            zup[i, 1:nx-1] = max( np.max(conc.a[i-1:i+1, 1:nx-1]), np.max(tau_up[i-1:i+1, 1:nx-1]) )    # C
-            zdo[i, 1:nx-1] = min( np.min(conc.a[i-1:i+1, 1:nx-1]), np.min(tau_up[i-1:i+1, 1:nx-1]) )    # C
+                for i in range(1, nz - 1):
+                        conc_up[i, j] = max( np.max(conc.a[i-1:i+1, j-1:j+1]), np.max(tau_up[i-1:i+1, j-1:j+1]) ) 
+                        conc_do[i, j] = min( np.min(conc.a[i-1:i+1, j-1:j+1]), np.min(tau_up[i-1:i+1, j-1:j+1]) )
 
         # define influx and outflux in x
         xpos = np.zeros((nz, nx)); xneg = np.zeros((nz, nx))  
@@ -235,11 +233,17 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         # total influx/outflux
         fpos = xpos + zpos
         fneg = xneg + zneg
-        # Zalesak parameter (produces nans when commented part is uncommented)
-        zbetaup = (zup - tau_up) / zpos# * conc.dx/dt                                                 # C / (C m/s) * m/s = non dimensional
-        zbetado = (tau_up - zdo) / zneg# * conc.dx/dt
+        
+        # non dimensional Zalesak parameter (produces nans when commented part is uncommented)
+        # = (max_conc - upstream_conc) / influx
+        zbetaup = (zup - tau_up) / zpos# * conc.dx/dt
         xbetaup = (xup - tau_up) / xpos# * conc.dz/dt
+        # = (upstream_conc - min_conc) / outflux
+        zbetado = (tau_up - zdo) / zneg# * conc.dx/dt
         xbetado = (tau_up - xdo) / xneg# * conc.dz/dt
+
+        # x-z combined Zalesak parameter
+        
         # nans and infs
         zeros = np.zeros(np.shape(zbetaup))
         idx = np.isnan(zbetaup)
