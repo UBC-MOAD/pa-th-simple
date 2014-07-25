@@ -39,6 +39,7 @@ def init(D, P, u, xmin, xmax, zmin, zmax, nx, nz, string):
         plb.gca().invert_yaxis()
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
+	plb.colorbar()
 
         plb.subplot(122) 
         mesh2 = plb.pcolormesh(1e-3 * x, z, clean_P)
@@ -51,6 +52,7 @@ def init(D, P, u, xmin, xmax, zmin, zmax, nx, nz, string):
         plb.gca().invert_yaxis()
         plb.ylabel('depth [m]')
         plb.xlabel('x [km]')
+	plb.colorbar()
 
 	# plot the velocity field        
 	flowfig = plb.figure(figsize = (25, 5))	
