@@ -100,26 +100,18 @@ def onecell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
         rr = np.sqrt(xx**2 + zz**2)
-        idx = rr < a/2
+        # scale the flow in closer to centre of domain
+        scale = 0.9
+        idx = rr < (a/2) * scale
         uz = np.zeros([nz, nx])
-        uz[idx] = np.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
-
-        # remove nans
-        nanfill = np.zeros((nz, nx))
-        id_nan = np.isnan(uz)
-        uz[id_nan] = nanfill[id_nan]
-
-        # scale & store the solution in a matrix, shifting up and down
-        u = np.zeros([2, nz, nx])
-        u[0] = uz / np.max(uz) * V * zmax/xmax
-
-        # extract components for centred correction
-        uz = u[0, :, :]
-        ux = np.zeros((nz,nx))
-
+        # apply a Gaussian to fade edges
+        uz[idx] = np.sin(2*pi*rr[idx] / (a*scale)) / rr[idx] * xx[idx] * np.exp(-2*rr[idx]**2/(a/2*scale)**2)                 # add very small number to denominator when using odd grid
+        # scale solution and apply a Gaussian to fade edges
+        uz = uz / np.max(uz) * V * zmax/xmax 
         # vectorize in z, redefine u[j+1] with u[j-1] 
         i = np.arange(1, nz - 1, 1, dtype = int)
         j = 1
+        ux = np.zeros((nz,nx))
         while j <= nx-2:
             
             ux[i, j + 1] = ux[i, j - 1] - dx/dz* ( uz[i + 1,j] - uz[i - 1, j])
@@ -127,7 +119,9 @@ def onecell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
             j += 1
 
         # store result
-        u[1, :, :] = ux
+        u = np.zeros((2, nz, nx))
+        u[0,:,:] = uz
+        u[1,:,:] = ux
 
         return u
 
@@ -303,10 +297,11 @@ def divtest_cen(conc, u, nx, nz):
         i = np.arange(1, nz - 1)
         j = np.arange(1, nx - 1)
         div = np.zeros((nz, nx))
-        div[1:nz-2, 1:nx-2] = (ux[1:nz-2, 2:nx-1] - ux[1:nz-2, 0:nx-3])/(2*conc.dx) + (uz[2:nz-1, 1:nx-2] - uz[0:nz-3, 1:nx-2])/(2*conc.dz)
+        div[1:nz-1, 1:nx-1] = (ux[1:nz-1, 2:nx] - ux[1:nz-1, 0:nx-2])/(2*conc.dx) + (uz[2:nz, 1:nx-1] - uz[0:nz-2, 1:nx-1])/(2*conc.dz)
 
         #plot results
         divplot = plb.pcolormesh(div)
         plb.colorbar(divplot)
+        plb.title('divergence of centred-scheme velocity')
 
         return divplot
