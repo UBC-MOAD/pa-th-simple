@@ -212,11 +212,20 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         conc_up = np.zeros((nz, nx)); xdo = np.zeros((nz, nx))
         conc_do = np.zeros((nz, nx)); zdo = np.zeros((nz, nx))
 
-        # max/min in middle domain (slowest part of the code)
-        for j in range(1, nx - 1):
-                for i in range(1, nz - 1):
+        # max and min concentrations in region
+        conc_up = np.empty_like(conc.a)
+        xdo = np.empty_like(conc.a)
+        conc_do = np.empty_like(conc.a)
+        zdo = np.empty_like(conc.a)
+        # max/min in middle domain
+        j = 1
+        i = 1
+        while j <=nx - 1:
+                while i <= nz - 1:
                         conc_up[i, j] = max( np.max(conc.a[i-1:i+2, j-1:j+2]), np.max(tau_up[i-1:i+2, j-1:j+2]) ) 
                         conc_do[i, j] = min( np.min(conc.a[i-1:i+2, j-1:j+2]), np.min(tau_up[i-1:i+2, j-1:j+2]) )
+                        i += 1
+                j += 1
         # max/min on x-bounds
         for i in range(1, nz - 1):
                 conc_up[i, 0] = max( np.max(conc.a[i-1:i+2, 0:2]), np.max(tau_up[i-1:i+2, 0:2]))
@@ -240,34 +249,37 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         conc_do[nz-1, 0] = min( np.min(conc.a[nz-2:nz, 0:2]), np.min(tau_up[nz-2:nz, 0:2]))
         conc_do[nz-1, nx-1] = min( np.min(conc.a[nz-2:nz, nx-2:nx]), np.min(tau_up[nz-2:nz, nx-2:nx]))
 
-        # define anti-diffusive influx and outflux in x
-        xpos = np.zeros((nz, nx)); xneg = np.zeros((nz, nx))  
-        nfluxx = np.sign(adfx)*0.5*(np.sign(adfx) - 1)                          # dimensionless
+        # +/- adfx
+        xpos = np.empty_like(conc.a)
+        xneg = np.empty_like(conc.a) 
+        nfluxx = np.sign(adfx)*0.5*(np.sign(adfx) - 1)                                          # dimensionless
         pfluxx = np.sign(adfx)*0.5*(np.sign(adfx) + 1)
-        xpos[0:nz, 1:nx] = pfluxx[0:nz, 0:nx-1] * adfx[0:nz, 0:nx-1] - nfluxx[0:nz, 1:nx] * adfx[0:nz, 1:nx]    # conc*velocity
-        xpos[0:nz, 0] = - nfluxx[0:nz, 0] * adfx[0:nz, 0]
-        xneg[0:nz, 1:nx] = pfluxx[0:nz, 1:nx] * adfx[0:nz, 1:nx] - nfluxx[0:nz, 0:nx-1] * adfx[0:nz, 0:nx-1]
-        xneg[0:nz, 0] = pfluxx[0:nz, 0] * adfx[0:nz, 0] 
-
-        # anti-diffusive influx and outflux in z 
-        zpos = np.zeros((nz, nx)); zneg = np.zeros((nz, nx))
+        xpos[:, 1:nx] = pfluxx[:, 0:nx-1] * adfx[:, 0:nx-1] - nfluxx[:, 1:] * adfx[:, 1:]   # conc*velocity
+        xpos[:, 0] = - nfluxx[:, 0] * adfx[:, 0]
+        xneg[:, 1:] = pfluxx[:, 1:] * adfx[:, 1:] - nfluxx[:, 0:nx-1] * adfx[:, 0:nx-1]
+        xneg[:, 0] = pfluxx[:, 0] * adfx[:, 0] 
+        # +/- adfz
+        zpos = np.empty_like(conc.a) 
+        zneg = np.empty_like(conc.a)
         nfluxz = np.sign(adfz)*0.5*(np.sign(adfz) - 1)
         pfluxz = np.sign(adfz)*0.5*(np.sign(adfz) + 1)
-        zpos[1:nz, 0:nx] = pfluxz[0:nz-1, 0:nx] * adfz[0:nz-1, 0:nx] - nfluxz[1:nz, 0:nx] * adfz[1:nz, 0:nx]    # conc*velocity
-        zpos[0, 0:nx] = - nfluxz[0, 0:nx] * adfz[0, 0:nx]
-        zneg[1:nz, 0:nx] = pfluxz[1:nz, 0:nx] * adfz[1:nz, 0:nx] - nfluxz[0:nz-1, 0:nx] * adfz[0:nz-1, 0:nx]
-        zneg[0, 0:nx] = pfluxz[0, 0:nx] * adfz[0, 0:nx]
-
-        # total influx/outflux
-        fpos = xpos/conc.dx + zpos/conc.dz              # units: concentration/time
+        zpos[1:, :] = pfluxz[0:nz-1, :] * adfz[0:nz-1, :] - nfluxz[1:, :] * adfz[1:, :]   # conc*velocity
+        zpos[0, :] = - nfluxz[0, :] * adfz[0, :]
+        zneg[1:, :] = pfluxz[1:, :] * adfz[1:, :] - nfluxz[0:nz-1, :] * adfz[0:nz-1, :]
+        zneg[0, :] = pfluxz[0, :] * adfz[0, :]
+        # +/- adf
+        fpos = xpos/conc.dx + zpos/conc.dz                                                      # units: concentration/time
         fneg = xneg/conc.dx + zneg/conc.dz
+        # total influx/outflux
 
         # non dimensional Zalesak parameter 
         vsmall = 1e-12
         # = (max_conc - upstream_conc) / influx
-        betaup = (conc_up - tau_up) / (fpos*dt + vsmall)
+        fpos_i = fpos*dt + vsmall
+        betaup = (conc_up - tau_up) * fpos_i
         # = (upstream_conc - min_conc) / outflux
-        betado = (tau_up - conc_do) / (fneg*dt + vsmall)
+        fneg_i = fneg*dt + vsmall
+        betado = (tau_up - conc_do) * fneg_i
         # flux limiters
         zaux = np.zeros((nz,nx))
         zaux[:,0:nx-1] = np.minimum(np.ones(nx-1), np.minimum(betado[:,:nx-1], betaup[:,1:]))
