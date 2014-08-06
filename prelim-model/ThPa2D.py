@@ -185,7 +185,7 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         # simlulate settling in the bottom boundary (should be >0)
         fluxz_up[nz-1, :] = 2*fluxz_up[nz-2, :] - fluxz_up[nz-3, :]
         # d(conc)/dt according to upstream scheme (on the grid points)
-        dtau_up_dt = np.np.empty_like(conc.a)
+        dtau_up_dt = np.empty_like(conc.a)
         dtau_up_dt[1:nz, 1:nx] = (fluxx_up[1:nz, 0:nx-1] - fluxx_up[1:nz, 1:nx]) * conc.dx_i + (fluxz_up[0:nz-1, 1:nx] - fluxz_up[1:nz, 1:nx])  * conc.dz_i 
         dtau_up_dt[0, 1:nx] = (fluxx_up[0, 0:nx-1] - fluxx_up[0, 1:nx]) * conc.dx_i - fluxz_up[0, 1:nx]  * conc.dz_i
         dtau_up_dt[1:nz, 0] = -fluxx_up[1:nz, 0] * conc.dx_i + (fluxz_up[0:nz-1, 0] - fluxz_up[1:nz, 0])  * conc.dz_i
@@ -193,7 +193,7 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         # new concentration based on upstream scheme
         tau_up = conc.a + dtau_up_dt * conc.dt
         # centred flux
-        fluxx_cen = np.np.empty_like(conc.a);         fluxz_cen = np.empty_like(conc.a)
+        fluxx_cen = np.empty_like(conc.a);         fluxz_cen = np.empty_like(conc.a)
         fluxx_cen[:, 0:nx-1] = 0.5 * ( conc.a[:, 0:nx-1]*ux[:, 0:nx-1] + conc.a[:, 1:nx]*ux[:, 1:nx] ) 
         fluxz_cen[0:nz-1, :] = 0.5 * ( conc.a[0:nz-1, :]*(sinkrate + uz[0:nz-1, :]) + conc.a[1:nz, :]*(sinkrate + uz[1:nz, :] ))
         # flux at bottom boundary
@@ -348,7 +348,8 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         # final sol.
         adv = np.empty((nz, nx))
         adv[1:nz, 1:nx] = dtau_up_dt[1:nz, 1:nx] +  (aax[1:nz, 0:nx-1] - aax[1:nz, 1:nx]) * conc.dx_i + (aaz[0:nz-1, 1:nx] - aaz[1:nz, 1:nx]) * conc.dz_i        
-       
+        adv[1:nz, 0] = dtau_up_dt[1:nz, 0] - aax[1:nz, 0]*conc.dx_i + (aaz[0:nz-1, 0] - aaz[1:nz, 0]) * conc.dz_i
+        adv[0, 1:nx] = dtau_up_dt[0, 1:nx] +  (aax[0, 0:nx-1] - aax[0, 1:nx]) * conc.dx_i - aaz[0, 1:nx] * conc.dz_i
         return adv
 
 def k_sorp(string, zmin, zmax, nx, nz):
