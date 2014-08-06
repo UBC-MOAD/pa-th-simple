@@ -208,78 +208,146 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         adfx = fluxx_cen - fluxx_up                     # conc*velocity
         adfz = fluxz_cen - fluxz_up
 
-        # max and min concentrations in region
-        conc_up = np.zeros((nz, nx)); xdo = np.zeros((nz, nx))
-        conc_do = np.zeros((nz, nx)); zdo = np.zeros((nz, nx))
+        # define max and min values in neighbourhood of each point
+        conc3=np.zeros((5,nz,nx)); tau3=np.zeros((5,nz,nx))
+        # in open domain
+        conc3[0,1:nz-1,1:nx-1] = conc.a[1:nz-1,0:nx-2]
+        conc3[1,1:nz-1,1:nx-1] = conc.a[1:nz-1,1:nx-1]
+        conc3[2,1:nz-1,1:nx-1] = conc.a[1:nz-1,2:nx]
+        conc3[3,1:nz-1,1:nx-1] = conc.a[0:nz-2,1:nx-1]
+        conc3[4,1:nz-1,1:nx-1] = conc.a[2:nz,1:nx-1]
+        tau3[0,1:nz-1,1:nx-1] = tau_up[1:nz-1,0:nx-2]
+        tau3[1,1:nz-1,1:nx-1] = tau_up[1:nz-1,1:nx-1]
+        tau3[2,1:nz-1,1:nx-1] = tau_up[1:nz-1,2:nx]
+        tau3[3,1:nz-1,1:nx-1] = tau_up[0:nz-2,1:nx-1]
+        tau3[4,1:nz-1,1:nx-1] = tau_up[2:nz,1:nx-1]   # C
 
-        # max and min concentrations in region
-        conc_up = np.empty_like(conc.a)
-        xdo = np.empty_like(conc.a)
-        conc_do = np.empty_like(conc.a)
-        zdo = np.empty_like(conc.a)
-        # max/min in middle domain
-        j = 1
-        i = 1
-        while j <=nx - 1:
-                while i <= nz - 1:
-                        conc_up[i, j] = max( np.max(conc.a[i-1:i+2, j-1:j+2]), np.max(tau_up[i-1:i+2, j-1:j+2]) ) 
-                        conc_do[i, j] = min( np.min(conc.a[i-1:i+2, j-1:j+2]), np.min(tau_up[i-1:i+2, j-1:j+2]) )
-                        i += 1
-                j += 1
-        # max/min on x-bounds
-        for i in range(1, nz - 1):
-                conc_up[i, 0] = max( np.max(conc.a[i-1:i+2, 0:2]), np.max(tau_up[i-1:i+2, 0:2]))
-                conc_up[i, nx-1] = max( np.max(conc.a[i-1:i+2, nx-2:nx]), np.max(tau_up[i-1:i+2, nx-2:nx]))
-                conc_do[i, 0] = min( np.min(conc.a[i-1:i+2, 0:2]), np.min(tau_up[i-1:i+2, 0:2]))
-                conc_do[i, nx-1] = min( np.min(conc.a[i-1:i+2, nx-2:nx]), np.min(tau_up[i-1:i+2, nx-2:nx]))
-            
-        for j in range(1, nx - 1):
-                conc_up[0, j] = max( np.max(conc.a[0:2, j-1:j+2]), np.max(tau_up[0:2, j-1:j+2]))
-                conc_up[nz-1, j] = max( np.max(conc.a[nz-2:nz, j-1:j+2]), np.max(tau_up[nz-2:nz, j-1:j+2]))
-                conc_do[0, j] = min( np.min(conc.a[0:2, j-1:j+2]), np.min(tau_up[0:2, j-1:j+2]))
-                conc_do[nz-1, j] = min( np.min(conc.a[nz-2:nz, j-1:j+2]), np.min(tau_up[nz-2:nz, j-1:j+2]))
-            
-        conc_up[0, 0] = max( np.max(conc.a[0:2, 0:2]), np.max(tau_up[0:2, 0:2]))
-        conc_up[0, nx-1] = max( np.max(conc.a[0:2, nx-2:nx]), np.max(tau_up[0:2, nx-2:nx]))
-        conc_up[nz-1, 0] = max( np.max(conc.a[nz-2:nz, 0:2]), np.max(tau_up[nz-2:nz, 0:2]))
-        conc_up[nz-1, nx-1] = max( np.max(conc.a[nz-2:nz, nx-2:nx]), np.max(tau_up[nz-2:nz, nx-2:nx]))
+        # on bounds
+        # x = 0
+        conc3[0,1:nz-1, 0] = conc.a[0:nz-2, 0]
+        conc3[1,1:nz-1, 0] = conc.a[1:nz-1, 0]
+        conc3[2,1:nz-1, 0] = conc.a[2:nz, 0]
+        conc3[3,1:nz-1, 0] = conc.a[1:nz-1, 1]
+        conc3[4,1:nz-1, 0] = conc.a[1:nz-1, 1]
+        tau3[0,1:nz-1, 0] = tau_up[0:nz-2, 0]
+        tau3[1,1:nz-1, 0] = tau_up[1:nz-1, 0]
+        tau3[2,1:nz-1, 0] = tau_up[2:nz, 0]
+        tau3[3,1:nz-1, 0] = tau_up[1:nz-1, 1]
+        tau3[4,1:nz-1, 0] = tau_up[1:nz-1, 1]
 
-        conc_do[0, 0] = min( np.min(conc.a[0:2, 0:2]), np.min(tau_up[0:2, 0:2]))
-        conc_do[0, nx-1] = min( np.min(conc.a[0:2, nx-2:nx]), np.min(tau_up[0:2, nx-2:nx]))
-        conc_do[nz-1, 0] = min( np.min(conc.a[nz-2:nz, 0:2]), np.min(tau_up[nz-2:nz, 0:2]))
-        conc_do[nz-1, nx-1] = min( np.min(conc.a[nz-2:nz, nx-2:nx]), np.min(tau_up[nz-2:nz, nx-2:nx]))
+        # x = xmax
+        conc3[0,1:nz-1, nx-1] = conc.a[0:nz-2, nx-1]
+        conc3[1,1:nz-1, nx-1] = conc.a[1:nz-1, nx-1]
+        conc3[2,1:nz-1, nx-1] = conc.a[2:nz, nx-1]
+        conc3[3,1:nz-1, nx-1] = conc.a[1:nz-1, nx-2]
+        conc3[4,1:nz-1, nx-1] = conc.a[1:nz-1, nx-2]
+        tau3[0,1:nz-1, nx-1] = tau_up[0:nz-2, nx-1]
+        tau3[1,1:nz-1, nx-1] = tau_up[1:nz-1, nx-1]
+        tau3[2,1:nz-1, nx-1] = tau_up[2:nz, nx-1]
+        tau3[3,1:nz-1, nx-1] = tau_up[1:nz-1, nx-2]
+        tau3[4,1:nz-1, nx-1] = tau_up[1:nz-1, nx-2]
 
-        # +/- adfx
-        xpos = np.empty_like(conc.a)
-        xneg = np.empty_like(conc.a) 
-        nfluxx = np.sign(adfx)*0.5*(np.sign(adfx) - 1)                                          # dimensionless
+        # z = 0
+        conc3[0,0,1:nx-1] = conc.a[0,0:nx-2]
+        conc3[1,0,1:nx-1] = conc.a[0,1:nx-1]
+        conc3[2,0,1:nx-1] = conc.a[0,2:nx]
+        conc3[3,0,1:nx-1] = conc.a[1,1:nx-1]
+        conc3[4,0,1:nx-1] = conc.a[1,1:nx-1]
+        tau3[0,0,1:nx-1] = tau_up[0,0:nx-2]
+        tau3[1,0,1:nx-1] = tau_up[0,1:nx-1]
+        tau3[2,0,1:nx-1] = tau_up[0,2:nx]
+        tau3[3,0,1:nx-1] = tau_up[1,1:nx-1]
+        tau3[4,0,1:nx-1] = tau_up[1,1:nx-1]
+
+        # z = zmax
+        conc3[0,nz-1,1:nx-1] = conc.a[nz-1,0:nx-2]
+        conc3[1,nz-1,1:nx-1] = conc.a[nz-1,1:nx-1]
+        conc3[2,nz-1,1:nx-1] = conc.a[nz-1,2:nx]
+        conc3[3,nz-1,1:nx-1] = conc.a[nz-2,1:nx-1]
+        conc3[4,nz-1,1:nx-1] = conc.a[nz-2,1:nx-1]
+        tau3[0,nz-1,1:nx-1] = tau_up[nz-1,0:nx-2]
+        tau3[1,nz-1,1:nx-1] = tau_up[nz-1,1:nx-1]
+        tau3[2,nz-1,1:nx-1] = tau_up[nz-1,2:nx]
+        tau3[3,nz-1,1:nx-1] = tau_up[nz-2,1:nx-1]
+        tau3[4,nz-1,1:nx-1] = tau_up[nz-2,1:nx-1]
+
+        # top left corner
+        conc3[0,0,0] = conc.a[0,0]
+        conc3[1,0,0] = conc.a[0,1]
+        conc3[2,0,0] = conc.a[1,0]
+        conc3[3,0,0] = conc.a[1,0]
+        conc3[4,0,0] = conc.a[1,0]
+        tau3[0,0,0] = tau_up[0,0]
+        tau3[1,0,0] = tau_up[0,1]
+        tau3[2,0,0] = tau_up[1,0]
+        tau3[3,0,0] = tau_up[1,0]
+        tau3[4,0,0] = tau_up[1,0]
+
+        # top right corner
+        conc3[0,0,nx-1] = conc.a[0,nx-1]
+        conc3[1,0,nx-1] = conc.a[0,nx-2]
+        conc3[2,0,nx-1] = conc.a[1,nx-1]
+        conc3[3,0,nx-1] = conc.a[1,nx-1]
+        conc3[4,0,nx-1] = conc.a[1,nx-1]
+        tau3[0,0,nx-1] = tau_up[0,nx-1]
+        tau3[1,0,nx-1] = tau_up[0,nx-2]
+        tau3[2,0,nx-1] = tau_up[1,nx-1]
+        tau3[3,0,nx-1] = tau_up[1,nx-1]
+        tau3[4,0,nx-1] = tau_up[1,nx-1]
+        # bottom left corner
+        conc3[0,nz-1,0] = conc.a[nz-1,0]
+        conc3[1,nz-1,0] = conc.a[nz-1,1]
+        conc3[2,nz-1,0] = conc.a[nz-2,0]
+        conc3[3,nz-1,0] = conc.a[nz-2,0]
+        conc3[4,nz-1,0] = conc.a[nz-2,0]
+        tau3[0,nz-1,0] = tau_up[nz-1,0]
+        tau3[1,nz-1,0] = tau_up[nz-1,1]
+        tau3[2,nz-1,0] = tau_up[nz-2,0]
+        tau3[3,nz-1,0] = tau_up[nz-2,0]
+        tau3[4,nz-1,0] = tau_up[nz-2,0]
+        # bottom right corner
+        conc3[0,nz-1,nx-1] = conc.a[nz-1,nx-1]
+        conc3[1,nz-1,nx-1] = conc.a[nz-1,nx-2]
+        conc3[2,nz-1,nx-1] = conc.a[nz-2,nx-1]
+        conc3[3,nz-1,nx-1] = conc.a[nz-2,nx-1]
+        conc3[4,nz-1,nx-1] = conc.a[nz-2,nx-1]
+        tau3[0,nz-1,nx-1] = tau_up[nz-1,nx-1]
+        tau3[1,nz-1,nx-1] = tau_up[nz-1,nx-2]
+        tau3[2,nz-1,nx-1] = tau_up[nz-2,nx-1]
+        tau3[3,nz-1,nx-1] = tau_up[nz-2,nx-1]
+        tau3[4,nz-1,nx-1] = tau_up[nz-2,nx-1]
+
+        conc_up = np.maximum(np.amax(conc3,axis=0),np.amax(tau3,axis=0))   # C
+        conc_do = np.minimum(np.amin(conc3,axis=0),np.amin(tau3,axis=0))   # C
+
+        # define anti-diffusive influx and outflux in x
+        xpos = np.zeros((nz, nx)); xneg = np.zeros((nz, nx))  
+        nfluxx = np.sign(adfx)*0.5*(np.sign(adfx) - 1)                          # dimensionless
         pfluxx = np.sign(adfx)*0.5*(np.sign(adfx) + 1)
-        xpos[:, 1:nx] = pfluxx[:, 0:nx-1] * adfx[:, 0:nx-1] - nfluxx[:, 1:] * adfx[:, 1:]   # conc*velocity
-        xpos[:, 0] = - nfluxx[:, 0] * adfx[:, 0]
-        xneg[:, 1:] = pfluxx[:, 1:] * adfx[:, 1:] - nfluxx[:, 0:nx-1] * adfx[:, 0:nx-1]
-        xneg[:, 0] = pfluxx[:, 0] * adfx[:, 0] 
-        # +/- adfz
-        zpos = np.empty_like(conc.a) 
-        zneg = np.empty_like(conc.a)
+        xpos[0:nz, 1:nx] = pfluxx[0:nz, 0:nx-1] * adfx[0:nz, 0:nx-1] - nfluxx[0:nz, 1:nx] * adfx[0:nz, 1:nx]    # conc*velocity
+        xpos[0:nz, 0] = - nfluxx[0:nz, 0] * adfx[0:nz, 0]
+        xneg[0:nz, 1:nx] = pfluxx[0:nz, 1:nx] * adfx[0:nz, 1:nx] - nfluxx[0:nz, 0:nx-1] * adfx[0:nz, 0:nx-1]
+        xneg[0:nz, 0] = pfluxx[0:nz, 0] * adfx[0:nz, 0] 
+
+        # anti-diffusive influx and outflux in z 
+        zpos = np.zeros((nz, nx)); zneg = np.zeros((nz, nx))
         nfluxz = np.sign(adfz)*0.5*(np.sign(adfz) - 1)
         pfluxz = np.sign(adfz)*0.5*(np.sign(adfz) + 1)
-        zpos[1:, :] = pfluxz[0:nz-1, :] * adfz[0:nz-1, :] - nfluxz[1:, :] * adfz[1:, :]   # conc*velocity
-        zpos[0, :] = - nfluxz[0, :] * adfz[0, :]
-        zneg[1:, :] = pfluxz[1:, :] * adfz[1:, :] - nfluxz[0:nz-1, :] * adfz[0:nz-1, :]
-        zneg[0, :] = pfluxz[0, :] * adfz[0, :]
-        # +/- adf
-        fpos = xpos/conc.dx + zpos/conc.dz                                                      # units: concentration/time
-        fneg = xneg/conc.dx + zneg/conc.dz
+        zpos[1:nz, 0:nx] = pfluxz[0:nz-1, 0:nx] * adfz[0:nz-1, 0:nx] - nfluxz[1:nz, 0:nx] * adfz[1:nz, 0:nx]    # conc*velocity
+        zpos[0, 0:nx] = - nfluxz[0, 0:nx] * adfz[0, 0:nx]
+        zneg[1:nz, 0:nx] = pfluxz[1:nz, 0:nx] * adfz[1:nz, 0:nx] - nfluxz[0:nz-1, 0:nx] * adfz[0:nz-1, 0:nx]
+        zneg[0, 0:nx] = pfluxz[0, 0:nx] * adfz[0, 0:nx]
+
         # total influx/outflux
+        fpos = xpos/conc.dx + zpos/conc.dz              # units: concentration/time
+        fneg = xneg/conc.dx + zneg/conc.dz
 
         # non dimensional Zalesak parameter 
         vsmall = 1e-12
         # = (max_conc - upstream_conc) / influx
-        fpos_i = fpos*dt + vsmall
-        betaup = (conc_up - tau_up) * fpos_i
+        betaup = (conc_up - tau_up) / (fpos*dt + vsmall)
         # = (upstream_conc - min_conc) / outflux
-        fneg_i = fneg*dt + vsmall
-        betado = (tau_up - conc_do) * fneg_i
+        betado = (tau_up - conc_do) / (fneg*dt + vsmall)
         # flux limiters
         zaux = np.zeros((nz,nx))
         zaux[:,0:nx-1] = np.minimum(np.ones(nx-1), np.minimum(betado[:,:nx-1], betaup[:,1:]))
@@ -301,7 +369,6 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         adv[1:nz, 1:nx] = dtau_up_dt[1:nz, 1:nx] +  (aax[1:nz, 0:nx-1] - aax[1:nz, 1:nx]) * conc.dx_i + (aaz[0:nz-1, 1:nx] - aaz[1:nz, 1:nx]) * conc.dz_i
                
         return adv
-
 
 def k_sorp(string, zmin, zmax, nx, nz):
 	""" Computes adsorption,desorption, & production constants for either Th or Pa
