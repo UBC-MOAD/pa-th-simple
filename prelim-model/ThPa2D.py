@@ -16,7 +16,7 @@ from math import pi
 
 class Fgrid:
 
-	def __init__(self, nx, nz, ng, xmin = 0, xmax = 1e6, zmin = 0, 
+	def __init__(self, nx, nz, ng, dt, xmin = 0, xmax = 1e6, zmin = 0, 
 		 zmax = 5e3):
 
 		self.xmin = xmin
@@ -41,7 +41,7 @@ class Fgrid:
 		self.dz_i = 1/self.dz
 		self.z = zmin + (np.arange(nz) - ng) * self.dz
 		[self.xx, self.zz] = np.meshgrid(self.x, self.z)
-
+                self.dt = dt
 		# storage for the solution 
 		self.a = np.zeros((nz, nx), dtype=np.float64)
 
@@ -49,9 +49,8 @@ class Fgrid:
 		""" return a scratch array dimensioned for our grid """
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
-	def fillBCs_d(self, k_ad, Q, dt):    
-		self.a[self.ilo, :] = self.a[self.ilo, :] + (Q - k_ad[0, :]*self.a[self.ilo, :] ) * dt     
-		#self.a[self.ilo, :] = 2*self.a[self.ilo + 1, :] - self.a[self.ilo + 2, :]
+	def fillBCs_d(self, k_ad, Q):    
+		self.a[self.ilo, :] = self.a[self.ilo, :] + (Q - k_ad[0, :]*self.a[self.ilo, :] ) * self.dt
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
@@ -85,7 +84,6 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
         S = 500 
 
         # time info (yr)
-	dt = 0.001   
         gS = (g.zmax - g.zmin)/S
 	t *= gS
 	T *= gS    
@@ -112,15 +110,15 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
         while (t < T):
 
                 # dissolved:
-                g.a += ( Q - k_ad * g.a + k_de * h.a + adscheme(g, u, p_upz_d, n_upz_d, p_upx, n_upx, sinkrate = 0) ) * dt
+                g.a += ( Q - k_ad * g.a + k_de * h.a + adscheme(g, u, p_upz_d, n_upz_d, p_upx, n_upx, sinkrate = 0) ) * g.dt
 
                 # particulate:
-                h.a += ( k_ad * g.a - k_de * h.a + adscheme(h, u, p_upz_p, n_upz_p, p_upx, n_upx, sinkrate = S) ) * dt
+                h.a += ( k_ad * g.a - k_de * h.a + adscheme(h, u, p_upz_p, n_upz_p, p_upx, n_upx, sinkrate = S) ) * h.dt
                 
-                g.fillBCs_d(k_ad, Q, dt)
+                g.fillBCs_d(k_ad, Q)
                 h.fillBCs_p()
 
-                t += dt
+                t += g.dt
 
         return g, h
 
@@ -176,7 +174,6 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         # grid
         nz = conc.nz
         nx = conc.nx
-        dt = 0.001
         # extract velocity
         uz = u[0,:,:]
         ux = u[1,:,:]
@@ -194,7 +191,7 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         dtau_up_dt[1:nz, 0] = -fluxx_up[1:nz, 0] * conc.dx_i + (fluxz_up[0:nz-1, 0] - fluxz_up[1:nz, 0])  * conc.dz_i
         dtau_up_dt[0, 0] = - fluxx_up[0, 0] * conc.dx_i - fluxz_up[0, 0]  * conc.dz_i
         # new concentration based on upstream scheme
-        tau_up = conc.a + dtau_up_dt * dt
+        tau_up = conc.a + dtau_up_dt * conc.dt
         # centred flux
         fluxx_cen = np.zeros((nz, nx));         fluxz_cen = np.zeros((nz, nx))
         fluxx_cen[:, 0:nx-1] = 0.5 * ( conc.a[:, 0:nx-1]*ux[:, 0:nx-1] + conc.a[:, 1:nx]*ux[:, 1:nx] ) 
@@ -331,9 +328,9 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         # non dimensional Zalesak parameter 
         vsmall = 1e-12
         # = (max_conc - upstream_conc) / influx
-        betaup = (conc_up - tau_up) / (fpos*dt + vsmall)
+        betaup = (conc_up - tau_up) / (fpos*conc.dt + vsmall)
         # = (upstream_conc - min_conc) / outflux
-        betado = (tau_up - conc_do) / (fneg*dt + vsmall)
+        betado = (tau_up - conc_do) / (fneg*conc.dt + vsmall)
         # flux limiters
         zaux = np.zeros((nz,nx))
         zaux[:,0:nx-1] = np.minimum(np.ones(nx-1), np.minimum(betado[:,:nx-1], betaup[:,1:]))
