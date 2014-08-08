@@ -7,10 +7,6 @@ The links below are to static renderings of the notebooks via
 Descriptions below the links are from the first cell of the notebooks
 (if that cell contains Markdown or raw text).
 
-* ##[Test TVD.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Test TVD.ipynb)  
-    
-    Notebook to play with TVD to make sure we have a version we understand  
-
 * ##[Evaluation of 2D TVD - Step 2.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of 2D TVD - Step 2.ipynb)  
     
     Number 2 in a Series of Notebooks to step through the new 2D TVD Scheme to carefully evaluate it.  
@@ -19,17 +15,21 @@ Descriptions below the links are from the first cell of the notebooks
     
     Number 3 in a Series of Notebooks to step through the new 2D TVD Scheme to carefully evaluate it.  
 
-* ##[Evaluation of centred scheme velocity - step 1.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of centred scheme velocity - step 1.ipynb)  
-    
-    Notebook 1 in series of notebooks to evaulate the centred scheme velocity  
-
 * ##[Evaluation of 2D TVD - Step 6.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of 2D TVD - Step 6.ipynb)  
     
     Number 6 in a series of notebooks to conscientiously review TVD code.  
 
+* ##[1D TVD.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/1D TVD.ipynb)  
+    
+    Notebook to play with TVD to make sure we have a version we understand  
+
 * ##[Evaluation of 2D TVD - Step 5.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of 2D TVD - Step 5.ipynb)  
     
     Number 5 in a series of notebooks to carefully improve TVD code.  
+
+* ##[Evaluation of 2D centred velocity - Step 1.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of 2D centred velocity - Step 1.ipynb)  
+    
+    Notebook 1 in series of notebooks to evaulate the centred scheme velocity  
 
 * ##[Evaluation of 3D centred velocity - Step 1.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of 3D centred velocity - Step 1.ipynb)  
     
