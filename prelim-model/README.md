@@ -19,11 +19,27 @@ Descriptions below the links are from the first cell of the notebooks
     
     Number 3 in a Series of Notebooks to step through the new 2D TVD Scheme to carefully evaluate it.  
 
+* ##[Evaluation of centred scheme velocity - step 1.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of centred scheme velocity - step 1.ipynb)  
+    
+    Notebook 1 in series of notebooks to evaulate the centred scheme velocity  
+
+* ##[Evaluation of 2D TVD - Step 6.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of 2D TVD - Step 6.ipynb)  
+    
+    Number 6 in a series of notebooks to conscientiously review TVD code.  
+
+* ##[Evaluation of 2D TVD - Step 5.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of 2D TVD - Step 5.ipynb)  
+    
+    Number 5 in a series of notebooks to carefully improve TVD code.  
+
+* ##[Evaluation of 3D centred velocity - Step 1.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of 3D centred velocity - Step 1.ipynb)  
+    
+    The first in a series of notebooks to turn 2D centred velocity to 3D.  
+
 * ##[1DThModel.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/1DThModel.ipynb)  
     
-* ##[Testbook_withplots.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Testbook_withplots.ipynb)  
+* ##[2D TVD - Pa profile.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/2D TVD - Pa profile.ipynb)  
     
-    Improvments on TVD scheme  
+    Plotting [Pa] under TVD advection scheme  
 
 * ##[Evaluation of 2D TVD - Step 1.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of 2D TVD - Step 1.ipynb)  
     
@@ -47,7 +63,7 @@ Descriptions below the links are from the first cell of the notebooks
     
 * ##[Evaluation of 2D TVD - Step 4.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of 2D TVD - Step 4.ipynb)  
     
-    Number 3 in a Series of Notebooks to step through the new 2D TVD Scheme to carefully evaluate it.  
+    Number 4 in a Series of Notebooks to step through the new 2D TVD Scheme to carefully evaluate it.  
 
 * ##[Testbook.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Testbook.ipynb)  
     
