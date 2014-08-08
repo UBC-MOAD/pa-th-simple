@@ -106,7 +106,7 @@ def onecell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
         uz = np.zeros([nz, nx])
         # apply a Gaussian to fade edges
         uz[idx] = np.sin(2*pi*rr[idx] / (a*scale)) / rr[idx] * xx[idx] * np.exp(-2*rr[idx]**2/(a/2*scale)**2)                 # add very small number to denominator when using odd grid
-        # scale solution and apply a Gaussian to fade edges
+        # scale solution
         uz = uz / np.max(uz) * V * zmax/xmax 
         # vectorize in z, redefine u[j+1] with u[j-1] 
         i = np.arange(1, nz - 1, 1, dtype = int)
@@ -229,14 +229,12 @@ def twocell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
 	[xx, zz] = np.meshgrid(x, z)
 	zz[0:, nx/2:] = - zz[0:, nx/2:]  
 	rr = np.sqrt(xx**2 + zz**2)
+        # scale the flow in closer to centre of domain
+        scale = 0.9
+        idx = rr < (a/2) * scale
+        # apply a Gaussian to fade edges
 	uz = np.zeros((nz, nx))
-	idx = rr < a/2
-        # z velocity
-        uz[idx] = -np.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
-        # remove nans
-        nanfill = np.zeros((nz, nx))
-        id_nan = np.isnan(uz)
-        uz[id_nan] = nanfill[id_nan]
+        uz[idx] = -np.sin(2*pi*rr[idx] / (a*scale)) / rr[idx] * -xx[idx]* np.exp(-2*rr[idx]**2/(a/2*scale)**2) 
         # store solution in a tensor
         u = np.zeros([2, nz, nx])
         ux = u[1,:,:]
