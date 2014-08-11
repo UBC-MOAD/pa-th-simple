@@ -235,6 +235,8 @@ def twocell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
         # apply a Gaussian to fade edges
 	uz = np.zeros((nz, nx))
         uz[idx] = -np.sin(2*pi*rr[idx] / (a*scale)) / rr[idx] * -xx[idx]* np.exp(-2*rr[idx]**2/(a/2*scale)**2) 
+        # scale solution
+        uz = uz / np.max(uz) * V * zmax/xmax 
         # store solution in a tensor
         u = np.zeros([2, nz, nx])
         ux = u[1,:,:]
@@ -253,7 +255,7 @@ def twocell_cen(xmin, xmax, zmin, zmax, nx, nz, V):
             j += 1
             
         # store solution
-        u[1, :,:] = ux
+        u[1,:,:] = ux
         
         return u
 
