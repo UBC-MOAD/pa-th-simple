@@ -31,6 +31,10 @@ Descriptions below the links are from the first cell of the notebooks
     
     Notebook 1 in series of notebooks to evaulate the centred scheme velocity  
 
+* ##[Evaluation of 3D centred velocity - Step 2.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of 3D centred velocity - Step 2.ipynb)  
+    
+    Rotate the circulation in x-z plane into y-z plane, and sum the two circulations.  
+
 * ##[Evaluation of 3D centred velocity - Step 1.ipynb](http://nbviewer.ipython.org/urls/bitbucket.org/ccar-modeling/pa-th/raw/tip/prelim-model/Evaluation of 3D centred velocity - Step 1.ipynb)  
     
     The first in a series of notebooks to turn 2D centred velocity to 3D.  
