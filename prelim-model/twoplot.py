@@ -14,8 +14,6 @@ def init(D, P, u, xmin, xmax, zmin, zmax, nx, nz, string):
 	z = np.linspace(zmin, zmax, nz)
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
-        xmax_plt = (nx - 2)*dx
-        zmax_plt = (nz - 2)*dz
 
 	# remove NaNs
 	idx = np.isnan(D)
