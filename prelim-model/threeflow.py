@@ -50,11 +50,12 @@ def onecell_cen_xz(xmin, xmax, zmin, zmax, nx, nz, ny, V):
                 
         # vectorize in z, redefine u[j+1] with u[j-1] 
         i = np.arange(1, nz - 1, 1, dtype = int)
+        k = np.arange(1, ny - 1, 1, dtype = int)
         j = 1
         ux = u[1,:,:,:]
         while j <= nx-2:
 
-            ux[i,:,j+1] = ux[i,:,j-1] - dx/dz* ( uz[i+1,:,j] - uz[i-1,:,j])
+            ux[i,k,j+1] = ux[i,k,j-1] - dx/dz* ( uz[i+1,k,j] - uz[i-1,k,j])
 
             j += 1
 
@@ -98,10 +99,11 @@ def twocell_cen_xz(xmin, xmax, zmin, zmax, nx, nz, ny, V):
         dz = (zmax - zmin) / (nz - 1)
         # vectorize in z, redefine u[j+1] with u[j-1] 
         i = np.arange(1, nz - 1, 1, dtype = int)
+        k = np.arange(1, ny - 1, 1, dtype = int)
         j = 1
         while j <= nx-2:
 
-            ux[i,:,j+1] = ux[i,:,j-1] - dx/dz* ( uz[i+1,:,j] - uz[i-1,:,j])
+            ux[i,k,j+1] = ux[i,k,j-1] - dx/dz* ( uz[i+1,k,j] - uz[i-1,k,j])
 
             j += 1
 
@@ -146,22 +148,24 @@ def onecell_cen_xyz(xmin, xmax, ymin, ymax, zmin, zmax, nx, nz, ny, V):
         # define ux for uz in x-z
         # vectorize in z, redefine u[j+1] with u[j-1] 
         i = np.arange(1, nz - 1, 1, dtype = int)
+        k = np.arange(1, ny - 1, 1, dtype = int)
         j = 1
         ux = u[1,:,:,:]
         while j <= nx-2:
 
-                ux[i,:,j+1] = ux[i,:,j-1] - dx/dz* ( uz[i+1,:,j] - uz[i-1,:,j])
+                ux[i,k,j+1] = ux[i,k,j-1] - dx/dz* ( uz[i+1,k,j] - uz[i-1,k,j])
 
                 j += 1
 
         # define uy for uz in y-z
         # vectorize in z, redefine u[j+1] with u[j-1] 
         i = np.arange(1, nz - 1, 1, dtype = int)
+        k = np.arange(1, nx - 1, 1, dtype = int)
         j = 1
         uy= u[2,:,:,:]
         while j <= ny-2:
 
-                uy[i,j+1,:] = uy[i,j-1,:] - dy/dz* ( uz90[i+1,j,:] - uz90[i-1,j,:])
+                uy[i,j+1,k] = uy[i,j-1,k] - dy/dz* ( uz90[i+1,j,k] - uz90[i-1,j,k])
 
                 j += 1
 
@@ -189,9 +193,9 @@ def twocell_cen_xyz(xmin, xmax, ymin, ymax, zmin, zmax, nx, nz, ny, V):
         u = np.zeros([3, nz, nx, ny])
         ux = u[1,:,:,:]
         # vectorize in z, redefine u[j+1] with u[j-1] 
-        i = np.arange(1, nz - 1, 1, dtype = int); j = 1
+        i = np.arange(1, nz - 1, 1, dtype = int); j = 1;         k = np.arange(1, ny - 1, 1, dtype = int)
         while j <= nx-2:
-                ux[i,:,j+1] = ux[i,:,j-1] - dx/dz* ( uz[i+1,:,j] - uz[i-1,:,j])
+                ux[i,k,j+1] = ux[i,k,j-1] - dx/dz* ( uz[i+1,k,j] - uz[i-1,k,j])
                 j += 1
 
         # define a grid that will produce downwelling
@@ -203,8 +207,9 @@ def twocell_cen_xyz(xmin, xmax, ymin, ymax, zmin, zmax, nx, nz, ny, V):
         u[0,:,:,:] = uz90 + uz
         uy = u[2,:,:,:]
         j = 1
+        k = np.arange(1, nx - 1, 1, dtype = int)
         while j <= ny-2:
-                uy[i,j+1,:] = uy[i,j-1,:] - dy/dz* ( uz90[i + 1,j,:] - uz90[i-1,j,:])
+                uy[i,j+1,k] = uy[i,j-1,k] - dy/dz* ( uz90[i + 1,j,k] - uz90[i-1,j,k])
                 j += 1
 
         return u
