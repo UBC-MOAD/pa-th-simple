@@ -352,7 +352,7 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         adv[0, 1:nx] = dtau_up_dt[0, 1:nx] +  (aax[0, 0:nx-1] - aax[0, 1:nx]) * conc.dx_i - aaz[0, 1:nx] * conc.dz_i
         return adv
 
-def k_sorp(string, zmin, zmax, nx, nz):
+def k_sorp2(string, zmin, zmax, nx, nz):
 	""" Computes adsorption,desorption, & production constants for either Th or Pa
 	:arg string: a string, either 'Th' or 'Pa'
 	:arg xmin: minimum x on the grid
