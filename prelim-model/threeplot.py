@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 from math import pi
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-def init(D, P, u, xmin, xmax, ymin, ymax, zmin, zmax, nx, ny, nz, string, n = 30/2):
+
+def init(D, P, u, xmin, xmax, ymin, ymax, zmin, zmax, nx, ny, nz, string, n):
 
         # plot initial dist.
 	x = np.linspace(xmin, xmax, nx)
@@ -29,7 +30,7 @@ def init(D, P, u, xmin, xmax, ymin, ymax, zmin, zmax, nx, ny, nz, string, n = 30
         init = plb.subplots(1, 2, figsize = (25, 5))
 
         plb.subplot(121) 
-        mesh1 = plb.pcolormesh(1e-3 * x, z, clean_D[:, n, :])
+        plb.pcolormesh(1e-3 * x, z, clean_D[:, n, :])
         if string == 'Th': 
 	        plb.title('Initial Dissolved [Th]')
         if string == 'Pa':
@@ -42,7 +43,7 @@ def init(D, P, u, xmin, xmax, ymin, ymax, zmin, zmax, nx, ny, nz, string, n = 30
 	plb.colorbar()
 
         plb.subplot(122) 
-        mesh2 = plb.pcolormesh(1e-3 * x, z, clean_P[:, n, :])
+        plb.pcolormesh(1e-3 * x, z, clean_P[:, n, :])
         if string == 'Th':
 	        plb.title('Initial Particulate [Th]')
         if string == 'Pa':
@@ -56,9 +57,8 @@ def init(D, P, u, xmin, xmax, ymin, ymax, zmin, zmax, nx, ny, nz, string, n = 30
 
 
 
-        init = plb.subplots(1, 2, figsize = (25, 10))
+        flow = plb.subplots(1, 2, figsize = (25, 10))
 	# plot a z-slice of the velocity field        
-        n = 10
         plb.subplot(121)
         im = plb.imshow(100*u[0,n,:,:], interpolation='none',extent=[0,1000,0,1000])
         plb.quiver(1e-3*x, 1e-3*y, u[1,n,:,:], u[2,n,:,:], pivot = 'mid')
@@ -77,4 +77,4 @@ def init(D, P, u, xmin, xmax, ymin, ymax, zmin, zmax, nx, ny, nz, string, n = 30
 	plt.xlabel('x [km]')
 	plt.ylabel('z [m]')
 
-        return init
+        return init, flow
