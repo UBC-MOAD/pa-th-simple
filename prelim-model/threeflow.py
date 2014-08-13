@@ -40,6 +40,7 @@ def onecell_cen_xz(xmin, xmax, zmin, zmax, nx, nz, ny, V):
         # scale the flow in closer to centre of domain
         scale = 0.9
         idx = rr < (a/2) * scale
+        idx[:,0,:] = 0; idx[:,ny-1,:] = 0
         # store result
         u = np.zeros((3, nz, ny, nx))
         uz = u[0,:,:,:]
@@ -49,13 +50,11 @@ def onecell_cen_xz(xmin, xmax, zmin, zmax, nx, nz, ny, V):
         uz = uz / np.max(uz) * V * zmax/xmax 
                 
         # vectorize in z, redefine u[j+1] with u[j-1] 
-        i = np.arange(1, nz - 1, 1, dtype = int)
-        k = np.arange(1, ny - 1, 1, dtype = int)
         j = 1
         ux = u[1,:,:,:]
         while j <= nx-2:
 
-            ux[i,k,j+1] = ux[i,k,j-1] - dx/dz* ( uz[i+1,k,j] - uz[i-1,k,j])
+            ux[1:nz-1,1:ny-1,j+1] = ux[1:nz-1,1:ny-1,j-1] - dx/dz* ( uz[2:nz,1:ny-1,j] - uz[0:nz-2,1:ny-1,j])
 
             j += 1
 
