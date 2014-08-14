@@ -50,7 +50,7 @@ class Fgrid:
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
 	def fillBCs_d(self, k_ad, Q):    
-		self.a[self.ilo, :] = self.a[self.ilo, :] + (Q - k_ad[0, :]*self.a[self.ilo, :] ) * self.dt
+		self.a[self.ilo] = 2*self.a[self.ilo+1]-self.a[self.ilo+2]
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
@@ -161,7 +161,7 @@ def upstream(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         down_grad = p_upz[1:nz-1, 1:nx-1]*(conc.a[1:nz-1, 1:nx-1] - conc.a[2:nz, 1:nx-1])
 
         # dissolved advective term:
-        adv[1:nz-1, 1:nx-1] = sinkrate * ( up_grad + down_grad ) * conc.dz_i + ux[1:nz-1, 1:nx-1] * ( left_grad + right_grad ) * conc.dx_i + uz[1:nz-1, 1:nx-1] * ( up_grad + down_grad ) * conc.dz_i 
+        adv[1:nz-1, 1:nx-1] = ux[1:nz-1, 1:nx-1] * ( left_grad + right_grad ) * conc.dx_i + uz[1:nz-1, 1:nx-1] * ( up_grad + down_grad ) * conc.dz_i 
 
         return adv
 
