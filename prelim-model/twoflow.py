@@ -150,7 +150,7 @@ def twocell_up(xmin, xmax, zmin, zmax, nx, nz, V):
 	uz = np.zeros((nz+1, nx))
 	idx = rr < a/2
         # z velocity
-        uz[idx] = -np.sin(2*pi*rr[idx] / a) / rr[idx] * -xx[idx]
+        uz[idx] = np.sin(2*pi*rr[idx] / a) / rr[idx] * xx[idx]
         # remove nans
         nanfill = np.zeros((nz, nx))
         id_nan = np.isnan(uz)

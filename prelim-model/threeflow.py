@@ -110,14 +110,15 @@ def onecell_cen_xyz(xmin, xmax, ymin, ymax, zmin, zmax, nx, ny, nz, V):
         x = np.linspace(-a/2, a/2, nx)
         y = np.linspace(-b/2, b/2, ny)
         z = np.linspace(-c/2, c/2, nz)
+        #zy = np.linspace(c/2, -c/2, nz)
         # the order of mesh
         [yy, zz, xx] = np.meshgrid(y, z, x)
+        #[yy, zzy, xx] = np.meshgrid(y, zy, x)
         dx = (xmax - xmin) / (nx - 1)
         dz = (zmax - zmin) / (nz - 1)
         dy = (ymax - ymin) / (ny - 1)
         rr = np.sqrt(xx**2 + zz**2)
-        u = np.zeros((3, nz, nx, ny))
-        # migrate the flow in closer to centre of domain
+        # scale the flow in closer to centre of domain
         scale = 0.9
         idx = rr < (a/2) * scale; idx[:, 0, :] = 0; idx[:, ny-1, :] = 0; idx[:, :, 0] = 0; idx[:, :, nx-1] = 0;
         uz = np.zeros([nz, ny, nx])
@@ -127,6 +128,7 @@ def onecell_cen_xyz(xmin, xmax, ymin, ymax, zmin, zmax, nx, ny, nz, V):
         uz = uz / np.max(uz) * V * zmax/xmax 
         # define ux for uz in x-z
         j = 1
+        u = np.zeros((3,nz,ny,nx))
         ux = u[1,:,:,:]
         while j <= nx-2:
                 ux[1:nz-1,1:ny-1,j+1] = ux[1:nz-1,1:ny-1,j-1] - dx/dz* ( uz[2:nz,1:ny-1,j] - uz[0:nz-2,1:ny-1,j])
@@ -168,9 +170,9 @@ def twocell_cen_xyz(xmin, xmax, ymin, ymax, zmin, zmax, nx, ny, nz, V):
         scale = 0.9
         idx = rr < (a/2) * scale; idx[:, 0, :] = 0; idx[:, ny-1, :] = 0; idx[:, :, 0] = 0; idx[:, :, nx-1] = 0;
         # apply a Gaussian to fade edges and scale solution
-        uz = np.zeros((nz, nx, ny)); uz[idx] = -np.sin(2*pi*rr[idx] / (a*scale)) / rr[idx] * -xx[idx]* np.exp(-2*rr[idx]**2/(a/2*scale)**2); uz = uz / np.max(uz) * V * zmax/xmax 
+        uz = np.zeros((nz, ny, nx)); uz[idx] = np.sin(2*pi*rr[idx] / (a*scale)) / rr[idx] * xx[idx]* np.exp(-2*rr[idx]**2/(a/2*scale)**2); uz = uz / np.max(uz) * V * zmax/xmax 
         # store solution in a tensor
-        u = np.zeros([3, nz, nx, ny])
+        u = np.zeros([3, nz, ny, nx])
         ux = u[1,:,:,:]
         # define ux for uz in x-z
         j = 1
@@ -182,7 +184,7 @@ def twocell_cen_xyz(xmin, xmax, ymin, ymax, zmin, zmax, nx, ny, nz, V):
         rr = np.sqrt(yy**2 + zz**2)
         idx = rr < (a/2) * scale; idx[:, 0, :] = 0; idx[:, ny-1, :] = 0; idx[:, :, 0] = 0; idx[:, :, nx-1] = 0; 
         # apply a Gaussian to fade edges and scale solution
-        uz90 = np.zeros((nz, nx, ny)); uz90[idx] = -np.sin(2*pi*rr[idx] / (a*scale)) / rr[idx] * -yy[idx]* np.exp(-2*rr[idx]**2/(a/2*scale)**2); uz90 = uz90 / np.max(uz90) * V * zmax/ymax 
+        uz90 = np.zeros((nz, ny, nx)); uz90[idx] = np.sin(2*pi*rr[idx] / (a*scale)) / rr[idx] * yy[idx]* np.exp(-2*rr[idx]**2/(a/2*scale)**2); uz90 = uz90 / np.max(uz90) * V * zmax/ymax 
         # define uy for uz in y-z
         uy = u[2,:,:,:]
         j = 1

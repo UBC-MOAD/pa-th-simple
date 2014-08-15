@@ -58,17 +58,17 @@ def init(D, P, u, xmin, xmax, ymin, ymax, zmin, zmax, nx, ny, nz, string, n):
 
 
         flow = plb.subplots(1, 2, figsize = (25, 10))
-	# plot a z-slice of the velocity field        
-        plb.subplot(121)
-        im = plb.imshow(100*u[0,n,:,:], interpolation='none',extent=[0,1000,0,1000])
-        plb.quiver(1e-3*x, 1e-3*y, u[1,n,:,:], u[2,n,:,:], pivot = 'mid')
-        plb.xlabel('x [km]')
-        plb.ylabel('y [km]')
-	plt.title('x-y velocity quiver with z velocity colormesh')
-        plb.gca().invert_yaxis()
+	# plot a z-slice of the velocity field 
+        plt.subplot(121)
+        im = plt.imshow(100*(u[0,n,:,:]), interpolation='none',extent=[0,1000,1000,0])
+        plt.quiver(1e-3*x, 1e-3*y, u[1,n,:,:], u[2,n,:,:], angles='xy', scale_units='xy')
+        plt.xlabel('x [km]')
+        plt.ylabel('y [km]')
         divider = make_axes_locatable(plt.gca())
         cax = divider.append_axes("right", size="5%", pad=0.05)
         plt.colorbar(im, cax=cax)
+
+
 	# plot a y-slice of the velocity field        
         plb.subplot(122)
         plb.quiver(1e-3*x, z, u[1,:,n,:], -100*u[0,:,n,:], pivot = 'mid')
