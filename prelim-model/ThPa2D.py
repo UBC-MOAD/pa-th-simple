@@ -49,7 +49,7 @@ class Fgrid:
 		""" return a scratch array dimensioned for our grid """
 		return np.zeros((self.nz, self.nx), dtype=np.float64)
 
-	def fillBCs_d(self, k_ad, Q):    
+	def fillBCs_d(self):    
 		self.a[self.ilo] = 2*self.a[self.ilo+1]-self.a[self.ilo+2]
 		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
@@ -57,7 +57,7 @@ class Fgrid:
 
 	def fillBCs_p(self):             
 		self.a[self.ilo, :] = 0
-		self.a[self.ihi, :] = self.a[self.ihi - 1, :]
+		self.a[self.ihi, :] = 2*self.a[self.ihi - 1, :]-self.a[self.ihi - 2, :]
 		self.a[:, self.jlo] = self.a[:, self.jlo + 1]
 		self.a[:, self.jhi] = self.a[:, self.jhi - 1]
 	
@@ -92,17 +92,18 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	uz = u[0, :, :]
 	ux = u[1, :, :]
 
-	# upstream factors
-	sign_uz_S = np.sign(uz[:-1, :] + uz[1:, :] + S)
-	sign_uz = np.sign(uz[:-1, :] + uz[1:, :])
-	sign_ux = np.sign(ux[:, :-1] + ux[:, 1:])
+	# upstream factors - not along boundaries, shifted 0.5 + in their direction and +1 in other direction
+	sign_uz_S = np.sign(uz[:-1, 1:-1] + uz[1:, 1:-1] + S)
+	sign_uz = np.sign(uz[:-1, 1:-1] + uz[1:, 1:-1])
+	sign_ux = np.sign(ux[1:-1, :-1] + ux[1:-1, 1:])
+	print sign_uz.shape, sign_ux.shape
         # define upstream for particulate phase (contains sinking vel.)
 	p_upz_p = sign_uz_S * (sign_uz_S - 1)/2
 	n_upz_p = sign_uz_S * (sign_uz_S + 1)/2
         # define upstream for dissolved phase
 	p_upz_d = sign_uz * (sign_uz - 1)/2
 	n_upz_d = sign_uz * (sign_uz + 1)/2
-	# define upstream in x
+	# define upstream in x, if flow is in positive x, p_upx is negative and n_upx is positive
 	p_upx = sign_ux * (sign_ux - 1)/2
 	n_upx = sign_ux * (sign_ux + 1)/2
 
@@ -115,7 +116,7 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
                 # particulate:
                 h.a += ( k_ad * g.a - k_de * h.a + adscheme(h, u, p_upz_p, n_upz_p, p_upx, n_upx, sinkrate = S) ) * h.dt
                 
-                g.fillBCs_d(k_ad, Q)
+                g.fillBCs_d()
                 h.fillBCs_p()
 
                 t += g.dt
@@ -175,181 +176,126 @@ def TVD(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
         nz = conc.nz
         nx = conc.nx
         # extract velocity
-        uz = u[0,:,:]
+        uz = u[0,:,:] + sinkrate
         ux = u[1,:,:]
+
         # upstream flux: C m/s
-        fluxx_up = np.empty_like(conc.a);         fluxz_up = np.empty_like(conc.a)
+        fluxx_up = np.empty((nz-2,nx-1));         fluxz_up = np.empty((nz-1,nx-2))
+
         # define entries 0:nx-2 inclusive using n_upz etc.
-        fluxx_up[:, 0:nx-1] = ux[:, 0:nx-1]*conc.a[:, 0:nx-1] * n_upx[:, 0:nx-1] + ux[:, 1:nx]*conc.a[:, 1:nx] * p_upx[:, 0:nx-1]                               # C m/s
-        fluxz_up[0:nz-1, :] = (sinkrate + uz[0:nz-1, :])*conc.a[0:nz-1, :] * n_upz[0:nz-1, :] + (sinkrate + uz[1:nz, :])*conc.a[1:nz, :] * p_upz[0:nz-1, :]     # C m/s
-        # simlulate settling in the bottom boundary (should be >0)
-        fluxz_up[nz-1, :] = 2*fluxz_up[nz-2, :] - fluxz_up[nz-3, :]
-        # d(conc)/dt according to upstream scheme (on the grid points)
-        dtau_up_dt = np.empty_like(conc.a)
-        dtau_up_dt[1:nz, 1:nx] = (fluxx_up[1:nz, 0:nx-1] - fluxx_up[1:nz, 1:nx]) * conc.dx_i + (fluxz_up[0:nz-1, 1:nx] - fluxz_up[1:nz, 1:nx])  * conc.dz_i 
-        dtau_up_dt[0, 1:nx] = (fluxx_up[0, 0:nx-1] - fluxx_up[0, 1:nx]) * conc.dx_i - fluxz_up[0, 1:nx]  * conc.dz_i
-        dtau_up_dt[1:nz, 0] = -fluxx_up[1:nz, 0] * conc.dx_i + (fluxz_up[0:nz-1, 0] - fluxz_up[1:nz, 0])  * conc.dz_i
-        dtau_up_dt[0, 0] = - fluxx_up[0, 0] * conc.dx_i - fluxz_up[0, 0]  * conc.dz_i
+        fluxx_up = ( ux[1:-1,:-1]*conc.a[1:-1,:-1] * n_upx 
+		   + ux[1:-1,1:]* conc.a[1:-1,1:]  * p_upx )                              # C m/s
+        fluxz_up = ( uz[:-1,1:-1]*conc.a[:-1,1:-1] * n_upz 
+                    + uz[1:,1:-1] *conc.a[1:,1:-1] * p_upz  )   # C m/s
+
+        # d(conc)/dt according to upstream scheme (on the grid points), ignore boundaries
+        dtau_up_dt = np.zeros_like(conc.a)
+        dtau_up_dt[1:-1,1:-1] = ( (fluxx_up[:,:-1] - fluxx_up[:,1:]) * conc.dx_i + 
+                                  (fluxz_up[:-1,:] - fluxz_up[1:,:]) * conc.dz_i )
+	
         # new concentration based on upstream scheme
+	#     center
         tau_up = conc.a + dtau_up_dt * conc.dt
+	#     boundaries
+	tau_up[0] = 2*tau_up[1] - tau_up[2]
+	tau_up[-1] = 2*tau_up[-2] - tau_up[-3]
+        tau_up[:,0] = tau_up[:,1]
+	tau_up[:,-1] = tau_up[:,-2]
+
         # centred flux
-        fluxx_cen = np.empty_like(conc.a);         fluxz_cen = np.empty_like(conc.a)
-        fluxx_cen[:, 0:nx-1] = 0.5 * ( conc.a[:, 0:nx-1]*ux[:, 0:nx-1] + conc.a[:, 1:nx]*ux[:, 1:nx] ) 
-        fluxz_cen[0:nz-1, :] = 0.5 * ( conc.a[0:nz-1, :]*(sinkrate + uz[0:nz-1, :]) + conc.a[1:nz, :]*(sinkrate + uz[1:nz, :] ))
-        # flux at bottom boundary
-        fluxz_cen[nz-1, :] = 2*fluxz_cen[nz-2, :] - fluxz_cen[nz-3, :]
+        fluxx_cen = np.empty_like(fluxx_up);         fluxz_cen = np.empty_like(fluxx_up)
+        fluxx_cen = 0.5 * ( conc.a[1:-1,:-1]*ux[1:-1,:-1] + conc.a[1:-1,1:]*ux[1:-1,1:] ) 
+        fluxz_cen = 0.5 * ( conc.a[:-1,1:-1]*uz[:-1,1:-1] + conc.a[1:,1:-1]*uz[1:,1:-1] )
+
         # anti-diffusive flux
         adfx = fluxx_cen - fluxx_up                     # C*velocity
         adfz = fluxz_cen - fluxz_up
-        # calculate max/min values in neighbourhood 
-        conc3=np.empty((5,nz,nx)); tau3=np.empty((5,nz,nx))
-        # open domain
-        conc3[0,1:nz-1,1:nx-1] = conc.a[1:nz-1,0:nx-2]
-        conc3[1,1:nz-1,1:nx-1] = conc.a[1:nz-1,1:nx-1]
-        conc3[2,1:nz-1,1:nx-1] = conc.a[1:nz-1,2:nx]
-        conc3[3,1:nz-1,1:nx-1] = conc.a[0:nz-2,1:nx-1]
-        conc3[4,1:nz-1,1:nx-1] = conc.a[2:nz,1:nx-1]
-        tau3[0,1:nz-1,1:nx-1] = tau_up[1:nz-1,0:nx-2]
-        tau3[1,1:nz-1,1:nx-1] = tau_up[1:nz-1,1:nx-1]
-        tau3[2,1:nz-1,1:nx-1] = tau_up[1:nz-1,2:nx]
-        tau3[3,1:nz-1,1:nx-1] = tau_up[0:nz-2,1:nx-1]
-        tau3[4,1:nz-1,1:nx-1] = tau_up[2:nz,1:nx-1]   # C
-        # on bounds
-        # x = 0
-        conc3[0,1:nz-1, 0] = conc.a[0:nz-2, 0]
-        conc3[1,1:nz-1, 0] = conc.a[1:nz-1, 0]
-        conc3[2,1:nz-1, 0] = conc.a[2:nz, 0]
-        conc3[3,1:nz-1, 0] = conc.a[1:nz-1, 1]
-        conc3[4,1:nz-1, 0] = conc.a[1:nz-1, 1]
-        tau3[0,1:nz-1, 0] = tau_up[0:nz-2, 0]
-        tau3[1,1:nz-1, 0] = tau_up[1:nz-1, 0]
-        tau3[2,1:nz-1, 0] = tau_up[2:nz, 0]
-        tau3[3,1:nz-1, 0] = tau_up[1:nz-1, 1]
-        tau3[4,1:nz-1, 0] = tau_up[1:nz-1, 1]
-        # x = xmax
-        conc3[0,1:nz-1, nx-1] = conc.a[0:nz-2, nx-1]
-        conc3[1,1:nz-1, nx-1] = conc.a[1:nz-1, nx-1]
-        conc3[2,1:nz-1, nx-1] = conc.a[2:nz, nx-1]
-        conc3[3,1:nz-1, nx-1] = conc.a[1:nz-1, nx-2]
-        conc3[4,1:nz-1, nx-1] = conc.a[1:nz-1, nx-2]
-        tau3[0,1:nz-1, nx-1] = tau_up[0:nz-2, nx-1]
-        tau3[1,1:nz-1, nx-1] = tau_up[1:nz-1, nx-1]
-        tau3[2,1:nz-1, nx-1] = tau_up[2:nz, nx-1]
-        tau3[3,1:nz-1, nx-1] = tau_up[1:nz-1, nx-2]
-        tau3[4,1:nz-1, nx-1] = tau_up[1:nz-1, nx-2]
-        # z = 0
-        conc3[0,0,1:nx-1] = conc.a[0,0:nx-2]
-        conc3[1,0,1:nx-1] = conc.a[0,1:nx-1]
-        conc3[2,0,1:nx-1] = conc.a[0,2:nx]
-        conc3[3,0,1:nx-1] = conc.a[1,1:nx-1]
-        conc3[4,0,1:nx-1] = conc.a[1,1:nx-1]
-        tau3[0,0,1:nx-1] = tau_up[0,0:nx-2]
-        tau3[1,0,1:nx-1] = tau_up[0,1:nx-1]
-        tau3[2,0,1:nx-1] = tau_up[0,2:nx]
-        tau3[3,0,1:nx-1] = tau_up[1,1:nx-1]
-        tau3[4,0,1:nx-1] = tau_up[1,1:nx-1]
-        # z = zmax
-        conc3[0,nz-1,1:nx-1] = conc.a[nz-1,0:nx-2]
-        conc3[1,nz-1,1:nx-1] = conc.a[nz-1,1:nx-1]
-        conc3[2,nz-1,1:nx-1] = conc.a[nz-1,2:nx]
-        conc3[3,nz-1,1:nx-1] = conc.a[nz-2,1:nx-1]
-        conc3[4,nz-1,1:nx-1] = conc.a[nz-2,1:nx-1]
-        tau3[0,nz-1,1:nx-1] = tau_up[nz-1,0:nx-2]
-        tau3[1,nz-1,1:nx-1] = tau_up[nz-1,1:nx-1]
-        tau3[2,nz-1,1:nx-1] = tau_up[nz-1,2:nx]
-        tau3[3,nz-1,1:nx-1] = tau_up[nz-2,1:nx-1]
-        tau3[4,nz-1,1:nx-1] = tau_up[nz-2,1:nx-1]
-        # top left
-        conc3[0,0,0] = conc.a[0,0]
-        conc3[1,0,0] = conc.a[0,1]
-        conc3[2,0,0] = conc.a[1,0]
-        conc3[3,0,0] = conc.a[1,0]
-        conc3[4,0,0] = conc.a[1,0]
-        tau3[0,0,0] = tau_up[0,0]
-        tau3[1,0,0] = tau_up[0,1]
-        tau3[2,0,0] = tau_up[1,0]
-        tau3[3,0,0] = tau_up[1,0]
-        tau3[4,0,0] = tau_up[1,0]
-        # top right
-        conc3[0,0,nx-1] = conc.a[0,nx-1]
-        conc3[1,0,nx-1] = conc.a[0,nx-2]
-        conc3[2,0,nx-1] = conc.a[1,nx-1]
-        conc3[3,0,nx-1] = conc.a[1,nx-1]
-        conc3[4,0,nx-1] = conc.a[1,nx-1]
-        tau3[0,0,nx-1] = tau_up[0,nx-1]
-        tau3[1,0,nx-1] = tau_up[0,nx-2]
-        tau3[2,0,nx-1] = tau_up[1,nx-1]
-        tau3[3,0,nx-1] = tau_up[1,nx-1]
-        tau3[4,0,nx-1] = tau_up[1,nx-1]
-        # bottom left
-        conc3[0,nz-1,0] = conc.a[nz-1,0]
-        conc3[1,nz-1,0] = conc.a[nz-1,1]
-        conc3[2,nz-1,0] = conc.a[nz-2,0]
-        conc3[3,nz-1,0] = conc.a[nz-2,0]
-        conc3[4,nz-1,0] = conc.a[nz-2,0]
-        tau3[0,nz-1,0] = tau_up[nz-1,0]
-        tau3[1,nz-1,0] = tau_up[nz-1,1]
-        tau3[2,nz-1,0] = tau_up[nz-2,0]
-        tau3[3,nz-1,0] = tau_up[nz-2,0]
-        tau3[4,nz-1,0] = tau_up[nz-2,0]
-        # bottom right
-        conc3[0,nz-1,nx-1] = conc.a[nz-1,nx-1]
-        conc3[1,nz-1,nx-1] = conc.a[nz-1,nx-2]
-        conc3[2,nz-1,nx-1] = conc.a[nz-2,nx-1]
-        conc3[3,nz-1,nx-1] = conc.a[nz-2,nx-1]
-        conc3[4,nz-1,nx-1] = conc.a[nz-2,nx-1]
-        tau3[0,nz-1,nx-1] = tau_up[nz-1,nx-1]
-        tau3[1,nz-1,nx-1] = tau_up[nz-1,nx-2]
-        tau3[2,nz-1,nx-1] = tau_up[nz-2,nx-1]
-        tau3[3,nz-1,nx-1] = tau_up[nz-2,nx-1]
-        tau3[4,nz-1,nx-1] = tau_up[nz-2,nx-1]
+
+        # calculate max/min values in neighbourhood (at grid)
+        conc3=np.zeros((5,nz,nx)); tau3=np.zeros((5,nz,nx))
+        # center
+        conc3[0,1:-1,1:-1] = conc.a[1:-1,0:-2]         # one to left
+        conc3[1,1:-1,1:-1] = conc.a[1:-1,1:-1]         # central
+        conc3[2,1:-1,1:-1] = conc.a[1:-1,2:]           # one to right
+        conc3[3,1:-1,1:-1] = conc.a[0:-2,1:-1]         # one up
+        conc3[4,1:-1,1:-1] = conc.a[2:,1:-1]           # one down
+        tau3[0,1:-1,1:-1] = tau_up[1:-1,0:-2]          # one to left
+        tau3[1,1:-1,1:-1] = tau_up[1:-1,1:-1]          # central
+        tau3[2,1:-1,1:-1] = tau_up[1:-1,2:]            # one to right
+        tau3[3,1:-1,1:-1] = tau_up[0:-2,1:-1]          # one up
+        tau3[4,1:-1,1:-1] = tau_up[2:,1:-1]   # C      # one down
         # take minimum along 0-axis
         conc_up = np.maximum(np.amax(conc3,axis=0),np.amax(tau3,axis=0))   # C
         conc_do = np.minimum(np.amin(conc3,axis=0),np.amin(tau3,axis=0))   # C
-        # define anti-diffusive influx and outflux in x
+	# boundary conditions
+	conc_up[0] = conc_up[1]; conc_up[-1] = conc_up[-2]
+	conc_up[:,0] = conc_up[:,1]; conc_up[:,-1] = conc_up[:,-2]
+	conc_do[0] = conc_do[1]; conc_do[-1] = conc_do[-2]
+	conc_do[:,0] = conc_do[:,1]; conc_do[:,-1] = conc_do[:,-2]
+
+        # define anti-diffusive influx and outflux in x (at grid)
         xpos = np.empty((nz, nx)); xneg = np.empty((nz, nx))  
-        nfluxx = np.sign(adfx)*0.5*(np.sign(adfx) - 1)                          # dimensionless
-        pfluxx = np.sign(adfx)*0.5*(np.sign(adfx) + 1)
-        xpos[0:nz, 1:nx] = pfluxx[0:nz, 0:nx-1] * adfx[0:nz, 0:nx-1] - nfluxx[0:nz, 1:nx] * adfx[0:nz, 1:nx]    # conc*velocity
-        xpos[0:nz, 0] = - nfluxx[0:nz, 0] * adfx[0:nz, 0]
-        xneg[0:nz, 1:nx] = pfluxx[0:nz, 1:nx] * adfx[0:nz, 1:nx] - nfluxx[0:nz, 0:nx-1] * adfx[0:nz, 0:nx-1]
-        xneg[0:nz, 0] = pfluxx[0:nz, 0] * adfx[0:nz, 0] 
-        # anti-diffusive influx and outflux in z 
+
+        nfluxx = 0.5*(np.sign(adfx) - 1)                          # dimensionless
+        pfluxx = 0.5*(np.sign(adfx) + 1)
+
+	# center
+        xpos[1:-1,1:-1] = pfluxx[:,:-1] * adfx[:,:-1] - nfluxx[:, 1:] * adfx[:,1:]    # conc*velocity
+        xneg[1:-1,1:-1] = pfluxx[:,1:] * adfx[:,1:] - nfluxx[:,:-1] * adfx[:,:-1]
+	# x-boundaries 
+	xpos[1:-1,0] =  - nfluxx[:, 0] * adfx[:,0]; xpos[1:-1,-1] =  pfluxx[:,-1] * adfx[:,-1]
+	xneg[1:-1,0] =  pfluxx[:,0] * adfx[:,0];    xneg[1:-1,-1] =  - nfluxx[:,-1] * adfx[:,-1]
+	xpos[0] = xpos[1]; xpos[-1] = xpos[-2]
+	xneg[0] = xneg[1]; xneg[-1] = xneg[-2]
+
+        # anti-diffusive influx and outflux in z (at grid)
         zpos = np.empty((nz, nx)); zneg = np.empty((nz, nx))
-        nfluxz = np.sign(adfz)*0.5*(np.sign(adfz) - 1)
-        pfluxz = np.sign(adfz)*0.5*(np.sign(adfz) + 1)
-        zpos[1:nz, 0:nx] = pfluxz[0:nz-1, 0:nx] * adfz[0:nz-1, 0:nx] - nfluxz[1:nz, 0:nx] * adfz[1:nz, 0:nx]    # conc*velocity
-        zpos[0, 0:nx] = - nfluxz[0, 0:nx] * adfz[0, 0:nx]
-        zneg[1:nz, 0:nx] = pfluxz[1:nz, 0:nx] * adfz[1:nz, 0:nx] - nfluxz[0:nz-1, 0:nx] * adfz[0:nz-1, 0:nx]
-        zneg[0, 0:nx] = pfluxz[0, 0:nx] * adfz[0, 0:nx]
-        # total influx/outflux
+
+        nfluxz = 0.5*(np.sign(adfz) - 1)
+        pfluxz = 0.5*(np.sign(adfz) + 1)
+
+	# center
+        zpos[1:-1,1:-1] = pfluxz[:-1,:] * adfz[:-1,:] - nfluxz[1:,:] * adfz[1:,:]    # conc*velocity
+        zneg[1:-1,1:-1] = pfluxz[1:,:] * adfz[1:,:] - nfluxz[:-1,:] * adfz[:-1,:]
+	# z-boundaries 
+	zpos[0,1:-1] =  - nfluxz[0] * adfz[0];  zpos[-1,1:-1] = pfluxz[-1,:] * adfz[-1,:]
+	zneg[0,1:-1] =  pfluxz[0] * adfz[0];    zneg[-1,1:-1] = -nfluxz[-1,:] * adfz[-1,:]
+	zpos[:,0] = zpos[:,1]; zpos[:,-1] = zpos[:,-2]
+	zneg[:,0] = zneg[:,1]; zneg[:,-1] = zneg[:,-2]
+
+        # total influx/outflux (at grid)
         fpos = xpos*conc.dx_i + zpos*conc.dz_i              # units: concentration/time
         fneg = xneg*conc.dx_i + zneg*conc.dz_i
-        # non dimensional Zalesak parameter 
+
+        # non dimensional Zalesak parameter  (at grid)
         vsmall = 1e-12
         # = (max_conc - upstream_conc) / influx
         betaup = (conc_up - tau_up) / (fpos*conc.dt + vsmall)
         # = (upstream_conc - min_conc) / outflux
         betado = (tau_up - conc_do) / (fneg*conc.dt + vsmall)
-        # flux limiters
-        zaux = np.empty((nz,nx))
-        zaux[:,0:nx-1] = np.minimum(np.ones(nx-1), np.minimum(betado[:,:nx-1], betaup[:,1:]))
-        zbux = np.empty((nz,nx))
-        zbux[:,0:nx-1] = np.minimum(np.ones(nx-1), np.minimum(betaup[:,:nx-1], betado[:,1:]))
+
+        # flux limiters ... on flux points 
+        zaux = np.zeros_like(fluxx_up)
+        zaux = np.minimum(np.ones(nx-1), np.minimum(betado[1:-1,:-1], betaup[1:-1,1:]))
+        zbux = np.zeros_like(fluxx_up)
+        zbux = np.minimum(np.ones(nx-1), np.minimum(betaup[1:-1,:-1], betado[1:-1,1:]))
         zcux = (0.5 + 0.5*np.sign(adfx))
-        zauz = np.empty((nz,nx))
-        zauz[0:nz-1,:] = np.minimum(np.ones((nz-1, nx)),np.minimum(betado[0:nz-1,:], betaup[1:,:]))
-        zbuz = np.empty((nz,nx))
-        zbuz[0:nz-1,:] = np.minimum(np.ones((nz-1, nx)),np.minimum(betaup[0:nz-1,:], betado[1:,:]))
+
+        zauz = np.zeros_like(fluxz_up)
+        zauz = np.minimum(np.ones((nz-1, nx-2)),np.minimum(betado[:-1,1:-1], betaup[1:,1:-1]))
+        zbuz = np.zeros_like(fluxz_up)
+        zbuz = np.minimum(np.ones((nz-1, nx-2)),np.minimum(betaup[:-1,1:-1], betado[1:,1:-1]))
         zcuz = (0.5 + 0.5*np.sign(adfz))
-        # calculate TVD flux in x and z
+
+        # calculate TVD flux in x and z # needed from 0 to nx-2
         aaz = adfz * (zcuz * zauz + (1-zcuz)*zbuz)                                                   # C m/s on flux points
         aax = adfx * (zcux * zaux + (1-zcux)*zbux)
-        # final sol.
-        adv = np.empty((nz, nx))
-        adv[1:nz, 1:nx] = dtau_up_dt[1:nz, 1:nx] +  (aax[1:nz, 0:nx-1] - aax[1:nz, 1:nx]) * conc.dx_i + (aaz[0:nz-1, 1:nx] - aaz[1:nz, 1:nx]) * conc.dz_i        
-        adv[1:nz, 0] = dtau_up_dt[1:nz, 0] - aax[1:nz, 0]*conc.dx_i + (aaz[0:nz-1, 0] - aaz[1:nz, 0]) * conc.dz_i
-        adv[0, 1:nx] = dtau_up_dt[0, 1:nx] +  (aax[0, 0:nx-1] - aax[0, 1:nx]) * conc.dx_i - aaz[0, 1:nx] * conc.dz_i
+
+        # final sol.  # not needed on boundaries
+        adv = np.zeros((nz, nx))
+        adv[1:-1, 1:-1] = (dtau_up_dt[1:-1, 1:-1] +  (aax[:,:-1] - aax[:,1:]) * conc.dx_i 
+                                                   + (aaz[:-1,:] - aaz[1:,:]) * conc.dz_i)       
+        
         return adv
 
 def k_sorp2(string, zmin, zmax, nx, nz):
