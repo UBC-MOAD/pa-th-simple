@@ -103,7 +103,7 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
         # define upstream for dissolved phase
 	p_upz_d = sign_uz * (sign_uz - 1)/2
 	n_upz_d = sign_uz * (sign_uz + 1)/2
-	# define upstream in x, if flow is in positive x, p_upx is negative and n_upx is positive
+	# define upstream in x, if flow is in positive x, p_upx is 0 and n_upx is positive
 	p_upx = sign_ux * (sign_ux - 1)/2
 	n_upx = sign_ux * (sign_ux + 1)/2
 
@@ -155,13 +155,14 @@ def upstream(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
 
         # define fluxes
         adv = np.empty_like(conc.a)
+	# grad size nz-2, nx-2, i.e. on grid, no boundaries
 
-        left_grad = n_upx[1:nz-1, 0:nx-2]*(conc.a[1:nz-1, 0:nx-2] - conc.a[1:nz-1, 1:nx-1])
-        right_grad = p_upx[1:nz-1, 1:nx-1]*(conc.a[1:nz-1, 1:nx-1] - conc.a[1:nz-1, 2:nx])
-        up_grad = n_upz[0:nz-2, 1:nx-1]*(conc.a[0:nz-2, 1:nx-1] - conc.a[1:nz-1, 1:nx-1])
-        down_grad = p_upz[1:nz-1, 1:nx-1]*(conc.a[1:nz-1, 1:nx-1] - conc.a[2:nz, 1:nx-1])
+        left_grad = n_upx[:,:-1] * (conc.a[1:-1,:-2] - conc.a[1:-1,1:-1])
+        right_grad = p_upx[:,1:]*(conc.a[1:-1, 1:-1] - conc.a[1:-1, 2:])
+        up_grad = n_upz[:-1,:]*(conc.a[:-2, 1:-1] - conc.a[1:-1, 1:-1])
+        down_grad = p_upz[1:,:]*(conc.a[1:-1, 1:-1] - conc.a[2:, 1:-1])
 
-        # dissolved advective term:
+        # advective term:
         adv[1:nz-1, 1:nx-1] = ux[1:nz-1, 1:nx-1] * ( left_grad + right_grad ) * conc.dx_i + uz[1:nz-1, 1:nx-1] * ( up_grad + down_grad ) * conc.dz_i 
 
         return adv
