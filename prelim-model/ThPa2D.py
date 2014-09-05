@@ -96,7 +96,6 @@ def adflow(g, h, t, T, u, k_ad, k_de, Q, adscheme):
 	sign_uz_S = np.sign(uz[:-1, 1:-1] + uz[1:, 1:-1] + S)
 	sign_uz = np.sign(uz[:-1, 1:-1] + uz[1:, 1:-1])
 	sign_ux = np.sign(ux[1:-1, :-1] + ux[1:-1, 1:])
-	print sign_uz.shape, sign_ux.shape
         # define upstream for particulate phase (contains sinking vel.)
 	p_upz_p = sign_uz_S * (sign_uz_S - 1)/2
 	n_upz_p = sign_uz_S * (sign_uz_S + 1)/2
@@ -132,10 +131,10 @@ def flux(conc, u, p_upz, n_upz, p_upx, n_upx, sinkrate):
 	vert_flux = conc.a * (u[0, :, :] + sinkrate)
 	horz_flux = conc.a * u[1, :, :]
 	
-	left_flux =  n_upx[1:nz-1, 0:nx-2] * ( horz_flux[1:nz-1, 0:nx-2] - horz_flux[1:nz-1, 1:nx-1] )
-	right_flux = p_upx[1:nz-1, 1:nx-1] * ( horz_flux[1:nz-1, 1:nx-1] - horz_flux[1:nz-1, 2:nx] )
-	up_flux = n_upz[0:nz-2, 1:nx-1] * ( vert_flux[0:nz-2, 1:nx-1] - vert_flux[1:nz-1, 1:nx-1] )
-        down_flux = p_upz[1:nz-1, 1:nx-1] * ( vert_flux[1:nz-1, 1:nx-1] - vert_flux[2:nz, 1:nx-1] )
+	left_flux =  n_upx[:,:-1] * ( horz_flux[1:nz-1, 0:nx-2] - horz_flux[1:nz-1, 1:nx-1] )
+	right_flux = p_upx[:,1:]  * ( horz_flux[1:nz-1, 1:nx-1] - horz_flux[1:nz-1, 2:nx] )
+	up_flux =    n_upz[:-1,:] * ( vert_flux[0:nz-2, 1:nx-1] - vert_flux[1:nz-1, 1:nx-1] )
+        down_flux =  p_upz[1:,:] *  ( vert_flux[1:nz-1, 1:nx-1] - vert_flux[2:nz, 1:nx-1] )
 		    
 	adv = np.empty_like(conc.a)
         adv[1:nz-1, 1:nx-1] = (left_flux + right_flux) * conc.dx_i + (up_flux + down_flux) * conc.dz_i
